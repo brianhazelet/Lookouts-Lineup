@@ -296,6 +296,7 @@ header .tabs{display:none!important}
 .fp th.cur{color:var(--red-ink)}
 .fp th button{background:transparent;color:inherit;font:inherit;padding:4px 6px;border-radius:6px}
 .fp td.n{font-weight:600;font-size:14px;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;padding-right:4px;text-align:left}
+.fp td.c.av{outline:2px dashed var(--red-ink);outline-offset:-2px}
 .fp td.c{font:800 11px var(--body);color:#fff;text-align:center;border-radius:6px;padding:6px 0;min-width:38px}
 .fp td.c.inf{background:var(--if-fill);color:var(--if-ink)}.fp td.c.of{background:var(--of-fill);color:var(--of-ink);box-shadow:inset 0 0 0 1.5px var(--of-ink)}.fp td.c.bn{background:var(--bn)}
 .fp td.c.un{background:transparent;border:1px dashed var(--line);color:var(--muted);font-weight:600}
@@ -325,6 +326,14 @@ header h1{display:flex;align-items:center;min-width:0;white-space:nowrap}
 header h1 #teamName{overflow:hidden;text-overflow:ellipsis}
 header h1 .live{flex:none}
 .brand{gap:8px!important}
+.rrow .avbtn{background:transparent;border:1px solid var(--line);border-radius:8px;height:34px;padding:0 8px;font-weight:700;font-size:12px;color:var(--muted);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+.rrow .avbtn.on{border-color:var(--red-ink);color:var(--red-ink)}
+.rrow .avrow{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 6px}
+.rrow .avrow button{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-weight:800;font-size:13px}
+.rrow .avrow button[aria-pressed="true"]{background:var(--red);color:var(--on-red);border-color:var(--red)}
+.fieldpick{display:flex;flex-wrap:wrap;gap:6px}
+.fieldpick button{background:var(--surface2);border:1px solid var(--line);border-radius:8px;min-width:40px;padding:8px 10px;font-weight:800}
+.fieldpick button[aria-pressed="true"]{background:var(--hi);color:var(--on-hi);border-color:var(--hi)}
 /* loading screen */
 #loader{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 #loader svg{width:min(70vw,280px);height:auto;overflow:visible}
@@ -404,7 +413,7 @@ header h1 .live{flex:none}
   <!-- BATTING -->
   <section id="v-bat">
     <div style="display:flex;flex-direction:column;gap:14px">
-      <button type="button" class="nextgame" id="nextGame" hidden><span class="lbl">Next game</span><span id="nextGameTxt"></span></button>
+      <button type="button" class="nextgame" id="nextGame" hidden><span class="lbl" id="nextLbl">Next game</span><span id="nextGameTxt"></span></button>
       <p class="sub" id="round"></p>
       <section class="plate" aria-live="polite">
         <span class="lbl">At bat</span>
@@ -533,7 +542,7 @@ header h1 .live{flex:none}
     <div style="display:flex;flex-direction:column;gap:14px">
       <div class="games" id="gamesList"></div>
       <details class="past" id="pastWrap" hidden><summary id="pastSum">Past games</summary><div class="games" id="pastList" style="margin-top:10px"></div></details>
-      <button class="go" type="button" id="addGame">Add a game</button>
+      <button class="go" type="button" id="addGame">Add game or practice</button>
       <div class="grid2"><button class="ghost" type="button" id="impOpen">Import schedule</button><button class="ghost" type="button" id="calAll">Add all to calendar</button></div>
       <div class="game impbox" id="impBox" hidden>
         <h3 style="margin:0;font:900 20px var(--display);text-transform:uppercase">Import schedule</h3>
@@ -544,14 +553,15 @@ header h1 .live{flex:none}
         <div class="gbtns" id="impConfirm" hidden><button type="button" class="pri" id="impAdd">Add games</button></div>
       </div>
       <div class="game" id="gameForm" hidden>
-        <h3 id="gfTitle" style="margin:0;font:900 20px var(--display);text-transform:uppercase">Add a game</h3>
+        <h3 id="gfTitle" style="margin:0;font:900 20px var(--display);text-transform:uppercase">Add to schedule</h3>
         <div class="form">
           <div class="two"><label>Date<input id="gfDate" type="date"></label><label>Time<input id="gfTime" type="time"></label></div>
-          <label>Opponent<input id="gfOpp" type="text" maxlength="24" placeholder="Red Sox" autocomplete="off"></label>
-          <label>Field or location<input id="gfLoc" type="text" maxlength="60" placeholder="Leave blank for home field" autocomplete="off"></label>
+          <div class="two"><label>Type<select id="gfKind"><option value="game">Game</option><option value="practice">Practice</option></select></label><label id="gfOppL">Opponent<input id="gfOpp" type="text" maxlength="24" placeholder="Red Sox" autocomplete="off"></label></div>
+          <div id="gfFieldWrap" hidden><label>Field</label><div class="fieldpick" id="gfField"></div></div>
+          <label>Location<input id="gfLoc" type="text" maxlength="110" placeholder="Leave blank for home field" autocomplete="off"></label>
           <div class="two"><label>We are<select id="gfHome"><option value="away">Away (bat top)</option><option value="home">Home (bat bottom)</option></select></label><label>Arrive early (min)<input id="gfArrive" type="number" min="0" max="120" step="5" placeholder="30"></label></div>
         </div>
-        <div class="gbtns"><button type="button" class="pri" id="gfSave">Save game</button><button type="button" id="gfCancel">Cancel</button><button type="button" id="gfDelete" hidden>Delete</button></div>
+        <div class="gbtns"><button type="button" class="pri" id="gfSave">Save</button><button type="button" id="gfCancel">Cancel</button><button type="button" id="gfDelete" hidden>Delete</button></div>
       </div>
       <p class="hint">Text parents opens your Messages app with the game details filled in. Pick your parent group and send.</p>
     </div>
@@ -562,14 +572,14 @@ header h1 .live{flex:none}
   <div class="scrim" id="tsScrim"></div>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="tsTitle">
     <h2 id="tsTitle">Team settings</h2>
-    <div class="form"><label>Team name<input id="tsName" type="text" maxlength="24" autocomplete="off"></label><label>Home field<input id="tsHome" type="text" maxlength="90" autocomplete="off" placeholder="Park name and address"></label></div>
+    <div class="form"><label>Team name<input id="tsName" type="text" maxlength="24" autocomplete="off"></label><label>Home field<input id="tsHome" type="text" maxlength="110" autocomplete="off" placeholder="Park name and address"></label><label>Fields at the park<input id="tsNF" type="number" min="0" max="12" step="1" placeholder="0"></label></div>
     <div class="form"><label>Main color</label></div><div class="swatches" id="tsC1"></div>
     <div class="form"><label>Lettering color</label></div><div class="swatches" id="tsC2"></div>
     <h2 style="font-size:20px">Roster</h2>
     <div class="rhead" style="grid-template-columns:1fr 64px 34px"><span>Name</span><span>#</span><span></span></div>
     <div class="form" id="tsRows"></div>
     <button class="ghost" type="button" id="tsAddRow" style="padding:12px">+ Add a player</button>
-    <p class="sub" style="margin:0">Saving roster changes reloads the app on every coach's phone.</p>
+    <p class="sub" style="margin:0">Tap Avoid on a player to keep them out of certain spots. Plan, Rotate and Shuffle will steer around them. Saving roster changes reloads the app on every coach's phone.</p>
     <div class="row2"><button class="ghost" type="button" id="tsCancel">Cancel</button><button class="go" type="button" id="tsSave" style="font-size:20px;padding:12px">Save</button></div>
     <div class="or">this phone</div>
     <button class="ghost" type="button" id="tsSwitch" style="padding:12px">Switch to a different team</button>
@@ -649,8 +659,8 @@ const STOCK={}; ["P","C","1B","2B","3B","SS","LF","LCF","RCF","RF"].forEach((k,i
 
 const INNINGS=4;
 
-const K_HOME="dugout-home",K_SCHED="dugout-sched",K_BAT="dugout-bat",K_FIELD="dugout-field",K_TAB="dugout-tab",K_TEE="dugout-tee",K_SCORE="dugout-score",K_DEF="dugout-default";
-const NODE={[K_HOME]:"homefield",[K_SCHED]:"schedule",[K_BAT]:"bat",[K_FIELD]:"field",[K_TEE]:"tee",[K_SCORE]:"score",[K_DEF]:"default"};
+const K_AVOID="dugout-avoid",K_NFIELDS="dugout-nfields",K_HOME="dugout-home",K_SCHED="dugout-sched",K_BAT="dugout-bat",K_FIELD="dugout-field",K_TAB="dugout-tab",K_TEE="dugout-tee",K_SCORE="dugout-score",K_DEF="dugout-default";
+const NODE={[K_AVOID]:"avoid",[K_NFIELDS]:"nfields",[K_HOME]:"homefield",[K_SCHED]:"schedule",[K_BAT]:"bat",[K_FIELD]:"field",[K_TEE]:"tee",[K_SCORE]:"score",[K_DEF]:"default"};
 const NS="@"+TEAM.code;
 const load=(k,d)=>{const n=NODE[k];
   if(n&&TEAM.init&&TEAM.init[n]!=null){try{return JSON.parse(TEAM.init[n])}catch(e){}}
@@ -681,7 +691,14 @@ function saveBat(){store(K_BAT,bat)}
 let tee=load(K_TEE,null); if(!Array.isArray(tee))tee=[];
 let sched=load(K_SCHED,null); if(!Array.isArray(sched))sched=[];
 let homeField=load(K_HOME,""); if(typeof homeField!=="string")homeField="";
-const locOf=g=>g.loc||homeField;
+let nFields=load(K_NFIELDS,0); if(!Number.isInteger(nFields)||nFields<0)nFields=0;
+let AVOID=load(K_AVOID,{}); if(!AVOID||typeof AVOID!=="object")AVOID={};
+const fieldLbl=g=>g.fieldNo?"Field "+g.fieldNo:"";
+const placeOf=g=>g.loc||homeField;
+const locOf=g=>[fieldLbl(g),placeOf(g)].filter(Boolean).join(", ");
+const isPrac=g=>g&&g.kind==="practice";
+const OFC=new Set(["LCF","CF","RCF"]);
+function avoids(p,k){const a=AVOID[p]; if(!a||!a.length||!k)return false; return a.includes(k)||(OFC.has(k)&&a.includes("CF"))}
 const NEWSCORE=()=>({us:0,them:0,opp:"",inning:1,top:true,outs:0,hr:0,weTop:true,clock:{dur:60,start:null,used:0}});
 let sc=load(K_SCORE,null);
 function normSc(){ if(!sc||typeof sc.us!=="number")sc=NEWSCORE(); if(typeof sc.weTop!=="boolean")sc.weTop=true; if(typeof sc.hr!=="number")sc.hr=0;
@@ -717,7 +734,7 @@ function meta(p){const k=posOf(p,inn(fld.inning));return (LINEUP[p][1]?"#"+LINEU
 /* ---------- batting ---------- */
 function renderBat(){
   const A=act(), L=A.length, slot=bat.count%L, at=k=>A[(slot+k)%L], up=at(0),deck=at(1),hole=at(2), round=Math.floor(bat.count/L)+1;
-  { const g=nextGame(); $("nextGame").hidden=!g; if(g)$("nextGameTxt").textContent=gameWhen(g)+(g.opp?" vs "+g.opp:"")+(locOf(g)?" · "+locOf(g).split(",")[0]:""); }
+  { const g=nextGame(); $("nextGame").hidden=!g; if(g)$("nextGameTxt").textContent=gameWhen(g)+(isPrac(g)?" · Practice":(g.opp?" vs "+g.opp:""))+(placeOf(g)?" · "+(fieldLbl(g)?fieldLbl(g)+", ":"")+placeOf(g).split(",")[0]:""); }
   $("round").textContent="Time through the order: "+round+"  ·  positions from inning "+fld.inning;
   $("upName").textContent=LINEUP[up][0]; $("upMeta").textContent=(slot+1)+" in order · "+meta(up)+" · "+ordinal(abOf(up)+1)+" time up";
   $("deckName").textContent=LINEUP[deck][0]; $("deckMeta").textContent=meta(deck);
@@ -882,8 +899,10 @@ function openSheet(k){
     if(map[k]===i) b.className="cur";
     b.innerHTML=`<span class="n"></span><span class="w"></span>`;
     b.querySelector(".n").textContent=pl[0];
-    b.querySelector(".w").textContent="#"+pl[1]+" · "+(where?(where===k?"Here now":"Playing "+where):"Bench");
-    b.onclick=()=>{assign(k,i);closeSheet()};
+    const av=avoids(i,k);
+    b.querySelector(".w").textContent=(pl[1]?"#"+pl[1]+" · ":"")+(where?(where===k?"Here now":"Playing "+where):"Bench")+(av?" · Avoid "+k:"");
+    if(av)b.style.opacity=".55";
+    b.onclick=()=>{assign(k,i);closeSheet();if(av)toast(first(i)+" is set to avoid "+k)};
     box.appendChild(b);
   });
   const pr=$("pinRow"); pr.innerHTML="";
@@ -979,7 +998,7 @@ document.querySelectorAll("[data-newgame]").forEach(b=>b.onclick=()=>{
   fld={inning:1,of:4,innings:{1:{...DEFAULT}}}; setOF(autoOF(IDS.length));
   { const m=fld.innings[1], bench=IDS.filter(p=>posOf(p,m)===null); curPOS().forEach(po=>{if(m[po.k]==null&&bench.length)m[po.k]=bench.shift()}); store(K_FIELD,fld); }
 
-  sc={...NEWSCORE(),weTop:sc.weTop}; { const g=nextGame(); if(g){ sc.opp=g.opp||""; sc.weTop=g.home!=="home" } } store(K_SCORE,sc);
+  sc={...NEWSCORE(),weTop:sc.weTop}; { const g=sortedGames().find(x=>!isPast(x)&&!isPrac(x)); if(g){ sc.opp=g.opp||""; sc.weTop=g.home!=="home" } } store(K_SCORE,sc);
   renderField(); renderBat(); renderScore(); window.scrollTo(0,0);
   if(GUESTS.length&&TEAM.ref){ TEAM.ref.child("state/guests").set("[]").then(()=>location.reload()).catch(()=>{}) }
 });
@@ -1045,13 +1064,21 @@ $("shuffleOrder").onclick=()=>{
   const L=act().length, round=Math.floor(bat.count/L);
   bat.order=shuffled(bat.order); bat.count=round*L; saveBat(); renderBat(); toast("Order shuffled");
 };
+function fixAvoid(m,keys){
+  for(let pass=0;pass<3;pass++) keys.forEach(k=>{ const p=m[k]; if(p==null||!avoids(p,k))return;
+    const pins=fld.pins||{};
+    let j=keys.find(k2=>k2!==k&&pins[k2]==null&&m[k2]!=null&&!avoids(p,k2)&&!avoids(m[k2],k));
+    if(j){const q=m[j]; m[j]=p; m[k]=q; return}
+    const b=act().find(x=>posOf(x,m)===null&&!avoids(x,k)); if(b!=null){m[k]=b} });
+  return m;
+}
 function activePins(){ const ks=curPOS().map(p=>p.k), A=act(), out={}; for(const k in (fld.pins||{})){ const pid=fld.pins[k]; if(ks.includes(k)&&A.includes(pid)&&!Object.values(out).includes(pid)) out[k]=pid } return out }
 function applyPins(m){ const pins=activePins(); for(const k in pins){ const pid=pins[k], from=posOf(pid,m); if(from&&from!==k)delete m[from]; m[k]=pid } return pins }
 $("shuffleF").onclick=()=>{
   if(guard())return;
   const m=inn(fld.inning), pins=applyPins(m), pp=new Set(Object.values(pins));
   const ks=curPOS().map(p=>p.k).filter(k=>pins[k]==null), ps=shuffled(act().filter(p=>!pp.has(p)));
-  ks.forEach(k=>delete m[k]); ks.forEach((k,i)=>{if(i<ps.length)m[k]=ps[i]}); save(); toast("Field shuffled");
+  ks.forEach(k=>delete m[k]); ks.forEach((k,i)=>{if(i<ps.length)m[k]=ps[i]}); fixAvoid(m,ks); save(); toast("Field shuffled");
 };
 $("rotateF").onclick=()=>{
   if(guard())return;
@@ -1061,7 +1088,7 @@ $("rotateF").onclick=()=>{
   line.unshift(line.pop());
   ks.forEach(k=>delete m[k]); ks.forEach((k,i)=>{if(i<line.length)m[k]=line[i]});
   const left=act().filter(p=>posOf(p,m)===null); ks.forEach(k=>{if(m[k]==null&&left.length)m[k]=left.shift()});
-  save(); toast("Everyone moved one spot");
+  fixAvoid(m,ks); save(); toast("Everyone moved one spot");
 };
 
 /* ---- games / schedule ---- */
@@ -1075,7 +1102,7 @@ function isPast(g){const d=gDate(g); if(!d)return false; const end=new Date(d); 
 function nextGame(){return sortedGames().find(g=>!isPast(g))||null}
 function gameText(g){
   const nm=TEAM.name||"Team", d=gDate(g);
-  let t=nm+" game"+(g.opp?" vs "+g.opp:"")+"\n"+gameWhen(g);
+  let t=nm+(isPrac(g)?" practice":" game"+(g.opp?" vs "+g.opp:""))+"\n"+gameWhen(g);
   if(locOf(g))t+="\n"+locOf(g);
   const ar=parseInt(g.arrive,10);
   if(d&&g.time&&ar>0){const a=new Date(d.getTime()-ar*60000); t+="\nPlease arrive by "+a.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})+"."}
@@ -1089,13 +1116,13 @@ function gameCard(g,isNext){
   el.innerHTML=`<div class="gh"><span class="gd"></span><span class="gt"></span></div><div class="gv"></div><div class="gl"></div><div class="gbtns"></div>`;
   el.querySelector(".gd").textContent=d?d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"Date TBD";
   el.querySelector(".gt").textContent=g.time&&d?d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}):"";
-  el.querySelector(".gv").textContent=(isNext?"Next up · ":"")+(g.opp?"vs "+g.opp:"Opponent TBD")+" · "+(g.home==="home"?"Home":"Away");
+  el.querySelector(".gv").textContent=(isNext?"Next up · ":"")+(isPrac(g)?"Practice":(g.opp?"vs "+g.opp:"Opponent TBD")+" · "+(g.home==="home"?"Home":"Away"));
   el.querySelector(".gl").textContent=locOf(g);
   const bx=el.querySelector(".gbtns");
   const btn=(t,cls,fn)=>{const b=document.createElement("button");b.type="button";b.textContent=t;if(cls)b.className=cls;b.onclick=fn;bx.appendChild(b);return b};
   btn("Text parents","pri",()=>{location.href="sms:&body="+encodeURIComponent(gameText(g))});
   btn("Copy",null,async()=>{try{await navigator.clipboard.writeText(gameText(g));toast("Message copied")}catch(e){toast("Copy failed")}});
-  if(locOf(g)){const a=document.createElement("a");a.textContent="Map";a.href="https://maps.apple.com/?q="+encodeURIComponent(locOf(g));a.target="_blank";a.rel="noopener";bx.appendChild(a)}
+  if(placeOf(g)){const a=document.createElement("a");a.textContent="Map";a.href="https://maps.apple.com/?q="+encodeURIComponent(placeOf(g));a.target="_blank";a.rel="noopener";bx.appendChild(a)}
   btn("Calendar",null,()=>downloadICS([g],(TEAM.name||"Game")+" "+(g.date||"")));
   btn("Edit",null,()=>openGameForm(g));
   return el;
@@ -1111,18 +1138,25 @@ function renderGames(){
 let delT=null;
 function openGameForm(g){
   editId=g?g.id:null; $("gameForm").hidden=false; $("addGame").hidden=true;
-  $("gfTitle").textContent=g?"Edit game":"Add a game";
+  $("gfTitle").textContent=g?(isPrac(g)?"Edit practice":"Edit game"):"Add to schedule";
   $("gfDate").value=g?g.date||"":""; $("gfTime").value=g?g.time||"":"";
   $("gfOpp").value=g?g.opp||"":""; $("gfLoc").value=g?g.loc||"":"";
   $("gfHome").value=g&&g.home==="home"?"home":"away"; $("gfArrive").value=g&&g.arrive!=null?g.arrive:"";
+  $("gfKind").value=isPrac(g)?"practice":"game"; gfFieldNo=g&&g.fieldNo?g.fieldNo:0; drawFieldPick(); kindUI();
   $("gfDelete").hidden=!g; $("gfDelete").classList.remove("arm"); $("gfDelete").textContent="Delete";
   $("gameForm").scrollIntoView({behavior:"smooth",block:"start"});
 }
+let gfFieldNo=0;
+function drawFieldPick(){ const w=$("gfField"); w.innerHTML=""; $("gfFieldWrap").hidden=!nFields;
+  [0,...Array.from({length:nFields},(_,i)=>i+1)].forEach(n=>{const b=document.createElement("button");b.type="button";b.textContent=n?String(n):"Any";
+    b.setAttribute("aria-pressed",gfFieldNo===n); b.onclick=()=>{gfFieldNo=n;drawFieldPick()}; w.appendChild(b)}) }
+function kindUI(){ const pr=$("gfKind").value==="practice"; $("gfOppL").style.visibility=pr?"hidden":""; $("gfHome").closest("label").style.display=pr?"none":"" }
+$("gfKind").onchange=kindUI;
 function closeGameForm(){$("gameForm").hidden=true;$("addGame").hidden=false;editId=null}
 $("addGame").onclick=()=>openGameForm(null);
 $("gfCancel").onclick=closeGameForm;
 $("gfSave").onclick=()=>{
-  const g={id:editId||Math.random().toString(36).slice(2,10),date:$("gfDate").value,time:$("gfTime").value,opp:$("gfOpp").value.trim(),loc:$("gfLoc").value.trim(),home:$("gfHome").value,arrive:$("gfArrive").value===""?null:parseInt($("gfArrive").value,10)};
+  const pr=$("gfKind").value==="practice"; const g={id:editId||Math.random().toString(36).slice(2,10),kind:pr?"practice":"game",fieldNo:gfFieldNo||0,date:$("gfDate").value,time:$("gfTime").value,opp:$("gfOpp").value.trim(),loc:$("gfLoc").value.trim(),home:$("gfHome").value,arrive:$("gfArrive").value===""?null:parseInt($("gfArrive").value,10)};
   if(!g.date){toast("Pick a date");return}
   const i=sched.findIndex(x=>x.id===g.id); if(i>=0)sched[i]=g; else sched.push(g);
   closeGameForm(); saveSched(); toast("Game saved");
@@ -1134,18 +1168,23 @@ $("gfDelete").onclick=()=>{const b=$("gfDelete");
 /* ---- team settings ---- */
 let tsRows=[], tsColors=null;
 function openTeamSheet(){
-  $("tsName").value=TEAM.name||""; $("tsHome").value=homeField;
+  $("tsName").value=TEAM.name||""; $("tsHome").value=homeField; $("tsNF").value=nFields||"";
   tsColors={...(TEAM.colors||CLASSIC)};
   colorPicker($("tsC1"),tsColors.p,v=>{tsColors.p=v;applyTheme(tsColors)});
   colorPicker($("tsC2"),tsColors.s,v=>{tsColors.s=v;applyTheme(tsColors)},true);
-  tsRows=LINEUP.map((p,i)=>({id:i,name:p[0],num:p[1],hidden:!!p[2]}));
+  tsRows=LINEUP.map((p,i)=>({id:i,name:p[0],num:p[1],hidden:!!p[2],guest:!!p[3],avoid:[...(AVOID[i]||[])],open:false})).filter(r=>!r.guest);
   drawTsRows(); $("teamSheet").hidden=false;
 }
 function drawTsRows(){
   const box=$("tsRows"); box.innerHTML="";
   tsRows.forEach((r,i)=>{ if(r.hidden)return;
-    const row=document.createElement("div"); row.className="rrow"; row.style.gridTemplateColumns="1fr 64px 34px";
-    row.innerHTML=`<input type="text" maxlength="30" aria-label="Player name"><input type="text" inputmode="numeric" maxlength="3" aria-label="Number"><button type="button" class="x" aria-label="Remove player">&times;</button>`;
+    const row=document.createElement("div"); row.className="rrow"; row.style.gridTemplateColumns="1fr 56px auto 34px";
+    row.innerHTML=`<input type="text" maxlength="30" aria-label="Player name"><input type="text" inputmode="numeric" maxlength="3" aria-label="Number"><button type="button" class="avbtn" aria-expanded="${r.open}"></button><button type="button" class="x" aria-label="Remove player">&times;</button><div class="avrow" ${r.open?"":"hidden"}></div>`;
+    const ab=row.querySelector(".avbtn"); ab.textContent=r.avoid.length?"Avoid "+r.avoid.join(", "):"Avoid";
+    ab.classList.toggle("on",r.avoid.length>0); ab.onclick=()=>{r.open=!r.open;drawTsRows()};
+    const ar=row.querySelector(".avrow");
+    ["P","C","1B","2B","3B","SS","LF","CF","RF"].forEach(k=>{const c=document.createElement("button");c.type="button";c.textContent=k;c.setAttribute("aria-pressed",r.avoid.includes(k));
+      c.onclick=()=>{r.avoid=r.avoid.includes(k)?r.avoid.filter(x=>x!==k):[...r.avoid,k];drawTsRows()};ar.appendChild(c)});
     const [n,num]=row.querySelectorAll("input"); n.value=r.name; num.value=r.num;
     n.oninput=()=>r.name=n.value; num.oninput=()=>r.num=num.value;
     row.querySelector(".x").onclick=()=>{ if(r.id==null)tsRows.splice(i,1); else r.hidden=true; drawTsRows() };
@@ -1156,7 +1195,10 @@ $("tsCancel").onclick=closeTeamSheet; $("tsScrim").onclick=closeTeamSheet;
 $("tsAddRow").onclick=()=>{tsRows.push({id:null,name:"",num:"",hidden:false});drawTsRows();const ins=$("tsRows").querySelectorAll(".rrow input[type=text]");ins[ins.length-2]&&ins[ins.length-2].focus()};
 $("tsSave").onclick=async()=>{
   const name=$("tsName").value.trim()||"Team";
-  const hf=$("tsHome").value.trim(); if(hf!==homeField){homeField=hf; store(K_HOME,hf); renderGames(); renderBat()}
+  const hf=$("tsHome").value.trim(); if(hf!==homeField){homeField=hf; store(K_HOME,hf)}
+  const nf=Math.max(0,Math.min(12,parseInt($("tsNF").value,10)||0)); if(nf!==nFields){nFields=nf; store(K_NFIELDS,nf)}
+  const av={}; tsRows.forEach(r=>{if(r.id!=null&&r.avoid.length)av[r.id]=r.avoid}); if(JSON.stringify(av)!==JSON.stringify(AVOID)){AVOID=av; store(K_AVOID,av)}
+  renderGames(); renderBat(); renderField();
   const roster=tsRows.filter(r=>r.id!=null||r.name.trim()).map(r=>{const e=[r.name.trim()||"Player",String(r.num||"").replace(/[^0-9]/g,"").slice(0,3)]; if(r.hidden)e.push(1); return e});
   if(!roster.some(e=>!e[2])){toast("Keep at least one player");return}
   const rosterChanged=JSON.stringify(roster)!==JSON.stringify(LINEUP);
@@ -1179,7 +1221,7 @@ function gameVEVENT(g){
   const L=["BEGIN:VEVENT","UID:"+g.id+"@buddydugout","DTSTAMP:"+now.getUTCFullYear()+pad(now.getUTCMonth()+1)+pad(now.getUTCDate())+"T"+pad(now.getUTCHours())+pad(now.getUTCMinutes())+"00Z"];
   if(g.time){const e=new Date(d.getTime()+90*60000); L.push("DTSTART:"+ymd(d)+"T"+hms(d),"DTEND:"+ymd(e)+"T"+hms(e))}
   else{const e=new Date(d); e.setDate(e.getDate()+1); L.push("DTSTART;VALUE=DATE:"+ymd(d),"DTEND;VALUE=DATE:"+ymd(e))}
-  L.push("SUMMARY:"+icsEsc(nm+(g.opp?(g.home==="home"?" vs ":" @ ")+g.opp:" game")));
+  L.push("SUMMARY:"+icsEsc(nm+(isPrac(g)?" practice":(g.opp?(g.home==="home"?" vs ":" @ ")+g.opp:" game"))));
   if(locOf(g))L.push("LOCATION:"+icsEsc(locOf(g)));
   L.push("DESCRIPTION:"+icsEsc(gameText(g)));
   if(g.time){const ar=parseInt(g.arrive,10)||0; L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(nm+" game"),"TRIGGER:-PT"+(ar+60)+"M","END:VALARM")}
@@ -1316,13 +1358,13 @@ function planGame(){
   for(let i=1;i<=INNINGS;i++){
     const order=[...free].sort((a,b)=>(sat[a]-sat[b])||((lastBench.has(a)?1:0)-(lastBench.has(b)?1:0))||(rank.get(a)-rank.get(b)));
     const bench=new Set(order.slice(0,benchN)); const playing=free.filter(p=>!bench.has(p));
-    const byInf=[...playing].sort((a,b)=>(infC[a]-infC[b])||(((rank.get(a)+i*3)%free.length)-((rank.get(b)+i*3)%free.length)));
+    const infOK=p=>infK.filter(k=>!avoids(p,k)).length; const byInf=[...playing].sort((a,b)=>((infOK(a)?0:1)-(infOK(b)?0:1))||(infC[a]-infC[b])||(((rank.get(a)+i*3)%free.length)-((rank.get(b)+i*3)%free.length)));
     const infP=byInf.slice(0,infK.length), ofP=byInf.slice(infK.length);
     const m={...pins};
-    const place=(keys,pool)=>{ const left=[...pool]; keys.forEach(k=>{ let j=left.findIndex(p=>!hist[p].has(k)); if(j<0)j=0; const p=left.splice(j,1)[0]; if(p!=null){m[k]=p;hist[p].add(k)} }) };
+    const place=(keys,pool)=>{ const left=[...pool]; keys.forEach(k=>{ let j=left.findIndex(p=>!hist[p].has(k)&&!avoids(p,k)); if(j<0)j=left.findIndex(p=>!avoids(p,k)); if(j<0)j=0; const p=left.splice(j,1)[0]; if(p!=null){m[k]=p;hist[p].add(k)} }) };
     place(infK,infP); place(ofK,ofP);
     infP.forEach(p=>infC[p]++); bench.forEach(p=>sat[p]++); lastBench=bench;
-    fld.innings[i]=m;
+    fixAvoid(m,ks); fld.innings[i]=m;
   }
   fld.inning=1; save();
 }
@@ -1333,7 +1375,7 @@ function renderFair(){
   const planned=[...Array(INNINGS)].map((_,k)=>fld.innings[k+1]&&Object.keys(fld.innings[k+1]).length?fld.innings[k+1]:null);
   let head="<tr><th></th>"; for(let i=1;i<=INNINGS;i++) head+=`<th class="${i===fld.inning?"cur":""}"><button type="button" data-inn="${i}">${i}</button></th>`;
   T.innerHTML=head+"<th>Sat</th><th>IF</th></tr>";
-  const rows=A.map(p=>{ let satN=0, ifN=0; const cells=planned.map(m=>{ if(!m)return {c:"un",t:"·"}; const k=posOf(p,m); if(!k){satN++;return {c:"bn",t:"BN"}} if(INF.has(k))ifN++; return {c:grp(k),t:k} }); return {p,cells,satN,ifN} });
+  const rows=A.map(p=>{ let satN=0, ifN=0; const cells=planned.map(m=>{ if(!m)return {c:"un",t:"·"}; const k=posOf(p,m); if(!k){satN++;return {c:"bn",t:"BN"}} if(INF.has(k))ifN++; return {c:grp(k)+(avoids(p,k)?" av":""),t:k} }); return {p,cells,satN,ifN} });
   const nPlanned=planned.filter(Boolean).length, sats=rows.map(r=>r.satN), maxS=Math.max(0,...sats), minS=Math.min(...sats.length?sats:[0]);
   const unfair=maxS-minS>=2;
   rows.forEach(r=>{ const tr=document.createElement("tr"); const nm=document.createElement("td"); nm.className="n"; nm.textContent=first(r.p); tr.appendChild(nm);
@@ -1430,9 +1472,9 @@ $("shareLink").onclick=async()=>{
 /* ---------- live sync ---------- */
 if(TEAM.ref){
   TEAM.db.ref(".info/connected").on("value",s=>{const on=!!s.val(); $("live").classList.toggle("on",on); $("live").title=on?"Live":"Offline"});
-  const cur={homefield:()=>homeField,bat:()=>bat,field:()=>fld,score:()=>sc,tee:()=>tee,default:()=>DEFAULT,schedule:()=>sched};
-  const apply={homefield:v=>{homeField=typeof v==="string"?v:""},bat:v=>{bat=v;normBat()},field:v=>{fld=v;normFld()},score:v=>{sc=v;normSc()},tee:v=>{tee=Array.isArray(v)?v:[]},schedule:v=>{sched=Array.isArray(v)?v:[]},default:v=>{if(v&&typeof v==="object")DEFAULT=v}};
-  const KEYOF={homefield:K_HOME,bat:K_BAT,field:K_FIELD,score:K_SCORE,tee:K_TEE,default:K_DEF,schedule:K_SCHED};
+  const cur={avoid:()=>AVOID,nfields:()=>nFields,homefield:()=>homeField,bat:()=>bat,field:()=>fld,score:()=>sc,tee:()=>tee,default:()=>DEFAULT,schedule:()=>sched};
+  const apply={avoid:v=>{AVOID=v&&typeof v==="object"?v:{}},nfields:v=>{nFields=Number.isInteger(v)?v:0},homefield:v=>{homeField=typeof v==="string"?v:""},bat:v=>{bat=v;normBat()},field:v=>{fld=v;normFld()},score:v=>{sc=v;normSc()},tee:v=>{tee=Array.isArray(v)?v:[]},schedule:v=>{sched=Array.isArray(v)?v:[]},default:v=>{if(v&&typeof v==="object")DEFAULT=v}};
+  const KEYOF={avoid:K_AVOID,nfields:K_NFIELDS,homefield:K_HOME,bat:K_BAT,field:K_FIELD,score:K_SCORE,tee:K_TEE,default:K_DEF,schedule:K_SCHED};
   let pend=false;
   const rerender=()=>{ if(drag){ if(!pend){pend=true; setTimeout(()=>{pend=false;rerender()},400)} return }
     renderField(); renderBat(); renderScore(); renderGames(); try{renderLock();renderClock()}catch(e){} };
