@@ -416,6 +416,10 @@ header h1 .live{flex:none}
 .rc.onb{background:var(--red);color:var(--on-red)}
 .rc.out{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--line)}
 .rc.arm{outline:2px solid var(--gold);outline-offset:1px}
+.logrow{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:10px 12px}
+.logrow .lt{display:flex;flex-direction:column;gap:2px;min-width:0}.logrow .lt b{font-weight:700}.logrow .lt span{color:var(--muted);font-size:13px;font-weight:600}
+.logrow button{border:1px solid var(--line);background:transparent;border-radius:8px;padding:6px 10px;font-weight:700;font-size:13px;color:var(--muted);white-space:nowrap}
+.logrow button.arm{background:var(--red);color:var(--on-red);border-color:var(--red)}
 .reslist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .reslist li{background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--glass-shadow)}
 .reslist .rh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -729,10 +733,16 @@ body.fielding .plate .lbl{opacity:1}
   <!-- AT-BATS (only when at-bat results are turned on) -->
   <section id="v-res" hidden>
     <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="tabs" id="resView" style="align-self:stretch"><button type="button" data-v="game" style="flex:1">This game</button><button type="button" data-v="season" style="flex:1">Season</button></div>
       <div class="restot" id="resTot"></div>
       <div class="reskey"><span><i class="rc onb">Hit</i>Reached base</span><span><i class="rc out">K</i>Out</span><span>HBP = hit by pitch</span></div>
       <ul class="reslist" id="resList"></ul>
-      <p class="hint">Results clear when you start a new game. To fix a mistake, tap a result twice to remove it.</p>
+      <div id="resGameTools" style="display:flex;flex-direction:column;gap:8px"><button class="ghost" type="button" id="resSave" style="padding:12px">Save this game to the season</button><p class="hint" id="resSaved" style="margin:0"></p></div>
+      <div class="bench herebox coll" data-coll="gamelog">
+        <button type="button" class="herehead" aria-expanded="false"><span><span class="lbl">Game log</span><span class="sum" id="logSum"></span></span><span class="pmicon" aria-hidden="true">+</span></button>
+        <div class="herebody" hidden><div id="logList" style="display:flex;flex-direction:column;gap:8px"></div></div>
+      </div>
+      <p class="hint" id="resHint">Each game saves to the season automatically when you tap New game. To fix a mistake, tap a result twice to remove it.</p>
     </div>
   </section>
 </div>
@@ -1186,6 +1196,7 @@ document.querySelectorAll("[data-newgame]").forEach(b=>b.onclick=()=>{
     return;
   }
   clearTimeout(armT); all.forEach(x=>{x.classList.remove("arm");x.textContent="New game"});
+  try{ const ag=archiveGame(); if(ag)toast("Last game saved to the season") }catch(e){}
   bat={count:0,order:[...IDS].filter(i=>!isGuest(i)),abs:{},out:[],locked:false}; saveBat();
   fld={inning:1,of:4,innings:{1:{...DEFAULT}}}; setOF(autoOF(IDS.length));
   { const m=fld.innings[1]; try{applyPins(m)}catch(e){} const bench=IDS.filter(p=>posOf(p,m)===null); curPOS().forEach(po=>{if(m[po.k]==null&&bench.length)m[po.k]=bench.shift()}); store(K_FIELD,fld); }
@@ -1975,27 +1986,68 @@ document.querySelectorAll("#resRow button").forEach(b=>b.onclick=()=>recordResul
       if(!RES[last.r].on){ if(sc.outs>0)sc.outs--; else if(typeof last.t==="boolean"&&(sc.top!==last.t||sc.inning!==last.i)){ setHalf(-1); sc.outs=2 } }
       saveScore(); renderResults() }
     prevUndo() } }
-let resArm=null;
+let resView=(()=>{try{return localStorage.getItem("bd-resview")||"game"}catch(e){return "game"}})();
+const isoDay=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+function archiveGame(){
+  const ab=Array.isArray(sc.ab)?sc.ab:[]; if(!ab.length)return null;
+  let g=sc.archId?sched.find(x=>x.id===sc.archId):null;
+  if(!g){ const now=new Date(), today=isoDay(now), yest=isoDay(new Date(now.getTime()-86400000));
+    const cands=sched.filter(x=>!isT(x)&&!isPrac(x)&&!x.box&&(x.date===today||x.date===yest)).sort((a,b)=>(gDate(b)||0)-(gDate(a)||0));
+    g=cands.find(x=>x.date===today&&(!gDate(x)||gDate(x)<=new Date(now.getTime()+3600000)))||cands.find(x=>x.date===today)||cands[0]||null;
+    if(!g){ g={id:Math.random().toString(36).slice(2,10),kind:"game",auto:1,date:today,time:"",opp:sc.opp||"",loc:"",home:sc.weTop?"away":"home",arrive:null,fieldNo:0}; sched.push(g) } }
+  g.box={ab:ab.map(e=>({n:(LINEUP[e.p]||["Player"])[0],r:e.r,i:e.i})),us:sc.us||0,them:sc.them||0};
+  if(!g.res&&(sc.us||sc.them)&&sc.us!==sc.them)g.res=sc.us>sc.them?"W":"L";
+  sc.archId=g.id; store(K_SCORE,sc); saveSched(); return g;
+}
+function gLabel(g){const d=gDate(g); return (d?d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"Game")+(g.opp?" vs "+g.opp:"")}
+function statLine(list){ const h=list.filter(e=>e.r==="H").length, abN=list.filter(e=>e.r==="H"||e.r==="K"||e.r==="O").length, bb=list.filter(e=>e.r==="BB").length, hbp=list.filter(e=>e.r==="HBP").length, k=list.filter(e=>e.r==="K").length;
+  return [abN?h+" for "+abN:"",bb?bb+(bb>1?" walks":" walk"):"",hbp?hbp+" HBP":"",k&&resView==="season"?k+" K":""].filter(Boolean).join(" · ") }
+function renderTotals(entries){ const cnt=k=>entries.filter(e=>e.r===k).length;
+  $("resTot").innerHTML=[["H","Hits"],["BB","Walks"],["HBP","HBP"],["K","K"],["O","Outs"]].map(([k,l])=>`<div><b>${cnt(k)}</b><span>${l}</span></div>`).join("") }
+let resArm=null, logArm=null;
 function renderResults(){
   if(!$("resList"))return;
-  const ab=Array.isArray(sc.ab)?sc.ab:[], by={};
-  ab.forEach((e,idx)=>{(by[e.p]=by[e.p]||[]).push({...e,idx})});
-  const cnt=k=>ab.filter(e=>e.r===k).length;
-  $("resTot").innerHTML=[["H","Hits"],["BB","Walks"],["HBP","HBP"],["K","K"],["O","Outs"]].map(([k,l])=>`<div><b>${cnt(k)}</b><span>${l}</span></div>`).join("");
-  const L=$("resList"); L.innerHTML="";
-  const order=bat.order.filter(p=>!isOut(p)||by[p]);
-  order.forEach(p=>{ const list=by[p]||[], h=list.filter(e=>e.r==="H").length, abN=list.filter(e=>e.r==="H"||e.r==="K"||e.r==="O").length, bb=list.filter(e=>e.r==="BB").length, hbp=list.filter(e=>e.r==="HBP").length;
-    const li=document.createElement("li"); const rh=document.createElement("div"); rh.className="rh";
-    const nm=document.createElement("span"); nm.className="rn"; nm.textContent=LINEUP[p][0];
-    const st=document.createElement("span"); st.className="rs"; st.textContent=list.length?[abN?h+" for "+abN:"",bb?bb+(bb>1?" walks":" walk"):"",hbp?hbp+" HBP":""].filter(Boolean).join(" · "):"No at-bats yet";
-    rh.append(nm,st); li.appendChild(rh);
-    if(list.length){ const cs=document.createElement("div"); cs.className="rcs";
-      list.forEach(e=>{ const c=document.createElement("button"); c.type="button"; c.className="rc "+(RES[e.r].on?"onb":"out")+(resArm===e.idx?" arm":""); c.textContent=RES[e.r].l; c.setAttribute("aria-label",RES[e.r].say+", inning "+e.i+". Tap twice to remove.");
-        c.onclick=()=>{ if(resArm===e.idx){ resArm=null; sc.ab.splice(e.idx,1); saveScore(); renderResults(); toast("Result removed") } else { resArm=e.idx; renderResults(); toast("Tap again to remove"); setTimeout(()=>{if(resArm===e.idx){resArm=null;renderResults()}},2500) } };
-        cs.appendChild(c) });
-      li.appendChild(cs) }
-    L.appendChild(li) });
+  document.querySelectorAll("#resView button").forEach(b=>{b.setAttribute("aria-selected",b.dataset.v===resView); b.onclick=()=>{resView=b.dataset.v; try{localStorage.setItem("bd-resview",resView)}catch(e){} renderResults()}});
+  const ab=Array.isArray(sc.ab)?sc.ab:[], L=$("resList"); L.innerHTML="";
+  const logged=sched.filter(g=>!isT(g)&&g.box).sort((a,b)=>(gDate(b)||0)-(gDate(a)||0));
+  $("resGameTools").hidden=resView!=="game";
+  if(resView==="game"){
+    const by={}; ab.forEach((e,idx)=>{(by[e.p]=by[e.p]||[]).push({...e,idx})});
+    renderTotals(ab);
+    bat.order.filter(p=>!isOut(p)||by[p]).forEach(p=>{ const list=by[p]||[];
+      const li=document.createElement("li"); const rh=document.createElement("div"); rh.className="rh";
+      const nm=document.createElement("span"); nm.className="rn"; nm.textContent=LINEUP[p][0];
+      const st=document.createElement("span"); st.className="rs"; st.textContent=list.length?statLine(list):"No at-bats yet";
+      rh.append(nm,st); li.appendChild(rh);
+      if(list.length){ const cs=document.createElement("div"); cs.className="rcs";
+        list.forEach(e=>{ const c=document.createElement("button"); c.type="button"; c.className="rc "+(RES[e.r].on?"onb":"out")+(resArm===e.idx?" arm":""); c.textContent=RES[e.r].l; c.setAttribute("aria-label",RES[e.r].say+", inning "+e.i+". Tap twice to remove.");
+          c.onclick=()=>{ if(resArm===e.idx){ resArm=null; sc.ab.splice(e.idx,1); saveScore(); renderResults(); toast("Result removed") } else { resArm=e.idx; renderResults(); toast("Tap again to remove"); setTimeout(()=>{if(resArm===e.idx){resArm=null;renderResults()}},2500) } };
+          cs.appendChild(c) }); li.appendChild(cs) }
+      L.appendChild(li) });
+    const sg=sc.archId&&sched.find(x=>x.id===sc.archId);
+    $("resSave").disabled=!ab.length; $("resSave").textContent=sg?"Update saved game":"Save this game to the season";
+    $("resSaved").textContent=sg?"Saved to "+gLabel(sg)+". New results save again when you tap New game.":(ab.length?"":"Results appear here as you record them.");
+  } else {
+    const cur=sc.archId?[]:ab.map(e=>({n:(LINEUP[e.p]||["Player"])[0],r:e.r}));
+    const all=[...logged.flatMap(g=>g.box.ab||[]),...cur]; renderTotals(all);
+    const by={}; all.forEach(e=>{(by[e.n]=by[e.n]||[]).push(e)});
+    const names=[...LINEUP.filter((x,i)=>!x[2]&&!isGuest(i)).map(x=>x[0]),...Object.keys(by)].filter((n,i,a)=>a.indexOf(n)===i&&(by[n]||LINEUP.some(x=>x[0]===n&&!x[2])));
+    names.forEach(n=>{ const list=by[n]||[]; const li=document.createElement("li"); const rh=document.createElement("div"); rh.className="rh";
+      const nm=document.createElement("span"); nm.className="rn"; nm.textContent=n; const st=document.createElement("span"); st.className="rs"; st.textContent=list.length?statLine(list):"No at-bats yet";
+      rh.append(nm,st); li.appendChild(rh); L.appendChild(li) });
+  }
+  $("logSum").textContent=logged.length?logged.length+" game"+(logged.length===1?"":"s")+" saved":"No games saved yet";
+  const LL=$("logList"); LL.innerHTML="";
+  logged.forEach(g=>{ const r=document.createElement("div"); r.className="logrow"; const box=g.box, a=box.ab||[], cnt=k=>a.filter(e=>e.r===k).length;
+    r.innerHTML='<div class="lt"><b></b><span></span></div><button type="button"></button>';
+    r.querySelector("b").textContent=gLabel(g)+(g.res?" · "+g.res+((box.us||box.them)?" "+box.us+"-"+box.them:""):"");
+    const pl=(n,w)=>n+" "+w+(n===1?"":"s"); r.querySelector("span").textContent=[pl(cnt("H"),"hit"),pl(cnt("BB"),"walk"),cnt("K")+" K"].join(" · ");
+    const b=r.querySelector("button"); b.textContent=logArm===g.id?"Tap again":"Delete"; if(logArm===g.id)b.classList.add("arm");
+    b.onclick=()=>{ if(logArm!==g.id){logArm=g.id; renderResults(); setTimeout(()=>{if(logArm===g.id){logArm=null;renderResults()}},3000); return}
+      logArm=null; if(g.auto)sched=sched.filter(x=>x.id!==g.id); else delete g.box; if(sc.archId===g.id){delete sc.archId; store(K_SCORE,sc)} saveSched(); renderResults(); toast("Game stats deleted") };
+    LL.appendChild(r) });
 }
+$("resSave").onclick=()=>{ const g=archiveGame(); if(g){toast("Saved to "+gLabel(g)); renderResults()} };
 { const _aT=applyTeam; applyTeam=function(){ _aT(); try{resMode()}catch(e){} } }
 { const _rS=renderScore; renderScore=function(){ _rS(); try{renderResults()}catch(e){} } }
 resMode();
