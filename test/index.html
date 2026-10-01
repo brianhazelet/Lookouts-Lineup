@@ -1817,6 +1817,18 @@ $("osOut").onclick=()=>{ $("outPlus").click(); try{navigator.vibrate&&navigator.
 function ensureBatting(){ if(usBat())return; sc.weTop=sc.top; saveScore(); toast("Switched to "+(TEAM.name||"us")+" batting") }
 { const _go=$("go").onclick; $("go").onclick=()=>{ ensureBatting(); _go() } }
 renderOutStrip();
+/* 2.5.1: Bluetooth clicker / keyboard controls. Right or Page Down = batted, Left or Page Up = back, Down = out, Up = undo out */
+document.addEventListener("keydown",e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;
+  const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.isContentEditable))return;
+  if(!$("sheet").hidden||!$("teamSheet").hidden)return;
+  const k=e.key; let did="";
+  if(k==="ArrowRight"||k==="PageDown"){ $("go").click(); did="next" }
+  else if(k==="ArrowLeft"||k==="PageUp"){ $("undo").click(); did="back" }
+  else if(k==="ArrowDown"||k==="."||k==="b"||k==="B"){ $("osOut").click(); did="out" }
+  else if(k==="ArrowUp"){ $("outMinus").click(); toast("Out removed"); did="undo-out" }
+  if(did){ e.preventDefault(); if(did==="next"||did==="back"){ const b=document.querySelector('.pagedots [data-tab="bat"]'); if($("v-bat").hidden&&b)b.click() } }
+});
 /* ---------- team context for the account menu ---------- */
 window.TEAMCTX={code:TEAM.code,ref:TEAM.ref,owner:TEAM.owner||null,openSettings:openTeamSheet,name:()=>TEAM.name};
 if(window.PENDING_HANDOFF&&PENDING_HANDOFF.code===TEAM.code&&TEAM.ref){
