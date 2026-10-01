@@ -342,11 +342,14 @@ header h1 .live{flex:none}
 .teamcards{border:0;gap:8px;overflow:visible}
 .teamcards button{border-radius:12px!important;border:1px solid var(--line)!important;padding:16px 16px 16px 22px}
 .teamcards button.tc{border-color:transparent!important}
-.micbtn svg{fill:none}
-.micbtn.on{background:var(--red);border-color:var(--red);animation:micpulse 1.1s ease-in-out infinite}
-.micbtn.on svg{stroke:var(--on-red)}
+.micfab{position:fixed;z-index:11;left:0;top:0;width:62px;height:62px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;
+  background:var(--red);border:3px solid var(--team2);box-shadow:0 8px 22px rgba(0,0,0,.45);touch-action:none;-webkit-user-select:none;user-select:none;transition:transform .12s}
+.micfab svg{width:28px;height:28px;fill:none;stroke:var(--on-red);stroke-width:2.2;stroke-linecap:round}
+.micfab.drag{transform:scale(1.12);opacity:.9;transition:none}
+.micfab.on{animation:micpulse 1.1s ease-in-out infinite}
+.micfab.on::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:3px solid var(--red);opacity:.6}
 @keyframes micpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-@media (prefers-reduced-motion:reduce){.micbtn.on{animation:none}}
+@media (prefers-reduced-motion:reduce){.micfab.on{animation:none}}
 #voiceHelp ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14px}
 #voiceHelp b{color:var(--red-ink)}
 /* loading screen */
@@ -413,10 +416,11 @@ header h1 .live{flex:none}
   <button class="go" type="button" id="rOpen">Open team</button>
 </div></div>
 <div class="wrap" id="app" hidden>
+<button type="button" class="micfab" id="micBtn" aria-label="Voice command. Hold and drag to move." hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
 <nav class="pagedots" aria-label="Pages"><button type="button" data-tab="bat" aria-label="Batting"></button><button type="button" data-tab="field" aria-label="Field"></button><button type="button" data-tab="score" aria-label="Score"></button><button type="button" data-tab="games" aria-label="Games"></button></nav>
   <header>
     <div class="brand" style="flex:1;justify-content:space-between"><h1><span id="teamName">TEAM</span><span class="live" id="live" title="Offline"></span></h1>
-      <div style="display:flex;gap:8px;flex:none;align-items:center"><button type="button" class="acctbtn micbtn" id="micBtn" aria-label="Voice command" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><button type="button" class="miniclk" id="miniClk" hidden aria-label="Game clock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg><span id="miniClkT">60:00</span></button><button type="button" class="acctbtn lockbtn" id="lockBtn" aria-label="Lock lineup" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path id="lockShackle" d="M8 11V7a4 4 0 0 1 7.5-2"/></svg></button><button type="button" class="acctbtn" id="acctBtn" aria-label="Account and team menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span id="acctIni" hidden></span></button></div></div>
+      <div style="display:flex;gap:8px;flex:none;align-items:center"><button type="button" class="miniclk" id="miniClk" hidden aria-label="Game clock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg><span id="miniClkT">60:00</span></button><button type="button" class="acctbtn lockbtn" id="lockBtn" aria-label="Lock lineup" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path id="lockShackle" d="M8 11V7a4 4 0 0 1 7.5-2"/></svg></button><button type="button" class="acctbtn" id="acctBtn" aria-label="Account and team menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span id="acctIni" hidden></span></button></div></div>
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="t-bat" aria-selected="true">Batting</button>
       <button type="button" role="tab" id="t-field" aria-selected="false">Field</button>
@@ -459,8 +463,9 @@ header h1 .live{flex:none}
       <div class="bench herebox coll" data-coll="btools">
         <button type="button" class="herehead" aria-expanded="false"><span><span class="lbl">Lineup tools</span><span class="sum" id="btoolsSum"></span></span><span class="pmicon" aria-hidden="true">+</span></button>
         <div class="herebody" hidden><button class="ghost" type="button" id="shuffleOrder" style="padding:12px">Shuffle batting order</button><button class="ghost" type="button" data-card style="padding:12px">Share lineup card</button>
+          <div class="sideset" id="micToggleRow"><span class="lbl" style="color:var(--muted)">Voice button</span><div class="tabs" id="micSeg"><button type="button" data-mic="1">Show</button><button type="button" data-mic="0">Hide</button></div></div>
           <div class="sideset"><span class="lbl" style="color:var(--muted)">Announce batters</span><div class="tabs" id="annSeg"><button type="button" data-ann="1">On</button><button type="button" data-ann="0">Off</button></div></div>
-          <div id="voiceHelp" class="pfull"><span class="lbl" style="color:var(--muted)">Voice commands (tap the mic)</span><ul>
+          <div id="voiceHelp" class="pfull"><span class="lbl" style="color:var(--muted)">Voice commands (tap the mic, hold to move it)</span><ul>
             <li><b>"Next"</b> or <b>"Batted"</b> moves to the next batter</li>
             <li><b>"Back"</b> undoes the last batter</li>
             <li><b>"Nash is up"</b> jumps to a batter by name</li>
@@ -1527,16 +1532,42 @@ function handleVoice(alts){
   toast("Heard “"+list[0]+"”. Try “next” or “out”."); return null;
 }
 window.__bdVoice=handleVoice;
-if(SR){ $("micBtn").hidden=false;
-  $("micBtn").onclick=()=>{
-    if(listening){ try{rec&&rec.stop()}catch(e){} return }
-    try{ rec=new SR(); rec.lang="en-US"; rec.interimResults=false; rec.maxAlternatives=4; rec.continuous=false }catch(e){ toast("Voice isn't available here"); return }
-    rec.onresult=e=>{ const r=e.results[0], alts=[]; for(let i=0;i<r.length;i++)alts.push(r[i].transcript); handleVoice(alts) };
-    rec.onerror=e=>{ toast(e.error==="not-allowed"||e.error==="service-not-allowed"?"Allow the microphone for this site in Settings":e.error==="no-speech"?"Didn't hear anything":"Voice didn't work. Try again.") };
-    rec.onend=()=>{ listening=false; $("micBtn").classList.remove("on") };
-    try{ rec.start(); listening=true; $("micBtn").classList.add("on"); try{navigator.vibrate&&navigator.vibrate(15)}catch(e){} }catch(e){ toast("Voice didn't start. Try again.") }
-  };
+function micToggle(){
+  if(listening){ try{rec&&rec.stop()}catch(e){} return }
+  try{ rec=new SR(); rec.lang="en-US"; rec.interimResults=false; rec.maxAlternatives=4; rec.continuous=false }catch(e){ toast("Voice isn't available here"); return }
+  rec.onresult=e=>{ const r=e.results[0], alts=[]; for(let i=0;i<r.length;i++)alts.push(r[i].transcript); handleVoice(alts) };
+  rec.onerror=e=>{ toast(e.error==="not-allowed"||e.error==="service-not-allowed"?"Allow the microphone for this site in Settings":e.error==="no-speech"?"Didn't hear anything":"Voice didn't work. Try again.") };
+  rec.onend=()=>{ listening=false; $("micBtn").classList.remove("on") };
+  try{ rec.start(); listening=true; $("micBtn").classList.add("on"); try{navigator.vibrate&&navigator.vibrate(15)}catch(e){} }catch(e){ toast("Voice didn't start. Try again.") }
 }
+const micShown=()=>{try{return localStorage.getItem("bd-mic")!=="0"}catch(e){return true}};
+function placeMic(){
+  const b=$("micBtn"), W=innerWidth, H=innerHeight, sz=62, pad=10;
+  let pos=null; try{pos=JSON.parse(localStorage.getItem("bd-mic-pos"))}catch(e){}
+  let x=pos?pos.x*W-sz/2:W-sz-18, y=pos?pos.y*H-sz/2:H-sz-96;
+  x=Math.max(pad,Math.min(W-sz-pad,x)); y=Math.max(pad+40,Math.min(H-sz-70,y));
+  b.style.left=x+"px"; b.style.top=y+"px";
+}
+function renderMic(){ const on=!!SR&&micShown(); $("micBtn").hidden=!on;
+  document.querySelectorAll("#micSeg button").forEach(x=>x.setAttribute("aria-selected",(x.dataset.mic==="1")===micShown()));
+  $("micToggleRow").hidden=!SR; $("voiceHelp").hidden=!SR; if(on)placeMic() }
+document.querySelectorAll("#micSeg button").forEach(x=>x.onclick=()=>{try{localStorage.setItem("bd-mic",x.dataset.mic)}catch(e){} renderMic(); toast(x.dataset.mic==="1"?"Voice button on":"Voice button hidden")});
+if(SR){
+  const b=$("micBtn"); let sx=0,sy=0,ox=0,oy=0,moved=false,down=false,pid=null;
+  const stop=e=>e.stopPropagation();
+  ["touchstart","touchmove","touchend"].forEach(ev=>b.addEventListener(ev,stop,{passive:true}));
+  b.addEventListener("pointerdown",e=>{ down=true; moved=false; pid=e.pointerId; sx=e.clientX; sy=e.clientY; ox=parseFloat(b.style.left)||0; oy=parseFloat(b.style.top)||0; try{b.setPointerCapture(pid)}catch(_){} e.preventDefault() });
+  b.addEventListener("pointermove",e=>{ if(!down)return; const dx=e.clientX-sx, dy=e.clientY-sy;
+    if(!moved&&Math.hypot(dx,dy)>8){moved=true; b.classList.add("drag")}
+    if(moved){ const W=innerWidth,H=innerHeight; b.style.left=Math.max(6,Math.min(W-68,ox+dx))+"px"; b.style.top=Math.max(40,Math.min(H-68,oy+dy))+"px" } });
+  const up=e=>{ if(!down)return; down=false; try{b.releasePointerCapture(pid)}catch(_){}
+    if(moved){ b.classList.remove("drag"); const r=b.getBoundingClientRect(); try{localStorage.setItem("bd-mic-pos",JSON.stringify({x:(r.left+r.width/2)/innerWidth,y:(r.top+r.height/2)/innerHeight}))}catch(_){} }
+    else micToggle() };
+  b.addEventListener("pointerup",up); b.addEventListener("pointercancel",()=>{down=false;b.classList.remove("drag")});
+  b.addEventListener("click",e=>{ if(e.detail===0)micToggle() });
+  addEventListener("resize",()=>{ if(!b.hidden)placeMic() });
+}
+renderMic();
 
 /* ---- team icon for the Home Screen ---- */
 async function makeTeamIcon(){
