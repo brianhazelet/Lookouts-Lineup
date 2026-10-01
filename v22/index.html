@@ -367,7 +367,7 @@ header h1 .live{flex:none}
   </svg>
   <p>Warming up</p>
 </div>
-<div id="gate" hidden><div class="card"><h2>BUDDY DUGOUT</h2><p class="msg" id="gateMsg">Enter your team code to open your team.</p><input id="gateCode" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Team code" aria-label="Team code"><button class="go" type="button" id="gateGo">Open team</button><div class="or">or</div><button class="ghost" type="button" id="gateCreate" style="padding:14px">Create a new team</button></div></div>
+<div id="gate" hidden><div class="card"><h2>BUDDY DUGOUT</h2><p class="msg" id="gateMsg">Enter your team code to open your team.</p><input id="gateCode" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Team code" aria-label="Team code"><div id="gateMine" hidden style="display:flex;flex-direction:column;gap:6px;text-align:left"><span class="lbl" style="color:var(--muted)">Your teams</span><div class="menu" id="gateMineList"></div><div class="or">or enter a code</div></div><button class="go" type="button" id="gateGo">Open team</button><div class="or">or</div><button class="ghost" type="button" id="gateCreate" style="padding:14px">Create a new team</button></div></div>
 <div id="setup" hidden><div class="page">
   <h2>NEW TEAM</h2>
   <div class="form">
@@ -1472,7 +1472,8 @@ if(window.PENDING_HANDOFF&&PENDING_HANDOFF.code===TEAM.code&&TEAM.ref){
 }
 $("acctBtn").onclick=()=>openAcct();
 if(TEAM.ref) TEAM.ref.child("owner").on("value",s=>{TEAMCTX.owner=s.val()||null; renderAcct();
-  try{ if(typeof USER!=="undefined"&&USER&&TEAMCTX.owner!==USER.uid) firebase.database().ref("users/"+USER.uid+"/teams/"+TEAM.code).remove().catch(()=>{}) }catch(e){} });
+});
+try{ if(typeof USER!=="undefined"&&USER) indexTeam(TEAM.code,TEAM.name) }catch(e){}
 renderAcct();
 
 /* ---------- share ---------- */
@@ -1644,7 +1645,7 @@ function watchMine(u){
 }
 function indexTeam(code,name){ if(!USER)return Promise.resolve(); return firebase.database().ref("users/"+USER.uid+"/teams/"+code).set(name||"Team").catch(()=>{}) }
 function initAuth(){ if(AUTH)return; try{AUTH=firebase.auth(); AUTH.onAuthStateChanged(u=>{USER=u; watchMine(u); renderAcct();
-    if(u&&window.TEAMCTX&&TEAMCTX.owner===u.uid) indexTeam(TEAMCTX.code,TEAMCTX.name());
+    if(u&&window.TEAMCTX) indexTeam(TEAMCTX.code,TEAMCTX.name());
   if(u&&afterSignIn){const f=afterSignIn; afterSignIn=null; closeAcct(); f()}})}catch(e){} }
 const el=id=>document.getElementById(id);
 function initialsOf(u){const n=(u.displayName||u.email||"?").trim(); const p=n.split(/[\s@._-]+/).filter(Boolean); return ((p[0]||"?")[0]+(u.displayName&&p[1]?p[1][0]:"")).toUpperCase()}
@@ -1659,12 +1660,15 @@ function renderAcct(){
   if(T){ el("acSetNote").textContent=!USER?"Sign in":(!T.owner?"Claim as head coach":(T.owner===USER.uid?"Head coach":"View only")) }
   el("acOwner").hidden=!(T&&USER&&T.owner===USER.uid);
   el("acMine").hidden=!(USER&&MYTEAMS.length);
-  const ml=el("acMineList"); ml.innerHTML="";
-  MYTEAMS.forEach(t=>{const b=document.createElement("button");b.type="button";
-    b.innerHTML="<span></span><small></small>"; b.querySelector("span").textContent=t.name||"Team";
-    b.querySelector("small").textContent=T&&T.code===t.code?"Open now":"Open";
-    b.onclick=()=>{ if(T&&T.code===t.code)return closeAcct(); try{localStorage.setItem("dugout-team",t.code)}catch(e){} location.hash=t.code; location.reload() };
-    ml.appendChild(b)});
+  const fill=(ml,inGate)=>{ ml.innerHTML="";
+    MYTEAMS.forEach(t=>{const b=document.createElement("button");b.type="button";
+      b.innerHTML="<span></span><small></small>"; b.querySelector("span").textContent=t.name||"Team";
+      b.querySelector("small").textContent=!inGate&&T&&T.code===t.code?"Open now":"Open";
+      b.onclick=()=>{ if(!inGate&&T&&T.code===t.code)return closeAcct(); try{localStorage.setItem("dugout-team",t.code)}catch(e){} location.hash=t.code; location.reload() };
+      ml.appendChild(b)}) };
+  fill(el("acMineList"),false);
+  const gm=el("gateMine"); if(gm){ gm.hidden=!(USER&&MYTEAMS.length); fill(el("gateMineList"),true);
+    const gc=document.getElementById("gateMsg"); if(gc&&USER&&MYTEAMS.length&&/Enter your team code/.test(gc.textContent)) gc.textContent="Pick a team, or enter a code for a new one." }
   el("acTitle").textContent=USER?"Account":"Sign in";
 }
 function acMsg(t){el("acMsg").textContent=t||""}
@@ -1703,7 +1707,7 @@ function wireAcct(){
     if(!b.classList.contains("arm")){b.classList.add("arm");b.querySelector("span").textContent="Tap again to step down";
       clearTimeout(stepT);stepT=setTimeout(()=>{b.classList.remove("arm");b.querySelector("span").textContent="Step down as head coach"},4000);return}
     clearTimeout(stepT); b.classList.remove("arm"); b.querySelector("span").textContent="Step down as head coach";
-    try{ await T.ref.child("owner").remove(); await firebase.database().ref("users/"+USER.uid+"/teams/"+T.code).remove(); T.owner=null; renderAcct(); acMsg("You stepped down. The next coach to sign in and open Team settings can claim it.") }
+    try{ await T.ref.child("owner").remove(); T.owner=null; renderAcct(); acMsg("You stepped down. You can still open and run this team from your list.") }
     catch(e){ acMsg("Couldn't step down. Make sure the latest database rules are published.") }
   };
   let delT=null;
