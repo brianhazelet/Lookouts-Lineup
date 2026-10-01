@@ -259,6 +259,8 @@ header .tabs{display:none!important}
 @media (prefers-reduced-motion:reduce){.pagedots button::before{transition:none}}
 .impbox{display:flex;flex-direction:column;gap:10px}
 .impfound{font-weight:600}
+#acDelete.arm{background:#8f141f;color:#fff}
+#acDelete.arm small{color:#fff}
 /* loading screen */
 #loader{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 #loader svg{width:min(70vw,280px);height:auto;overflow:visible}
@@ -506,6 +508,14 @@ header .tabs{display:none!important}
       <button type="button" id="acShare"><span>Share coach link</span></button>
       <button type="button" id="acSwitch"><span>Switch team</span></button>
     </div>
+    <div class="menu" id="acOwner" hidden>
+      <button type="button" id="acHandoff"><span>Hand off head coach</span><small>Makes a one-time link</small></button>
+      <button type="button" id="acDelete"><span>Delete this team</span><small>Can't be undone</small></button>
+    </div>
+    <div id="acMine" hidden style="display:flex;flex-direction:column;gap:6px">
+      <span class="lbl" style="color:var(--muted)">Your teams</span>
+      <div class="menu" id="acMineList"></div>
+    </div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
   </div>
 </div>
@@ -553,7 +563,7 @@ const load=(k,d)=>{const n=NODE[k];
   if(n&&TEAM.init&&TEAM.init[n]!=null){try{return JSON.parse(TEAM.init[n])}catch(e){}}
   try{const v=JSON.parse(localStorage.getItem(k+NS));return v??d}catch(e){return d}};
 const store=(k,v)=>{const str=JSON.stringify(v); try{localStorage.setItem(k+NS,str)}catch(e){}
-  const n=NODE[k]; if(n&&TEAM.ref){try{TEAM.ref.child("state/"+n).set(str)}catch(e){}}};
+  const n=NODE[k]; if(n&&TEAM.ref&&!window.DELETING){try{TEAM.ref.child("state/"+n).set(str)}catch(e){}}};
 let DEFAULT=load(K_DEF,null); if(!DEFAULT||typeof DEFAULT!=="object"||!Object.keys(DEFAULT).length)DEFAULT={...STOCK};
 function cleanDef(){for(const k in DEFAULT) if(HIDDEN.has(DEFAULT[k])||DEFAULT[k]==null||DEFAULT[k]>=LINEUP.length) delete DEFAULT[k]} cleanDef();
 const $=id=>document.getElementById(id);
@@ -1132,6 +1142,15 @@ try{ if(!localStorage.getItem("bd-swipehint")){ setTimeout(()=>toast("Swipe left
 
 /* ---------- team context for the account menu ---------- */
 window.TEAMCTX={code:TEAM.code,ref:TEAM.ref,owner:TEAM.owner||null,openSettings:openTeamSheet,name:()=>TEAM.name};
+if(window.PENDING_HANDOFF&&PENDING_HANDOFF.code===TEAM.code&&TEAM.ref){
+  const tok=PENDING_HANDOFF.tok; window.PENDING_HANDOFF=null;
+  const accept=async()=>{
+    if(TEAMCTX.owner===USER.uid){toast("You're already head coach");return}
+    try{ await TEAM.ref.update({claim:tok,owner:USER.uid}); await TEAM.ref.update({transfer:null,claim:null}); TEAMCTX.owner=USER.uid; await indexTeam(TEAM.code,TEAM.name); renderAcct(); toast("You're now head coach") }
+    catch(e){ toast("That handoff link expired or was already used") }
+  };
+  setTimeout(()=>{ if(USER)accept(); else openAcct("Sign in to become head coach of "+(TEAM.name||"this team")+".",accept) },700);
+}
 $("acctBtn").onclick=()=>openAcct();
 if(TEAM.ref) TEAM.ref.child("owner").on("value",s=>{TEAMCTX.owner=s.val()||null; renderAcct()});
 renderAcct();
@@ -1156,7 +1175,7 @@ if(TEAM.ref){
   TEAM.ref.child("colors").on("value",s=>{const v=s.val(); if(typeof v==="string"&&v!==JSON.stringify(TEAM.colors||null)){try{TEAM.colors=JSON.parse(v);applyTeam()}catch(e){}}});
   Object.keys(cur).forEach(n=>TEAM.ref.child("state/"+n).on("value",snap=>{
     const v=snap.val(), mine=JSON.stringify(cur[n]());
-    if(v==null){ try{TEAM.ref.child("state/"+n).set(mine)}catch(e){} return }
+    if(v==null){ if(!window.DELETING){try{TEAM.ref.child("state/"+n).set(mine)}catch(e){}} return }
     if(v===mine)return;
     let parsed; try{parsed=JSON.parse(v)}catch(e){return}
     apply[n](parsed); try{localStorage.setItem(KEYOF[n]+NS,v)}catch(e){}
@@ -1271,6 +1290,7 @@ function showSetup(){
     try{ firebase.apps.length||firebase.initializeApp(FB);
       if(!USER)throw new Error("signed out");
       await firebase.database().ref("teams/"+code).update({owner:USER.uid,name,colors:JSON.stringify(colors),roster:JSON.stringify(roster),"state/default":JSON.stringify(buildDefault(clean)),"state/tee":JSON.stringify(tee)});
+      await indexTeam(code,name);
     }catch(e){b.disabled=false;b.textContent="Create team";$$("sMsg").textContent="Couldn't create the team. Check your connection and try again.";return}
     try{localStorage.setItem("dugout-team",code)}catch(e){}
     $$("setup").hidden=true; $$("ready").hidden=false; $$("rCode").textContent=code; scrollTo(0,0);
@@ -1283,7 +1303,16 @@ function showSetup(){
 
 /* ---- sign-in ---- */
 let AUTH=null, USER=null, afterSignIn=null;
-function initAuth(){ if(AUTH)return; try{AUTH=firebase.auth(); AUTH.onAuthStateChanged(u=>{USER=u; renderAcct();
+let MYTEAMS=[], myRef=null;
+function watchMine(u){
+  if(myRef){myRef.off();myRef=null} MYTEAMS=[];
+  if(!u)return;
+  try{ myRef=firebase.database().ref("users/"+u.uid+"/teams"); myRef.on("value",s=>{const v=s.val()||{};
+    MYTEAMS=Object.keys(v).map(code=>({code,name:typeof v[code]==="string"?v[code]:""})).sort((a,b)=>a.name.localeCompare(b.name)); renderAcct()},()=>{}) }catch(e){}
+}
+function indexTeam(code,name){ if(!USER)return Promise.resolve(); return firebase.database().ref("users/"+USER.uid+"/teams/"+code).set(name||"Team").catch(()=>{}) }
+function initAuth(){ if(AUTH)return; try{AUTH=firebase.auth(); AUTH.onAuthStateChanged(u=>{USER=u; watchMine(u); renderAcct();
+    if(u&&window.TEAMCTX&&TEAMCTX.owner===u.uid) indexTeam(TEAMCTX.code,TEAMCTX.name());
   if(u&&afterSignIn){const f=afterSignIn; afterSignIn=null; closeAcct(); f()}})}catch(e){} }
 const el=id=>document.getElementById(id);
 function initialsOf(u){const n=(u.displayName||u.email||"?").trim(); const p=n.split(/[\s@._-]+/).filter(Boolean); return ((p[0]||"?")[0]+(u.displayName&&p[1]?p[1][0]:"")).toUpperCase()}
@@ -1296,6 +1325,14 @@ function renderAcct(){
   if(USER){el("acAv").textContent=initialsOf(USER); el("acName").textContent=USER.displayName||"Coach"; el("acMail").textContent=USER.email||""}
   const T=window.TEAMCTX; el("acTeam").hidden=!T;
   if(T){ el("acSetNote").textContent=!USER?"Sign in":(!T.owner?"Claim as head coach":(T.owner===USER.uid?"Head coach":"View only")) }
+  el("acOwner").hidden=!(T&&USER&&T.owner===USER.uid);
+  el("acMine").hidden=!(USER&&MYTEAMS.length);
+  const ml=el("acMineList"); ml.innerHTML="";
+  MYTEAMS.forEach(t=>{const b=document.createElement("button");b.type="button";
+    b.innerHTML="<span></span><small></small>"; b.querySelector("span").textContent=t.name||"Team";
+    b.querySelector("small").textContent=T&&T.code===t.code?"Open now":"Open";
+    b.onclick=()=>{ if(T&&T.code===t.code)return closeAcct(); try{localStorage.setItem("dugout-team",t.code)}catch(e){} location.hash=t.code; location.reload() };
+    ml.appendChild(b)});
   el("acTitle").textContent=USER?"Account":"Sign in";
 }
 function acMsg(t){el("acMsg").textContent=t||""}
@@ -1320,10 +1357,28 @@ function wireAcct(){
   el("acSignUp").onclick=async()=>{acMsg(""); const [e,p]=creds(); if(!e||!p)return acMsg("Enter an email and pick a password."); try{await AUTH.createUserWithEmailAndPassword(e,p)}catch(x){acMsg(authErr(x))}};
   el("acForgot").onclick=async()=>{const e=el("acEmail").value.trim(); if(!e)return acMsg("Enter your email above, then tap Forgot password."); try{await AUTH.sendPasswordResetEmail(e); acMsg("Check your email for a reset link.")}catch(x){acMsg(authErr(x))}};
   el("acSignOut").onclick=async()=>{try{await AUTH.signOut()}catch(e){} acMsg("Signed out.")};
+  el("acHandoff").onclick=async()=>{const T=window.TEAMCTX; if(!T||!USER||T.owner!==USER.uid)return;
+    const tok=newCode().slice(0,12);
+    try{await T.ref.child("transfer").set(tok)}catch(e){return acMsg("Couldn't make the link. Check your connection.")}
+    const url=location.origin+location.pathname+"#"+T.code+"!"+tok;
+    closeAcct();
+    if(navigator.share){navigator.share({title:"Head coach of "+(T.name()||"the team"),text:"Open this link and sign in to become head coach of "+(T.name()||"the team")+".",url}).catch(()=>{})}
+    else{try{await navigator.clipboard.writeText(url);alertMsg("Handoff link copied")}catch(e){alertMsg("Copy failed")}}
+  };
+  let delT=null;
+  el("acDelete").onclick=async()=>{const T=window.TEAMCTX, b=el("acDelete"); if(!T||!USER||T.owner!==USER.uid)return;
+    if(!b.classList.contains("arm")){b.classList.add("arm");b.querySelector("span").textContent="Tap again to delete "+(T.name()||"this team");
+      clearTimeout(delT);delT=setTimeout(()=>{b.classList.remove("arm");b.querySelector("span").textContent="Delete this team"},4000);return}
+    clearTimeout(delT);
+    window.DELETING=true;
+    try{ await firebase.database().ref("users/"+USER.uid+"/teams/"+T.code).remove(); await T.ref.remove() }catch(e){window.DELETING=false; return acMsg("Couldn't delete the team. Check your connection.")}
+    try{localStorage.removeItem("dugout-team");localStorage.removeItem("dugout-roster@"+T.code);localStorage.removeItem("dugout-meta@"+T.code)}catch(e){}
+    location.href=location.pathname;
+  };
   el("acSwitch").onclick=()=>{try{localStorage.removeItem("dugout-team")}catch(e){} location.href=location.pathname};
   el("acShare").onclick=()=>{const T=window.TEAMCTX; if(T){closeAcct(); shareLink(T.code,T.name())}};
   el("acSettings").onclick=async()=>{const T=window.TEAMCTX; if(!T)return;
-    const go=async()=>{ if(!T.owner){ try{await T.ref.child("owner").set(USER.uid); T.owner=USER.uid}catch(e){return acMsg("Couldn't claim this team. Check your connection.")} }
+    const go=async()=>{ if(!T.owner){ try{await T.ref.child("owner").set(USER.uid); T.owner=USER.uid; await indexTeam(T.code,T.name())}catch(e){return acMsg("Couldn't claim this team. Check your connection.")} }
       if(T.owner!==USER.uid)return acMsg("Only the head coach can change team settings.");
       closeAcct(); T.openSettings(); };
     if(!USER){ el("acWhy").textContent="Sign in to manage this team."; afterSignIn=go; return }
@@ -1343,7 +1398,9 @@ function showGate(msg){
   try{firebase.apps.length||firebase.initializeApp(FB); initAuth()}catch(e){}
   wireAcct();
   let code="",seed=null; const h=decodeURIComponent(location.hash.slice(1));
-  if(h){const parts=h.split("."); if(CODE_RE.test(parts[0]))code=parts[0]; if(parts[1]){try{seed=JSON.parse(b64dec(parts[1]))}catch(e){}}}
+  let handoff=""; let hh=h; const bang=hh.indexOf("!"); if(bang>0){handoff=hh.slice(bang+1).replace(/[^a-z0-9]/gi,"");hh=hh.slice(0,bang)}
+  if(hh){const parts=hh.split("."); if(CODE_RE.test(parts[0]))code=parts[0]; if(parts[1]){try{seed=JSON.parse(b64dec(parts[1]))}catch(e){}}}
+  if(handoff&&CODE_RE.test(code)) window.PENDING_HANDOFF={code,tok:handoff};
   if(!code){try{code=localStorage.getItem("dugout-team")||""}catch(e){}}
   if(!CODE_RE.test(code))return showGate();
   try{localStorage.setItem("dugout-team",code)}catch(e){}
