@@ -695,6 +695,8 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
           <div class="clkrow"><button class="ghost" type="button" id="clkReset">Reset</button><button class="go" type="button" id="clkGo">Start</button></div>
           <p class="pfull" id="clkHint" style="margin:0">Every coach's phone shows the same clock. You get a heads up at 5 minutes and when time is up.</p></div>
       </div>
+      <div class="game" id="finalBox" hidden><span class="lbl" style="color:var(--red-ink)">Final</span><b id="finalTxt" style="font:900 24px var(--display);text-transform:uppercase"></b><div class="gbtns"><button type="button" class="pri" id="finalText">Text parents</button><button type="button" id="finalUndo">Reopen game</button></div></div>
+      <button class="go" type="button" id="endGame" style="padding:14px;font-size:20px">End game</button>
       <button class="ghost" type="button" id="shareLink" style="padding:14px">Share coach link</button>
       <button class="newgame" type="button" data-newgame>New game</button>
     </div>
@@ -828,7 +830,7 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     </div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
     <p class="sub" id="acUid" hidden style="margin:0;text-align:center;font-size:11px;cursor:pointer;overflow-wrap:anywhere"></p>
-    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.7</p>
+    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.7.1</p>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -2009,8 +2011,8 @@ document.querySelectorAll("#resRow button").forEach(b=>b.onclick=()=>recordResul
     prevUndo() } }
 let resView=(()=>{try{return localStorage.getItem("bd-resview")||"game"}catch(e){return "game"}})();
 const isoDay=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
-function archiveGame(){
-  const ab=Array.isArray(sc.ab)?sc.ab:[]; if(!ab.length)return null;
+function archiveGame(force){
+  const ab=Array.isArray(sc.ab)?sc.ab:[]; if(!ab.length&&!force)return null;
   let g=sc.archId?sched.find(x=>x.id===sc.archId):null;
   if(!g){ const now=new Date(), today=isoDay(now), yest=isoDay(new Date(now.getTime()-86400000));
     const cands=sched.filter(x=>!isT(x)&&!isPrac(x)&&!x.box&&(x.date===today||x.date===yest)).sort((a,b)=>(gDate(b)||0)-(gDate(a)||0));
@@ -2133,6 +2135,22 @@ function runRemote(act){
   }catch(e){} };
   setInterval(check,1000); addEventListener("scroll",check,{passive:true}); addEventListener("resize",check);
 })();
+/* 2.7: End game. Stops the clock, saves the final score and at-bats to the schedule, marks W or L, offers the parent text. */
+function finalLine(){ const nm=TEAM.name||"We", opp=sc.opp||"our opponent", w=sc.us>sc.them, t=sc.us===sc.them;
+  return nm+" final: "+sc.us+" to "+sc.them+(t?" tie with ":w?" win over ":" loss to ")+opp+"." }
+function renderFinal(){ const f=!!sc.final; $("finalBox").hidden=!f; $("endGame").hidden=f; if(f)$("finalTxt").textContent=finalLine().replace(/^[^:]+:\s*/,"") }
+let endArm=null;
+$("endGame").onclick=()=>{ const b=$("endGame");
+  if(!b.classList.contains("arm")){ b.classList.add("arm"); b.textContent="Tap again to end the game"; clearTimeout(endArm); endArm=setTimeout(()=>{b.classList.remove("arm");b.textContent="End game"},3500); return }
+  clearTimeout(endArm); b.classList.remove("arm"); b.textContent="End game";
+  const c=sc.clock; if(c&&c.start){ c.used=(c.used||0)+(Date.now()-c.start); c.start=null }
+  sc.final=true; let g=null; try{ g=archiveGame(true) }catch(e){}
+  if(g&&sc.us!==sc.them){ g.res=sc.us>sc.them?"W":"L"; saveSched() }
+  saveScore(); renderFinal(); try{renderClock()}catch(e){} toast(finalLine()) };
+$("finalText").onclick=()=>{ location.href="sms:&body="+encodeURIComponent(finalLine()+" Great job, team!") };
+$("finalUndo").onclick=()=>{ delete sc.final; saveScore(); renderFinal(); toast("Game reopened") };
+{ const _rS3=renderScore; renderScore=function(){ _rS3(); try{renderFinal()}catch(e){} } }
+renderFinal();
 /* ---------- team context for the account menu ---------- */
 window.TEAMCTX={code:TEAM.code,ref:TEAM.ref,owner:TEAM.owner||null,openSettings:openTeamSheet,name:()=>TEAM.name};
 if(window.PENDING_HANDOFF&&PENDING_HANDOFF.code===TEAM.code&&TEAM.ref){
