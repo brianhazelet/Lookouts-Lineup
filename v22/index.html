@@ -263,7 +263,8 @@ header .tabs{display:none!important}
 @media (prefers-reduced-motion:reduce){.pagedots button::before{transition:none}}
 .impbox{display:flex;flex-direction:column;gap:10px}
 .impfound{font-weight:600}
-#acDelete.arm{background:#8f141f;color:#fff}
+#acDelete.arm,#acStep.arm{background:#8f141f;color:#fff}
+#acStep.arm small{color:#fff}
 #acDelete.arm small{color:#fff}
 /* ---------- 2.2 ---------- */
 .gp{display:inline-block;font:800 10px/1 var(--body);letter-spacing:.04em;color:#fff;border-radius:5px;padding:3px 5px;margin-left:6px;vertical-align:2px}
@@ -611,6 +612,7 @@ header h1 .live{flex:none}
     </div>
     <div class="menu" id="acOwner" hidden>
       <button type="button" id="acHandoff"><span>Hand off head coach</span><small>Makes a one-time link</small></button>
+      <button type="button" id="acStep"><span>Step down as head coach</span><small>Leaves the spot open</small></button>
       <button type="button" id="acDelete"><span>Delete this team</span><small>Can't be undone</small></button>
     </div>
     <div id="acMine" hidden style="display:flex;flex-direction:column;gap:6px">
@@ -1469,7 +1471,8 @@ if(window.PENDING_HANDOFF&&PENDING_HANDOFF.code===TEAM.code&&TEAM.ref){
   setTimeout(()=>{ if(USER)accept(); else openAcct("Sign in to become head coach of "+(TEAM.name||"this team")+".",accept) },700);
 }
 $("acctBtn").onclick=()=>openAcct();
-if(TEAM.ref) TEAM.ref.child("owner").on("value",s=>{TEAMCTX.owner=s.val()||null; renderAcct()});
+if(TEAM.ref) TEAM.ref.child("owner").on("value",s=>{TEAMCTX.owner=s.val()||null; renderAcct();
+  try{ if(typeof USER!=="undefined"&&USER&&TEAMCTX.owner!==USER.uid) firebase.database().ref("users/"+USER.uid+"/teams/"+TEAM.code).remove().catch(()=>{}) }catch(e){} });
 renderAcct();
 
 /* ---------- share ---------- */
@@ -1694,6 +1697,14 @@ function wireAcct(){
     closeAcct();
     if(navigator.share){navigator.share({title:"Head coach of "+(T.name()||"the team"),text:"Open this link and sign in to become head coach of "+(T.name()||"the team")+".",url}).catch(()=>{})}
     else{try{await navigator.clipboard.writeText(url);alertMsg("Handoff link copied")}catch(e){alertMsg("Copy failed")}}
+  };
+  let stepT=null;
+  el("acStep").onclick=async()=>{const T=window.TEAMCTX, b=el("acStep"); if(!T||!USER||T.owner!==USER.uid)return;
+    if(!b.classList.contains("arm")){b.classList.add("arm");b.querySelector("span").textContent="Tap again to step down";
+      clearTimeout(stepT);stepT=setTimeout(()=>{b.classList.remove("arm");b.querySelector("span").textContent="Step down as head coach"},4000);return}
+    clearTimeout(stepT); b.classList.remove("arm"); b.querySelector("span").textContent="Step down as head coach";
+    try{ await T.ref.child("owner").remove(); await firebase.database().ref("users/"+USER.uid+"/teams/"+T.code).remove(); T.owner=null; renderAcct(); acMsg("You stepped down. The next coach to sign in and open Team settings can claim it.") }
+    catch(e){ acMsg("Couldn't step down. Make sure the latest database rules are published.") }
   };
   let delT=null;
   el("acDelete").onclick=async()=>{const T=window.TEAMCTX, b=el("acDelete"); if(!T||!USER||T.owner!==USER.uid)return;
