@@ -2146,7 +2146,7 @@ $("endGame").onclick=()=>{ const b=$("endGame");
   const c=sc.clock; if(c&&c.start){ c.used=(c.used||0)+(Date.now()-c.start); c.start=null }
   sc.final=true; let g=null; try{ g=archiveGame(true) }catch(e){}
   if(g&&sc.us!==sc.them){ g.res=sc.us>sc.them?"W":"L"; saveSched() }
-  saveScore(); renderFinal(); try{renderClock()}catch(e){} toast(finalLine()) };
+  saveScore(); renderFinal(); try{renderClock()}catch(e){} toast("Final "+sc.us+"-"+sc.them+(sc.us>sc.them?" · Win":sc.us<sc.them?" · Loss":" · Tie")) };
 $("finalText").onclick=()=>{ location.href="sms:&body="+encodeURIComponent(finalLine()+" Great job, team!") };
 $("finalUndo").onclick=()=>{ delete sc.final; saveScore(); renderFinal(); toast("Game reopened") };
 { const _rS3=renderScore; renderScore=function(){ _rS3(); try{renderFinal()}catch(e){} } }
