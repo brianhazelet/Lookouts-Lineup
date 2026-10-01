@@ -954,7 +954,9 @@ function renderField(){
   bx.innerHTML=`<span class="lbl">Bench</span><div class="chips"></div>`;
   const ch=bx.querySelector(".chips");
   if(!benched.length){const sp=document.createElement("span");sp.className="pn";sp.style.color="var(--muted)";sp.textContent="Nobody sitting. Drag a player here to sit them.";ch.appendChild(sp)}
-  benched.forEach(i=>{const c=document.createElement("span");c.className="chip";c.textContent=LINEUP[i][0];attachHold(c,"field",()=>({id:i,label:LINEUP[i][0]}));ch.appendChild(c)});
+  benched.forEach(i=>{const c=document.createElement("span");c.className="chip";c.textContent=LINEUP[i][0];attachHold(c,"field",()=>({id:i,label:LINEUP[i][0]}));
+    let lastTap=0; c.style.cursor="pointer"; c.onclick=()=>{const t=Date.now(); if(t-lastTap<380){lastTap=0;benchFill(i)}else lastTap=t};
+    ch.appendChild(c)});
   $("copyPrev").disabled=fld.inning===1;
   renderFair();
   [2,3,4].forEach(n=>$("of"+n).setAttribute("aria-selected",fld.of===n));
@@ -988,6 +990,13 @@ function openSheet(k){
   $("sheet").hidden=false;
 }
 function closeSheet(){$("sheet").hidden=true;sheetPos=null}
+function benchFill(p){
+  if(bat.locked){toast("Lineup is locked. Tap the lock to edit.");return}
+  const map=inn(fld.inning), open=curPOS().map(po=>po.k).filter(k=>map[k]==null);
+  if(!open.length){toast("No open spots. Drag onto a player to swap.");return}
+  const k=open.find(k=>!avoids(p,k))||open[0];
+  assign(k,p); toast(first(p)+" to "+k);
+}
 function assign(k,p){
   if(guard())return;
   const map=inn(fld.inning), from=posOf(p,map), occupant=map[k];
