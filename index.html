@@ -394,6 +394,15 @@ header h1 .live{flex:none}
 .pagedots button[aria-current="true"] svg{transform:translateZ(0) scale(1) rotate(0deg);opacity:1}
 .pagedots button[aria-current="true"] :is(.seam,.stitch){stroke:var(--red-ink)}
 @media (prefers-reduced-motion:reduce){.pagedots svg{transition:opacity .2s}}
+
+/* ---------- 2.4.2: pitcher blue, catcher green, better tee ---------- */
+:root{--pc-p:#2f80ed;--pc-c:#22b35e}
+.gp.pit{background:var(--pc-p)!important;color:#fff!important;box-shadow:none!important}
+.mk .pcdot{stroke:#0c0c0e;stroke-width:1.5}.mk .pcdot.pit{fill:var(--pc-p)}.mk .pcdot.cat{fill:var(--pc-c)}
+.fp td.c.pit{background:var(--pc-p)!important;color:#fff!important;box-shadow:none!important}.fp td.c.cat{background:var(--pc-c)!important;color:#fff!important;box-shadow:none!important}
+.pchip.pit{background:var(--pc-p)!important;color:#fff!important;box-shadow:none!important}.pchip.cat{background:var(--pc-c)!important;color:#fff!important;box-shadow:none!important}
+.gp.cat{background:var(--pc-c)!important;color:#fff!important;box-shadow:none!important}
+
 </style>
 </head>
 <body>
@@ -814,7 +823,7 @@ function renderBat(){
     else if(i===(slot+2)%L){li.className="hole";tag="Hole"} else if(i<slot){li.className="batted";tag="Batted"}
     const n=abOf(pid), dots=n?`<span class="abd" title="Batted ${n} times">${"<i></i>".repeat(Math.min(n,4))}${n>4?"<b>+"+(n-4)+"</b>":""}</span>`:"";
     const pk=posOf(pid,inn(fld.inning));
-    li.innerHTML=`<button type="button" class="row"><span class="ord">${i+1}</span><span class="pn"><span class="nmx"></span><span class="gp ${grp(pk)}">${pk||"BN"}</span>${isGuest(pid)?'<span class="gp gst">GUEST</span>':""}${dots}</span><span class="jn">${p[1]?"#"+p[1]:""}</span><span class="tag">${tag}</span></button><button type="button" class="teeb${onTee(pid)?" on":""}" aria-pressed="${onTee(pid)}" aria-label="Hits off the tee" title="Hits off the tee"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="6" r="3.2"/><path d="M12 9.5v9"/><path d="M7 20.5h10"/></svg></button>`;
+    li.innerHTML=`<button type="button" class="row"><span class="ord">${i+1}</span><span class="pn"><span class="nmx"></span><span class="gp ${grp(pk)}${pk==="P"?" pit":pk==="C"?" cat":""}">${pk||"BN"}</span>${isGuest(pid)?'<span class="gp gst">GUEST</span>':""}${dots}</span><span class="jn">${p[1]?"#"+p[1]:""}</span><span class="tag">${tag}</span></button><button type="button" class="teeb${onTee(pid)?" on":""}" aria-pressed="${onTee(pid)}" aria-label="Hits off the tee" title="Hits off the tee"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="6.2" r="4.6" stroke-width="1.7"/><path d="M9.2 2.9c1.3 1.9 1.3 4.7 0 6.6M14.8 2.9c-1.3 1.9-1.3 4.7 0 6.6" stroke-width="1.1"/><path d="M9.6 11.6h4.8l-1.3 1.6h-2.2z" fill="currentColor" stroke-width="1.2"/><path d="M12 13.4v6" stroke-width="2.4"/><path d="M7.5 20.6h9" stroke-width="2.6"/></svg></button>`;
     li.querySelector(".nmx").textContent=p[0];
     const row=li.querySelector(".row");
     row.onclick=()=>{if(guard())return; bat.count=Math.floor(bat.count/L)*L+i;saveBat();renderBat()};
@@ -920,7 +929,7 @@ function renderField(){
     const pinned=has&&fld.pins&&fld.pins[po.k]===p;
     m.innerHTML=`<rect x="${po.x-37}" y="${po.y-17}" width="74" height="34" rx="8"/>
       <text class="ab" x="${po.x}" y="${po.y-4}" text-anchor="middle">${po.k}</text>
-      <text class="nm" x="${po.x}" y="${po.y+11}" text-anchor="middle"></text>${pinned?`<circle class="pin" cx="${po.x+34}" cy="${po.y-14}" r="5"/>`:""}`;
+      <text class="nm" x="${po.x}" y="${po.y+11}" text-anchor="middle"></text>${has&&(po.k==="P"||po.k==="C")?`<circle class="pcdot ${po.k==="P"?"pit":"cat"}" cx="${po.x-34}" cy="${po.y-14}" r="5.5"/>`:""}${pinned?`<circle class="pin" cx="${po.x+34}" cy="${po.y-14}" r="5"/>`:""}`;
     m.querySelector(".nm").textContent=has?first(p):"Tap to set";
     m.setAttribute("data-pos",po.k);
     if(has)attachHold(m,"field",()=>({id:p,label:LINEUP[p][0]}));
@@ -931,7 +940,7 @@ function renderField(){
   const ol=$("poslist"); ol.innerHTML="";
   curPOS().forEach(po=>{
     const p=map[po.k], li=document.createElement("li");
-    li.innerHTML=`<button type="button"><span class="pchip ${grp(po.k)}">${po.k}</span><span class="pn"><span class="who"></span><span class="pfull">${po.n}</span></span><span class="jn"></span></button>`;
+    li.innerHTML=`<button type="button"><span class="pchip ${grp(po.k)}${po.k==="P"?" pit":po.k==="C"?" cat":""}">${po.k}</span><span class="pn"><span class="who"></span><span class="pfull">${po.n}</span></span><span class="jn"></span></button>`;
     const who=li.querySelector(".who");
     if(p!=null){who.textContent=LINEUP[p][0];li.querySelector(".jn").textContent="#"+LINEUP[p][1]}
     else{who.textContent="Empty";who.className="who empty-txt"}
@@ -945,7 +954,9 @@ function renderField(){
   bx.innerHTML=`<span class="lbl">Bench</span><div class="chips"></div>`;
   const ch=bx.querySelector(".chips");
   if(!benched.length){const sp=document.createElement("span");sp.className="pn";sp.style.color="var(--muted)";sp.textContent="Nobody sitting. Drag a player here to sit them.";ch.appendChild(sp)}
-  benched.forEach(i=>{const c=document.createElement("span");c.className="chip";c.textContent=LINEUP[i][0];attachHold(c,"field",()=>({id:i,label:LINEUP[i][0]}));ch.appendChild(c)});
+  benched.forEach(i=>{const c=document.createElement("span");c.className="chip";c.textContent=LINEUP[i][0];attachHold(c,"field",()=>({id:i,label:LINEUP[i][0]}));
+    let lastTap=0; c.style.cursor="pointer"; c.onclick=()=>{const t=Date.now(); if(t-lastTap<380){lastTap=0;benchFill(i)}else lastTap=t};
+    ch.appendChild(c)});
   $("copyPrev").disabled=fld.inning===1;
   renderFair();
   [2,3,4].forEach(n=>$("of"+n).setAttribute("aria-selected",fld.of===n));
@@ -979,6 +990,13 @@ function openSheet(k){
   $("sheet").hidden=false;
 }
 function closeSheet(){$("sheet").hidden=true;sheetPos=null}
+function benchFill(p){
+  if(bat.locked){toast("Lineup is locked. Tap the lock to edit.");return}
+  const map=inn(fld.inning), open=curPOS().map(po=>po.k).filter(k=>map[k]==null);
+  if(!open.length){toast("No open spots. Drag onto a player to swap.");return}
+  const k=open.find(k=>!avoids(p,k))||open[0];
+  assign(k,p); toast(first(p)+" to "+k);
+}
 function assign(k,p){
   if(guard())return;
   const map=inn(fld.inning), from=posOf(p,map), occupant=map[k];
@@ -1454,7 +1472,7 @@ function renderFair(){
   const nPlanned=planned.filter(Boolean).length, sats=rows.map(r=>r.satN), maxS=Math.max(0,...sats), minS=Math.min(...sats.length?sats:[0]);
   const unfair=maxS-minS>=2;
   rows.forEach(r=>{ const tr=document.createElement("tr"); const nm=document.createElement("td"); nm.className="n"; nm.textContent=first(r.p); tr.appendChild(nm);
-    r.cells.forEach(c=>{const td=document.createElement("td"); td.className="c "+c.c; td.textContent=c.t; tr.appendChild(td)});
+    r.cells.forEach(c=>{const td=document.createElement("td"); td.className="c "+c.c+(c.t==="P"?" pit":c.t==="C"?" cat":""); td.textContent=c.t; tr.appendChild(td)});
     const s1=document.createElement("td"); s1.className="s"+(unfair&&r.satN===maxS?" warn":""); s1.textContent=r.satN; tr.appendChild(s1);
     const s2=document.createElement("td"); s2.className="s"+(nPlanned>=2&&r.ifN===0?" warn":""); s2.textContent=r.ifN; tr.appendChild(s2);
     T.appendChild(tr) });
@@ -1485,9 +1503,9 @@ async function shareCard(){
     x.font="700 30px Barlow, sans-serif"; const nm=(LINEUP[p][1]?"#"+LINEUP[p][1]+"  ":"")+LINEUP[p][0]; x.fillText(nm.length>24?nm.slice(0,23)+"…":nm,nameX,y+rowH/2);
     for(let i=1;i<=INNINGS;i++){ const m=fld.innings[i]; const k=m&&Object.keys(m).length?posOf(p,m):undefined; const cx=gx+cw*(i-1)+6;
       if(k===undefined){continue}
-      const gk=grp(k); x.fillStyle=COLS[gk]; const rw=cw-12, rh=rowH-16; x.beginPath(); x.roundRect?x.roundRect(cx,y+8,rw,rh,10):x.rect(cx,y+8,rw,rh); x.fill();
+      const gk=grp(k); x.fillStyle=k==="P"?col("--pc-p"):k==="C"?col("--pc-c"):COLS[gk]; const rw=cw-12, rh=rowH-16; x.beginPath(); x.roundRect?x.roundRect(cx,y+8,rw,rh,10):x.rect(cx,y+8,rw,rh); x.fill();
       if(gk==="of"){x.lineWidth=3;x.strokeStyle=INK.of;x.stroke()}
-      x.fillStyle=INK[gk]; x.font="800 26px Barlow, sans-serif"; x.textAlign="center"; x.fillText(k||"BN",cx+rw/2,y+rowH/2+1); x.textAlign="left" }
+      x.fillStyle=(k==="P"||k==="C")?"#ffffff":INK[gk]; x.font="800 26px Barlow, sans-serif"; x.textAlign="center"; x.fillText(k||"BN",cx+rw/2,y+rowH/2+1); x.textAlign="left" }
   });
   x.fillStyle="#9a9aa3"; x.font="700 24px Barlow, sans-serif"; x.fillText("Made with Buddy Dugout",48,H-48);
   const blob=await new Promise(r=>cv.toBlob(r,"image/png")); if(!blob){toast("Couldn't make the card");return}
