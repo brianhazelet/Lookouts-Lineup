@@ -373,9 +373,9 @@ header h1 .live{flex:none}
 @media (prefers-reduced-motion:reduce){#ptr.spin svg{animation:none}}
 
 /* ---------- 2.4: glass edges + baseball dots ---------- */
-:root{--rim-hi:rgba(255,255,255,.17);--rim-lo:rgba(255,255,255,.015);--glass-shadow:0 1px 0 rgba(0,0,0,.25);--line-soft:#26262b;--bar:rgba(12,12,14,.86);--ball:#f3efe4;--ball-edge:rgba(0,0,0,.25);--ball-off:.5}
-@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--rim-hi:rgba(255,255,255,1);--rim-lo:rgba(255,255,255,0);--glass-shadow:0 1px 2px rgba(20,20,30,.05),0 6px 18px rgba(20,20,30,.06);--line-soft:#dedee4;--bar:rgba(243,243,245,.86);--ball:#ffffff;--ball-edge:rgba(0,0,0,.28);--ball-off:.55}}
-:root[data-theme="light"]{--rim-hi:rgba(255,255,255,1);--rim-lo:rgba(255,255,255,0);--glass-shadow:0 1px 2px rgba(20,20,30,.05),0 6px 18px rgba(20,20,30,.06);--line-soft:#dedee4;--bar:rgba(243,243,245,.86);--ball:#ffffff;--ball-edge:rgba(0,0,0,.28);--ball-off:.55}
+:root{--rim-hi:rgba(255,255,255,.2);--rim-lo:rgba(255,255,255,.015);--glass-shadow:0 1px 0 rgba(0,0,0,.25);--line-soft:#26262b;--bar:rgba(12,12,14,.9);--ball:#f3efe4;--ball-edge:rgba(0,0,0,.25);--ball-off:.62}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--rim-hi:rgba(255,255,255,1);--rim-lo:rgba(255,255,255,0);--glass-shadow:0 1px 2px rgba(20,20,30,.05),0 6px 18px rgba(20,20,30,.06);--line-soft:#dedee4;--bar:rgba(243,243,245,.9);--ball:#ffffff;--ball-edge:rgba(0,0,0,.28);--ball-off:.68}}
+:root[data-theme="light"]{--rim-hi:rgba(255,255,255,1);--rim-lo:rgba(255,255,255,0);--glass-shadow:0 1px 2px rgba(20,20,30,.05),0 6px 18px rgba(20,20,30,.06);--line-soft:#dedee4;--bar:rgba(243,243,245,.9);--ball:#ffffff;--ball-edge:rgba(0,0,0,.28);--ball-off:.68}
 :is(.slot:not(.deck),.list,.team,.outsbox,.game,.halfmid,.nextgame,.menu,.ghost,.gear,.acctbtn,.miniclk,.innings button,.halfbar button,.picks button,.chip,.chiprow button,.gbtns button,.gbtns a,.teamcards button,.pm button){position:relative;border-color:var(--line-soft);box-shadow:var(--glass-shadow)}
 :is(.slot:not(.deck),.list,.team,.outsbox,.game,.halfmid,.nextgame,.menu,.ghost,.gear,.acctbtn,.miniclk,.innings button,.halfbar button,.picks button,.chip,.chiprow button,.gbtns button,.gbtns a,.teamcards button,.pm button)::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
   background:linear-gradient(180deg,var(--rim-hi),var(--rim-lo) 55%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
@@ -385,11 +385,13 @@ header h1 .live{flex:none}
 .pagedots{background:var(--bar);-webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8);border-top:0;box-shadow:inset 0 1px 0 var(--rim-hi);gap:6px}
 .pagedots button{width:34px;height:34px}
 .pagedots button::before{content:none}
-.pagedots svg{width:22px;height:22px;transform:scale(.58) rotate(0deg);opacity:var(--ball-off);transition:transform .5s cubic-bezier(.3,1.4,.5,1),opacity .25s;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.3))}
+.pagedots svg{width:22px;height:22px;display:block;overflow:visible;transform:translateZ(0) scale(.6) rotate(-90deg);opacity:var(--ball-off);will-change:transform,opacity;backface-visibility:hidden;
+  transition:transform .55s cubic-bezier(.22,.8,.28,1),opacity .4s ease}
 .pagedots .ball{fill:var(--ball);stroke:var(--ball-edge);stroke-width:.8}
-.pagedots .seam{fill:none;stroke:var(--muted);stroke-width:.7}
-.pagedots .stitch{fill:none;stroke:var(--muted);stroke-width:1.9;stroke-dasharray:1.1 1.5}
-.pagedots button[aria-current="true"] svg{transform:scale(1) rotate(360deg);opacity:1}
+.pagedots .shade{fill:rgba(0,0,0,.18)}
+.pagedots .seam{fill:none;stroke:var(--muted);stroke-width:.7;transition:stroke .4s ease}
+.pagedots .stitch{fill:none;stroke:var(--muted);stroke-width:1.9;stroke-dasharray:1.1 1.5;transition:stroke .4s ease}
+.pagedots button[aria-current="true"] svg{transform:translateZ(0) scale(1) rotate(0deg);opacity:1}
 .pagedots button[aria-current="true"] :is(.seam,.stitch){stroke:var(--red-ink)}
 @media (prefers-reduced-motion:reduce){.pagedots svg{transition:opacity .2s}}
 </style>
@@ -1982,7 +1984,7 @@ function showGate(msg){
 })();
 
 /* 2.4: baseball page dots */
-(function(){var B='<svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ball" cx="12" cy="12" r="10.6"/><path class="seam" d="M6.4 3.6C10 7.6 10 16.4 6.4 20.4M17.6 3.6C14 7.6 14 16.4 17.6 20.4"/><path class="stitch" d="M7.6 4.9C10.6 8.6 10.6 15.4 7.6 19.1M16.4 4.9C13.4 8.6 13.4 15.4 16.4 19.1"/></svg>';
+(function(){var B='<svg viewBox="0 0 24 24" aria-hidden="true"><circle class="shade" cx="12" cy="13.2" r="10.6"/><circle class="ball" cx="12" cy="12" r="10.6"/><path class="seam" d="M6.4 3.6C10 7.6 10 16.4 6.4 20.4M17.6 3.6C14 7.6 14 16.4 17.6 20.4"/><path class="stitch" d="M7.6 4.9C10.6 8.6 10.6 15.4 7.6 19.1M16.4 4.9C13.4 8.6 13.4 15.4 16.4 19.1"/></svg>';
 document.querySelectorAll(".pagedots button").forEach(function(b){if(!b.querySelector("svg"))b.insertAdjacentHTML("beforeend",B)})})();
 </script>
 </body>
