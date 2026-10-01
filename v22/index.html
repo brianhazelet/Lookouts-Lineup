@@ -335,6 +335,12 @@ header h1 .live{flex:none}
 .fieldpick{display:flex;flex-wrap:wrap;gap:6px}
 .fieldpick button{background:var(--surface2);border:1px solid var(--line);border-radius:8px;min-width:40px;padding:8px 10px;font-weight:800}
 .fieldpick button[aria-pressed="true"]{background:var(--hi);color:var(--on-hi);border-color:var(--hi)}
+.menu button.tc span{font:400 18px var(--varsity);letter-spacing:.03em}
+.menu button.tc{padding-left:20px}
+.menu{gap:0}
+.teamcards{border:0;gap:8px;overflow:visible}
+.teamcards button{border-radius:12px!important;border:1px solid var(--line)!important;padding:16px 16px 16px 22px}
+.teamcards button.tc{border-color:transparent!important}
 /* loading screen */
 #loader{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 #loader svg{width:min(70vw,280px);height:auto;overflow:visible}
@@ -367,7 +373,7 @@ header h1 .live{flex:none}
   </svg>
   <p>Warming up</p>
 </div>
-<div id="gate" hidden><div class="card"><h2>BUDDY DUGOUT</h2><p class="msg" id="gateMsg">Enter your team code to open your team.</p><input id="gateCode" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Team code" aria-label="Team code"><div id="gateMine" hidden style="display:flex;flex-direction:column;gap:6px;text-align:left"><span class="lbl" style="color:var(--muted)">Your teams</span><div class="menu" id="gateMineList"></div><div class="or">or enter a code</div></div><button class="go" type="button" id="gateGo">Open team</button><div class="or">or</div><button class="ghost" type="button" id="gateCreate" style="padding:14px">Create a new team</button></div></div>
+<div id="gate" hidden><div class="card"><h2>BUDDY DUGOUT</h2><p class="msg" id="gateMsg">Enter your team code to open your team.</p><div id="gateMine" hidden style="display:flex;flex-direction:column;gap:6px;text-align:left"><span class="lbl" style="color:var(--muted)">Your teams</span><div class="menu teamcards" id="gateMineList"></div><div class="or">or enter a code</div></div><input id="gateCode" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Team code" aria-label="Team code"><button class="go" type="button" id="gateGo">Open team</button><div class="or">or</div><button class="ghost" type="button" id="gateCreate" style="padding:14px">Create a new team</button></div></div>
 <div id="setup" hidden><div class="page">
   <h2>NEW TEAM</h2>
   <div class="form">
@@ -617,7 +623,7 @@ header h1 .live{flex:none}
     </div>
     <div id="acMine" hidden style="display:flex;flex-direction:column;gap:6px">
       <span class="lbl" style="color:var(--muted)">Your teams</span>
-      <div class="menu" id="acMineList"></div>
+      <div class="menu teamcards" id="acMineList"></div>
     </div>
     <div class="sideset"><span class="lbl" style="color:var(--muted)">Appearance</span><div class="tabs" id="apSeg"><button type="button" data-mode="auto">Auto</button><button type="button" data-mode="light">Light</button><button type="button" data-mode="dark">Dark</button></div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
@@ -1636,12 +1642,15 @@ function showSetup(){
 
 /* ---- sign-in ---- */
 let AUTH=null, USER=null, afterSignIn=null;
-let MYTEAMS=[], myRef=null;
+let MYTEAMS=[], myRef=null; const TCOL={};
 function watchMine(u){
   if(myRef){myRef.off();myRef=null} MYTEAMS=[];
   if(!u)return;
   try{ myRef=firebase.database().ref("users/"+u.uid+"/teams"); myRef.on("value",s=>{const v=s.val()||{};
-    MYTEAMS=Object.keys(v).map(code=>({code,name:typeof v[code]==="string"?v[code]:""})).sort((a,b)=>a.name.localeCompare(b.name)); renderAcct()},()=>{}) }catch(e){}
+    MYTEAMS=Object.keys(v).map(code=>({code,name:typeof v[code]==="string"?v[code]:""})).sort((a,b)=>a.name.localeCompare(b.name)); renderAcct();
+    MYTEAMS.forEach(t=>{ if(TCOL[t.code]!==undefined)return; TCOL[t.code]=null;
+      firebase.database().ref("teams/"+t.code+"/colors").once("value").then(s=>{ try{TCOL[t.code]=s.val()?JSON.parse(s.val()):CLASSIC}catch(e){TCOL[t.code]=CLASSIC} renderAcct() }).catch(()=>{}) })
+  },()=>{}) }catch(e){}
 }
 function indexTeam(code,name){ if(!USER)return Promise.resolve(); return firebase.database().ref("users/"+USER.uid+"/teams/"+code).set(name||"Team").catch(()=>{}) }
 function initAuth(){ if(AUTH)return; try{AUTH=firebase.auth(); AUTH.onAuthStateChanged(u=>{USER=u; watchMine(u); renderAcct();
@@ -1662,7 +1671,10 @@ function renderAcct(){
   el("acMine").hidden=!(USER&&MYTEAMS.length);
   const fill=(ml,inGate)=>{ ml.innerHTML="";
     MYTEAMS.forEach(t=>{const b=document.createElement("button");b.type="button";
-      b.innerHTML="<span></span><small></small>"; b.querySelector("span").textContent=t.name||"Team";
+      b.innerHTML="<span></span><small></small>"; b.querySelector("span").textContent=(t.name||"Team").toUpperCase();
+      const c=TCOL[t.code]; if(c&&c.p){ const p=c.p, s2=c.s||"#ffffff", on=contrast(p,"#ffffff")>=contrast(p,"#0c0c0e")?"#ffffff":"#0c0c0e";
+        const nameC=contrast(s2,p)>=3?s2:on; b.classList.add("tc"); b.style.background=p; b.style.borderBottomColor="rgba(0,0,0,.25)";
+        b.style.boxShadow="inset 6px 0 0 "+(contrast(s2,p)>=1.6?s2:on); b.querySelector("span").style.color=nameC; b.querySelector("small").style.color=on; b.querySelector("small").style.opacity=".8" }
       b.querySelector("small").textContent=!inGate&&T&&T.code===t.code?"Open now":"Open";
       b.onclick=()=>{ if(!inGate&&T&&T.code===t.code)return closeAcct(); try{localStorage.setItem("dugout-team",t.code)}catch(e){} location.hash=t.code; location.reload() };
       ml.appendChild(b)}) };
