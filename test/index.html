@@ -703,7 +703,7 @@ body.fielding .plate .lbl{opacity:1}
           <div class="two"><label>Type<select id="gfKind"><option value="game">Game</option><option value="practice">Practice</option></select></label><label id="gfOppL">Opponent<input id="gfOpp" type="text" maxlength="24" placeholder="Red Sox" autocomplete="off"></label></div>
           <div id="gfFieldWrap" hidden><label>Field</label><div class="fieldpick" id="gfField"></div></div>
           <label>Location<input id="gfLoc" type="text" maxlength="110" placeholder="Leave blank for home field" autocomplete="off"></label>
-          <div class="two" id="gfTRow" hidden><label>Tournament<select id="gfT"></select></label><label>Plays<select id="gfCond"><option value="">For sure</option><option value="win">If we win</option><option value="lose">If we lose</option></select></label></div>
+          <div id="gfTRow" hidden style="display:flex;flex-direction:column;gap:10px"><div class="two"><label>Tournament<select id="gfT"></select></label><label>Game #<input id="gfCode" type="text" maxlength="6" placeholder="B2" autocomplete="off"></label></div><label>Plays<select id="gfCond"></select></label></div>
           <div class="two"><label>We are<select id="gfHome"><option value="away">Away (bat top)</option><option value="home">Home (bat bottom)</option></select></label><label>Arrive early (min)<input id="gfArrive" type="number" min="0" max="120" step="5" placeholder="30 if blank"></label></div>
         </div>
         <div class="gbtns"><button type="button" class="pri" id="gfSave">Save</button><button type="button" id="gfCancel">Cancel</button><button type="button" id="gfDelete" hidden>Delete</button></div>
@@ -1306,7 +1306,9 @@ function tAllowed(t){return t.fmt==="single"?1:t.fmt==="double"?2:0}
 function tOver(t){ if(t.done)return true; const a=tAllowed(t); return !!(a&&tRecord(t).l>=a) }
 /* true: game is on. false: not happening. null: waiting on an earlier result */
 function condOf(g){ if(!g.tid)return true; const t=tById(g.tid); if(!t)return true;
-  if(tOver(t)&&!g.res)return g.cond?false:isPast(g);
+  if(tOver(t)&&!g.res)return (g.cond||g.dep)?false:isPast(g);
+  if(g.dep&&g.dep.c){ const cands=tGames(t).filter(x=>x!==g&&x.code===g.dep.c), played=cands.find(x=>x.res);
+    if(played)return played.res===g.dep.r; if(cands.length&&cands.every(x=>condOf(x)===false))return false; return null }
   if(!g.cond)return true;
   const gs=tGames(t), i=gs.indexOf(g); let last=null; for(let j=i-1;j>=0;j--){ if(gs[j].res){last=gs[j];break} if(condOf(gs[j])!==false)break }
   if(!last)return null; return (g.cond==="win"&&last.res==="W")||(g.cond==="lose"&&last.res==="L") }
@@ -1383,7 +1385,7 @@ function tStatus(t){ const r=tRecord(t), a=tAllowed(t), gs=tGames(t);
 function tDates(t){ const a=tDate(t), b=tEnd(t), f=d=>d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
   if(!a)return "Dates TBD"; return (t.end&&t.end!==t.start)?f(a)+" to "+f(b):f(a) }
 function tLoc(t){ return t.loc||homeField||"" }
-function tCondWord(g){return g.cond==="win"?"If we win":g.cond==="lose"?"If we lose":""}
+function tCondWord(g){ if(g.dep&&g.dep.c)return (g.dep.r==="W"?"If we win ":"If we lose ")+g.dep.c; return g.cond==="win"?"If we win":g.cond==="lose"?"If we lose":"" }
 function tourneyCard(t,nx){
   const el=document.createElement("div"); el.className="game tourney";
   const r=tRecord(t), st=tStatus(t);
@@ -1402,7 +1404,7 @@ function tourneyCard(t,nx){
     const c=condOf(g), row=document.createElement("div"); row.className="trow"+(c===null?" cond":"")+(nx&&nx.id===g.id?" next":"");
     row.innerHTML=`<span class="tt"></span><span class="to"></span><span class="twl"></span>`;
     row.querySelector(".tt").textContent=g.time&&d?d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}):"Time TBD";
-    const to=row.querySelector(".to"); to.textContent=g.opp?"vs "+g.opp:"Opponent TBD";
+    const to=row.querySelector(".to"); to.textContent=(g.code?g.code+" · ":"")+(g.opp?"vs "+g.opp:"Opponent TBD");
     const sm=document.createElement("small"); sm.textContent=[tCondWord(g),fieldLbl(g),(nx&&nx.id===g.id)?"Next up":""].filter(Boolean).join(" · "); if(sm.textContent)to.appendChild(sm);
     to.style.cursor="pointer"; to.onclick=()=>openGameForm(g);
     if(c===true&&d&&d<=new Date(Date.now()+3600000)){ const wl=row.querySelector(".twl");
@@ -1410,16 +1412,30 @@ function tourneyCard(t,nx){
         b.onclick=()=>{ g.res=g.res===v?null:v; saveSched(); if(g.res)toast(v==="W"?"Win recorded":"Loss recorded") }; wl.appendChild(b)}) }
     dayEl.appendChild(row) });
   if(t.rules){const ru=document.createElement("div");ru.className="trules";ru.textContent=t.rules;box.appendChild(ru)}
-  const bx=el.querySelector(".gbtns");
+  { const pz=document.createElement("div"); pz.className="tpaste form"; pz.hidden=true; pz.style.cssText="display:flex;flex-direction:column;gap:8px";
+    pz.innerHTML='<label>Paste games, one per line<textarea placeholder="B2 | 11/2 7:25 PM | Trash Pandas | Field 1\nB4 | 11/3 7:25 PM | Diamondbacks | Field 1 | if win B2"></textarea></label><span class="sub" style="font-size:13px">Game # | date and time | opponent | field | if win or if lose a game #</span><div class="gbtns"><button type="button" class="pri">Add games</button></div>';
+    pz.querySelector("button").onclick=()=>{ const n=pasteTGames(t,pz.querySelector("textarea").value); if(n){saveSched();toast("Added "+n+" game"+(n===1?"":"s"))} else toast("No games found. Check the format.") };
+    el.querySelector(".tdays").after(pz) }
+  const bx=el.querySelector(":scope>.gbtns");
   const btn=(txt,cls,fn)=>{const b=document.createElement("button");b.type="button";b.textContent=txt;if(cls)b.className=cls;b.onclick=fn;bx.appendChild(b);return b};
   btn("Text parents","pri",()=>{location.href="sms:&body="+encodeURIComponent(tText(t))});
   btn("Copy",null,async()=>{try{await navigator.clipboard.writeText(tText(t));toast("Message copied")}catch(e){toast("Copy failed")}});
   btn("+ Game",null,()=>openGameForm(null,t));
+  btn("Paste games",null,()=>{ const box2=el.querySelector(".tpaste"); box2.hidden=!box2.hidden; if(!box2.hidden)box2.querySelector("textarea").focus() });
   if(t.link&&/^https?:\/\//i.test(t.link)){const a=document.createElement("a");a.textContent="Bracket";a.href=t.link;a.target="_blank";a.rel="noopener";bx.appendChild(a)}
-  btn("Calendar",null,()=>downloadICS(tGames(t).filter(g=>condOf(g)!==false).map(g=>({...g,opp:(g.opp||"TBD")+(g.cond?" ("+tCondWord(g).toLowerCase()+")":"")})),(t.name||"Tournament")));
+  btn("Calendar",null,()=>downloadICS(tGames(t).filter(g=>condOf(g)!==false).map(g=>({...g,opp:(g.code?g.code+" ":"")+(g.opp||"TBD")+((g.cond||g.dep)?" ("+tCondWord(g).replace(/^If/,"if")+")":"")})),(t.name||"Tournament")));
   btn("Edit",null,()=>openTForm(t));
   return el;
 }
+function pasteTGames(t,txt){ let n=0;
+  txt.split(/\n+/).forEach(line=>{ const parts=line.split("|").map(x=>x.trim()); if(parts.length<2)return;
+    const [code,when,opp,fieldTxt,cond]=parts, dm=(when||"").match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/); if(!dm)return;
+    const mo=+dm[1], da=+dm[2]; let yr=dm[3]?+dm[3]:(t.start?+t.start.slice(0,4):inferYear(mo,da)); if(yr<100)yr+=2000;
+    const g={id:Math.random().toString(36).slice(2,10),kind:"game",tid:t.id,code:(code||"").toUpperCase().slice(0,6),date:yr+"-"+pad(mo)+"-"+pad(da),time:parseTimeStr((when||"").replace(dm[0],"")),opp:(opp||"").replace(/^vs\.?\s*/i,"").slice(0,30),loc:t.loc||"",home:"home",arrive:null,fieldNo:0};
+    const fm=(fieldTxt||"").match(/(\d+)/); if(fm)g.fieldNo=+fm[1];
+    const cm=(cond||"").match(/if\s+we\s+(win|lose)\s+(\S+)|if\s+(win|lose)\s+(\S+)/i); if(cm){const r=(cm[1]||cm[3]).toLowerCase(), c=(cm[2]||cm[4]).toUpperCase(); g.dep={r:r==="win"?"W":"L",c}}
+    sched.push(g); n++ });
+  return n }
 function tText(t){
   const nm=TEAM.name||"Team", lines=[], r=tRecord(t), tm=dt=>dt.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
   lines.push(nm+": "+(t.name||"Tournament"));
@@ -1430,9 +1446,9 @@ function tText(t){
   const gs=tGames(t).filter(g=>condOf(g)!==false);
   if(gs.length){ lines.push(""); lines.push("Schedule:");
     gs.forEach(g=>{ const d=gDate(g); let ln=(d?d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"Date TBD")+", "+(g.time&&d?tm(d):"time TBD");
-      ln+=" "+(g.opp?"vs "+g.opp:"opponent TBD"); if(fieldLbl(g))ln+=", "+fieldLbl(g);
+      ln+=" "+(g.code?g.code+" ":"")+(g.opp?"vs "+g.opp:"opponent TBD"); if(fieldLbl(g))ln+=", "+fieldLbl(g);
       if(g.res)ln+=" ("+(g.res==="W"?"won":"lost")+")";
-      else if(g.cond)ln+=" ("+tCondWord(g).toLowerCase()+")";
+      else if(g.cond||g.dep)ln+=" ("+tCondWord(g).replace(/^If/,"if")+")";
       else if(d&&g.time){const ar=Number.isInteger(g.arrive)?g.arrive:30; if(ar>0)ln+=". Arrive by "+tm(new Date(d.getTime()-ar*60000))}
       lines.push(ln) }) }
   else { lines.push(""); lines.push("Game times coming soon."); }
@@ -1474,7 +1490,12 @@ function openGameForm(g,tFor){
   editId=g?g.id:null;
   { const ts=sched.filter(isT), sel=$("gfT"); sel.innerHTML='<option value="">None</option>'+ts.map(t=>'<option></option>').join("");
     ts.forEach((t,i)=>{const o=sel.options[i+1]; o.value=t.id; o.textContent=t.name||"Tournament"});
-    sel.value=(g&&g.tid)||(tFor&&tFor.id)||""; $("gfCond").value=(g&&g.cond)||""; $("gfTRow").hidden=!ts.length; } $("gameForm").hidden=false; $("addGame").hidden=true;
+    sel.value=(g&&g.tid)||(tFor&&tFor.id)||""; $("gfTRow").hidden=!ts.length; $("gfCode").value=(g&&g.code)||"";
+    const fillCond=()=>{ const cs=$("gfCond"), t=tById(sel.value), cur=g?(g.dep?g.dep.r+"|"+g.dep.c:(g.cond||"")):"";
+      const opts=[["","For sure"],["win","If we win the game before"],["lose","If we lose the game before"]];
+      if(t){ const codes=[...new Set(tGames(t).filter(x=>x!==g&&x.code).map(x=>x.code))]; codes.forEach(c=>{opts.push(["W|"+c,"If we win "+c]);opts.push(["L|"+c,"If we lose "+c])}) }
+      cs.innerHTML=""; opts.forEach(([v,l])=>{const o=document.createElement("option");o.value=v;o.textContent=l;cs.appendChild(o)}); cs.value=opts.some(o=>o[0]===cur)?cur:"" };
+    sel.onchange=fillCond; fillCond(); } $("gameForm").hidden=false; $("addGame").hidden=true;
   $("gfTitle").textContent=g?(isPrac(g)?"Edit practice":"Edit game"):"Add to schedule";
   $("gfDate").value=g?g.date||"":""; $("gfTime").value=g?g.time||"":"";
   $("gfOpp").value=g?g.opp||"":""; $("gfLoc").value=g?g.loc||"":"";
@@ -1497,7 +1518,8 @@ $("gfCancel").onclick=closeGameForm;
 $("gfSave").onclick=()=>{
   const pr=$("gfKind").value==="practice"; const g={id:editId||Math.random().toString(36).slice(2,10),kind:pr?"practice":"game",fieldNo:gfFieldNo||0,date:$("gfDate").value,time:$("gfTime").value,opp:$("gfOpp").value.trim(),loc:$("gfLoc").value.trim(),home:$("gfHome").value,arrive:$("gfArrive").value===""?null:parseInt($("gfArrive").value,10)};
   if(!g.date){toast("Pick a date");return}
-  { const tid=$("gfT").value; if(tid&&!pr){ g.tid=tid; if($("gfCond").value)g.cond=$("gfCond").value } const old=sched.find(x=>x.id===g.id); if(old&&old.res)g.res=old.res }
+  { const tid=$("gfT").value; if(tid&&!pr){ g.tid=tid; const cv=$("gfCond").value, code=$("gfCode").value.trim().toUpperCase(); if(code)g.code=code;
+    if(cv.includes("|")){const [r,c]=cv.split("|"); g.dep={r,c}} else if(cv)g.cond=cv } const old=sched.find(x=>x.id===g.id); if(old&&old.res)g.res=old.res }
   const i=sched.findIndex(x=>x.id===g.id); if(i>=0)sched[i]=g; else sched.push(g);
   closeGameForm(); saveSched(); toast("Game saved");
 };
