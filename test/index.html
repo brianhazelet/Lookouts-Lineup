@@ -442,6 +442,30 @@ header h1 .live{flex:none}
 .outstrip.field .oshalf{color:var(--muted)}
 body.fielding .plate{opacity:.55;filter:saturate(.6)}
 body.fielding .plate .lbl{opacity:1}
+
+/* ---------- 2.6: tournaments ---------- */
+.game.tourney{border-top:4px solid var(--red-ink)}
+.game.tourney .gd{font-size:13px;letter-spacing:.12em;color:var(--red-ink)}
+.game.tourney .gv{font:900 24px var(--display);text-transform:uppercase;line-height:1.05}
+.tstat{display:flex;flex-wrap:wrap;gap:6px}
+.tstat span{background:var(--surface2);border:1px solid var(--line-soft);border-radius:99px;padding:4px 10px;font-weight:700;font-size:13px}
+.tstat span.alive{border-color:var(--red-ink);color:var(--red-ink)}
+.tstat span.over{color:var(--muted)}
+.tstat span.champ{background:var(--gold);color:#141416;border-color:var(--gold)}
+.tday{display:flex;flex-direction:column;gap:6px}
+.tday>b{font:800 12px var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.trow{display:grid;grid-template-columns:84px 1fr auto;gap:8px;align-items:center;background:var(--surface2);border:1px solid var(--line-soft);border-radius:10px;padding:8px 10px;text-align:left;width:100%;color:var(--fg)}
+.trow .tt{font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
+.trow .to{font-weight:600;font-size:14px;min-width:0;overflow-wrap:anywhere}
+.trow .to small{display:block;color:var(--muted);font-weight:600;font-size:12px}
+.trow.cond{opacity:.6;border-style:dashed}
+.trow.next{border-color:var(--red-ink)}
+.twl{display:flex;gap:4px}
+.twl button{min-width:34px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-weight:800;font-size:13px;padding:0 8px}
+.twl button[aria-pressed="true"].w{background:var(--red);color:var(--on-red);border-color:var(--red)}
+.twl button[aria-pressed="true"].l{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.tempty{color:var(--muted);font-size:14px;font-weight:600}
+.trules{color:var(--muted);font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere;border-left:3px solid var(--line);padding-left:10px}
 </style>
 </head>
 <body>
@@ -655,6 +679,7 @@ body.fielding .plate .lbl{opacity:1}
       <div class="games" id="gamesList"></div>
       <details class="past" id="pastWrap" hidden><summary id="pastSum">Past games</summary><div class="games" id="pastList" style="margin-top:10px"></div></details>
       <button class="go" type="button" id="addGame">Add game or practice</button>
+      <button class="ghost" type="button" id="addTourney" style="padding:12px">Add tournament</button>
       <div class="grid2"><button class="ghost" type="button" id="impOpen">Import schedule</button><button class="ghost" type="button" id="calAll">Add all to calendar</button></div>
       <div class="game impbox" id="impBox" hidden>
         <h3 style="margin:0;font:900 20px var(--display);text-transform:uppercase">Import schedule</h3>
@@ -671,9 +696,24 @@ body.fielding .plate .lbl{opacity:1}
           <div class="two"><label>Type<select id="gfKind"><option value="game">Game</option><option value="practice">Practice</option></select></label><label id="gfOppL">Opponent<input id="gfOpp" type="text" maxlength="24" placeholder="Red Sox" autocomplete="off"></label></div>
           <div id="gfFieldWrap" hidden><label>Field</label><div class="fieldpick" id="gfField"></div></div>
           <label>Location<input id="gfLoc" type="text" maxlength="110" placeholder="Leave blank for home field" autocomplete="off"></label>
+          <div class="two" id="gfTRow" hidden><label>Tournament<select id="gfT"></select></label><label>Plays<select id="gfCond"><option value="">For sure</option><option value="win">If we win</option><option value="lose">If we lose</option></select></label></div>
           <div class="two"><label>We are<select id="gfHome"><option value="away">Away (bat top)</option><option value="home">Home (bat bottom)</option></select></label><label>Arrive early (min)<input id="gfArrive" type="number" min="0" max="120" step="5" placeholder="30 if blank"></label></div>
         </div>
         <div class="gbtns"><button type="button" class="pri" id="gfSave">Save</button><button type="button" id="gfCancel">Cancel</button><button type="button" id="gfDelete" hidden>Delete</button></div>
+      </div>
+      <div class="game" id="tForm" hidden>
+        <h3 id="tfTitle" style="margin:0;font:900 20px var(--display);text-transform:uppercase">Add tournament</h3>
+        <div class="form">
+          <label>Name<input id="tfName" type="text" maxlength="40" placeholder="Fall Tournament" autocomplete="off"></label>
+          <div class="two"><label>First day<input id="tfStart" type="date"></label><label>Last day<input id="tfEnd" type="date"></label></div>
+          <label>Location<input id="tfLoc" type="text" maxlength="110" placeholder="Leave blank for home field" autocomplete="off"></label>
+          <div class="two"><label>Format<select id="tfFmt"><option value="unsure">Not sure yet</option><option value="pool">Pool play, then bracket</option><option value="single">Single elimination</option><option value="double">Double elimination</option></select></label><label>Games guaranteed<input id="tfGuar" type="number" min="0" max="12" step="1" placeholder="Optional"></label></div>
+          <label>Rules for parents<textarea id="tfRules" maxlength="800" placeholder="Game length, run rule, what to bring, check-in time"></textarea></label>
+          <label>Bracket link<input id="tfLink" type="url" maxlength="300" placeholder="Paste the league's bracket link" autocomplete="off"></label>
+          <label id="tfDoneL">Status<select id="tfDone"><option value="">Playing</option><option value="out">We're done</option><option value="champ">Champions</option></select></label>
+        </div>
+        <p class="sub" id="tfMoveNote" style="margin:0" hidden>Changing the first day moves every game in this tournament by the same number of days.</p>
+        <div class="gbtns"><button type="button" class="pri" id="tfSave">Save</button><button type="button" id="tfCancel">Cancel</button><button type="button" id="tfDelete" hidden>Delete</button></div>
       </div>
       <p class="hint">Text parents opens your Messages app with the game details filled in. Pick your parent group and send.</p>
     </div>
@@ -1251,16 +1291,28 @@ function gDate(g){const [y,mo,d]=(g.date||"").split("-").map(Number); if(!y)retu
 function gameWhen(g){const d=gDate(g); if(!d)return "Date TBD";
   const day=d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
   return g.time?day+" · "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}):day}
-function sortedGames(){return [...sched].sort((a,b)=>(gDate(a)||0)-(gDate(b)||0))}
+function isT(x){return !!(x&&x.kind==="tourney")}
+function tById(id){return sched.find(x=>isT(x)&&x.id===id)||null}
+function tGames(t){return sched.filter(g=>!isT(g)&&g.tid===t.id).sort((a,b)=>((gDate(a)||Infinity)-(gDate(b)||Infinity)))}
+function tRecord(t){const gs=tGames(t); return {w:gs.filter(g=>g.res==="W").length,l:gs.filter(g=>g.res==="L").length}}
+function tAllowed(t){return t.fmt==="single"?1:t.fmt==="double"?2:0}
+function tOver(t){ if(t.done)return true; const a=tAllowed(t); return !!(a&&tRecord(t).l>=a) }
+/* true: game is on. false: not happening. null: waiting on an earlier result */
+function condOf(g){ if(!g.tid)return true; const t=tById(g.tid); if(!t)return true;
+  if(tOver(t)&&!g.res)return g.cond?false:isPast(g);
+  if(!g.cond)return true;
+  const gs=tGames(t), i=gs.indexOf(g); let last=null; for(let j=i-1;j>=0;j--){ if(gs[j].res){last=gs[j];break} if(condOf(gs[j])!==false)break }
+  if(!last)return null; return (g.cond==="win"&&last.res==="W")||(g.cond==="lose"&&last.res==="L") }
+function sortedGames(){return sched.filter(g=>!isT(g)&&condOf(g)===true).sort((a,b)=>(gDate(a)||0)-(gDate(b)||0))}
 function isPast(g){const d=gDate(g); if(!d)return false; const end=new Date(d); end.setHours(end.getHours()+3); return end<new Date()}
-function nextGame(){return sortedGames().find(g=>!isPast(g))||null}
+function nextGame(){return sortedGames().find(g=>!isPast(g)&&!g.res)||null}
 function dayWord(d){ const t=new Date(); t.setHours(0,0,0,0); const x=new Date(d); x.setHours(0,0,0,0); const n=Math.round((x-t)/86400000);
   return n===0?"today":n===1?"tomorrow":(n>1&&n<7?"this "+d.toLocaleDateString(undefined,{weekday:"long"}):"on "+d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})) }
 function gameText(g){
   const nm=TEAM.name||"Team", d=gDate(g), tm=dt=>dt.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
   const what=isPrac(g)?"practice":"game"+(g.opp?" vs "+g.opp:"");
   const lines=[];
-  lines.push(nm+" "+what+(d?" "+dayWord(d):"")+"!");
+  lines.push(nm+" "+what+(d?" "+dayWord(d):"")+"!"); { const t=g.tid&&tById(g.tid); if(t)lines.push(t.name||"Tournament") }
   if(d) lines.push(d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})+(g.time?" at "+tm(d):""));
   const place=placeOf(g), ci=place.indexOf(","), pname=ci>0?place.slice(0,ci).trim():place, addr=ci>0?place.slice(ci+1).trim():"";
   const where=[fieldLbl(g),pname].filter(Boolean).join(", ");
@@ -1288,23 +1340,130 @@ function gameCard(g,isNext){
   btn("Edit",null,()=>openGameForm(g));
   return el;
 }
+function tDate(t){const [y,m,d]=(t.start||"").split("-").map(Number); return y?new Date(y,m-1,d):null}
+function tEnd(t){const [y,m,d]=(t.end||t.start||"").split("-").map(Number); return y?new Date(y,m-1,d,23,59):null}
+function tIsPast(t){ if(tGames(t).some(g=>condOf(g)!==false&&!isPast(g)))return false; const e=tEnd(t); return tOver(t)||(e?e<new Date():false) }
 function renderGames(){
-  const all=sortedGames(), up=all.filter(g=>!isPast(g)), past=all.filter(isPast).reverse();
+  const all=sortedGames().filter(g=>!g.tid), nx=nextGame();
+  const items=[...all.map(g=>({d:gDate(g)||0,g})),...sched.filter(isT).map(t=>({d:tDate(t)||0,t}))].sort((a,b)=>a.d-b.d);
+  const up=items.filter(x=>x.g?!isPast(x.g):!tIsPast(x.t)), past=items.filter(x=>!up.includes(x)).reverse();
   const L=$("gamesList"); L.innerHTML="";
   if(!up.length){const p=document.createElement("p");p.className="hint";p.style.textAlign="left";p.textContent="No upcoming games yet. Add one below.";L.appendChild(p)}
-  up.forEach((g,i)=>L.appendChild(gameCard(g,i===0)));
+  up.forEach(x=>L.appendChild(x.g?gameCard(x.g,nx&&x.g.id===nx.id):tourneyCard(x.t,nx)));
   $("pastWrap").hidden=!past.length; $("pastSum").textContent="Past games ("+past.length+")";
-  const P=$("pastList"); P.innerHTML=""; past.forEach(g=>P.appendChild(gameCard(g,false)));
+  const P=$("pastList"); P.innerHTML=""; past.forEach(x=>P.appendChild(x.g?gameCard(x.g,false):tourneyCard(x.t,null)));
 }
+function FMTN(k){return ({unsure:"Format TBD",pool:"Pool play, then bracket",single:"Single elimination",double:"Double elimination"})[k||"unsure"]||"Format TBD"}
+function tStatus(t){ const r=tRecord(t), a=tAllowed(t), gs=tGames(t);
+  if(t.done==="champ")return ["Champions","champ"];
+  if(t.done==="out")return ["Tournament over","over"];
+  if(a&&r.l>=a)return ["Eliminated","over"];
+  if(a){const left=a-r.l; return ["Still alive · "+left+" loss"+(left===1?"":"es")+" left","alive"]}
+  if(t.guar){const pl=gs.filter(g=>g.res).length; return [pl>=t.guar?"Guaranteed games done":"Game "+Math.min(pl+1,t.guar)+" of "+t.guar+" guaranteed","alive"]}
+  return [r.w+r.l?"In progress":"Upcoming","alive"] }
+function tDates(t){ const a=tDate(t), b=tEnd(t), f=d=>d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+  if(!a)return "Dates TBD"; return (t.end&&t.end!==t.start)?f(a)+" to "+f(b):f(a) }
+function tLoc(t){ return t.loc||homeField||"" }
+function tCondWord(g){return g.cond==="win"?"If we win":g.cond==="lose"?"If we lose":""}
+function tourneyCard(t,nx){
+  const el=document.createElement("div"); el.className="game tourney";
+  const r=tRecord(t), st=tStatus(t);
+  el.innerHTML=`<div class="gh"><span class="gd">Tournament</span><span class="gt"></span></div><div class="gv"></div><div class="gl"></div><div class="tstat"></div><div class="tdays"></div><div class="gbtns"></div>`;
+  el.querySelector(".gt").textContent=(r.w+r.l)?r.w+" and "+r.l:"";
+  el.querySelector(".gv").textContent=t.name||"Tournament";
+  el.querySelector(".gl").textContent=[tDates(t),tLoc(t).split(",")[0]].filter(Boolean).join(" · ");
+  const ts=el.querySelector(".tstat"); [[FMTN(t.fmt),""],st].forEach(([txt,c])=>{const sp=document.createElement("span");sp.textContent=txt;if(c)sp.className=c;ts.appendChild(sp)});
+  if(t.guar&&t.fmt!=="unsure"){const sp=document.createElement("span");sp.textContent=t.guar+" games guaranteed";ts.appendChild(sp)}
+  const box=el.querySelector(".tdays"); box.style.cssText="display:flex;flex-direction:column;gap:10px";
+  const gs=tGames(t).filter(g=>condOf(g)!==false);
+  if(!gs.length){const p=document.createElement("span");p.className="tempty";p.textContent="No games yet. Add them as the schedule comes out.";box.appendChild(p)}
+  let curDay=null, dayEl=null;
+  gs.forEach(g=>{ const d=gDate(g), key=d?d.toDateString():"TBD";
+    if(key!==curDay){curDay=key; dayEl=document.createElement("div"); dayEl.className="tday"; const b=document.createElement("b"); b.textContent=d?d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"}):"Date TBD"; dayEl.appendChild(b); box.appendChild(dayEl)}
+    const c=condOf(g), row=document.createElement("div"); row.className="trow"+(c===null?" cond":"")+(nx&&nx.id===g.id?" next":"");
+    row.innerHTML=`<span class="tt"></span><span class="to"></span><span class="twl"></span>`;
+    row.querySelector(".tt").textContent=g.time&&d?d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}):"Time TBD";
+    const to=row.querySelector(".to"); to.textContent=g.opp?"vs "+g.opp:"Opponent TBD";
+    const sm=document.createElement("small"); sm.textContent=[tCondWord(g),fieldLbl(g),(nx&&nx.id===g.id)?"Next up":""].filter(Boolean).join(" · "); if(sm.textContent)to.appendChild(sm);
+    to.style.cursor="pointer"; to.onclick=()=>openGameForm(g);
+    if(c===true&&d&&d<=new Date(Date.now()+3600000)){ const wl=row.querySelector(".twl");
+      [["W","w"],["L","l"]].forEach(([v,cl])=>{const b=document.createElement("button");b.type="button";b.className=cl;b.textContent=v;b.setAttribute("aria-pressed",g.res===v);b.setAttribute("aria-label",v==="W"?"We won":"We lost");
+        b.onclick=()=>{ g.res=g.res===v?null:v; saveSched(); if(g.res)toast(v==="W"?"Win recorded":"Loss recorded") }; wl.appendChild(b)}) }
+    dayEl.appendChild(row) });
+  if(t.rules){const ru=document.createElement("div");ru.className="trules";ru.textContent=t.rules;box.appendChild(ru)}
+  const bx=el.querySelector(".gbtns");
+  const btn=(txt,cls,fn)=>{const b=document.createElement("button");b.type="button";b.textContent=txt;if(cls)b.className=cls;b.onclick=fn;bx.appendChild(b);return b};
+  btn("Text parents","pri",()=>{location.href="sms:&body="+encodeURIComponent(tText(t))});
+  btn("Copy",null,async()=>{try{await navigator.clipboard.writeText(tText(t));toast("Message copied")}catch(e){toast("Copy failed")}});
+  btn("+ Game",null,()=>openGameForm(null,t));
+  if(t.link&&/^https?:\/\//i.test(t.link)){const a=document.createElement("a");a.textContent="Bracket";a.href=t.link;a.target="_blank";a.rel="noopener";bx.appendChild(a)}
+  btn("Calendar",null,()=>downloadICS(tGames(t).filter(g=>condOf(g)!==false).map(g=>({...g,opp:(g.opp||"TBD")+(g.cond?" ("+tCondWord(g).toLowerCase()+")":"")})),(t.name||"Tournament")));
+  btn("Edit",null,()=>openTForm(t));
+  return el;
+}
+function tText(t){
+  const nm=TEAM.name||"Team", lines=[], r=tRecord(t), tm=dt=>dt.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
+  lines.push(nm+": "+(t.name||"Tournament"));
+  lines.push(tDates(t)+(tLoc(t)?" at "+tLoc(t):""));
+  if(t.fmt&&t.fmt!=="unsure") lines.push("Format: "+FMTN(t.fmt)+(t.guar?". "+t.guar+" games guaranteed.":"."));
+  else if(t.guar) lines.push(t.guar+" games guaranteed.");
+  if(r.w+r.l) lines.push("Record so far: "+r.w+" and "+r.l+". "+tStatus(t)[0].replace(" · ",", ")+".");
+  const gs=tGames(t).filter(g=>condOf(g)!==false);
+  if(gs.length){ lines.push(""); lines.push("Schedule:");
+    gs.forEach(g=>{ const d=gDate(g); let ln=(d?d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"Date TBD")+", "+(g.time&&d?tm(d):"time TBD");
+      ln+=" "+(g.opp?"vs "+g.opp:"opponent TBD"); if(fieldLbl(g))ln+=", "+fieldLbl(g);
+      if(g.res)ln+=" ("+(g.res==="W"?"won":"lost")+")";
+      else if(g.cond)ln+=" ("+tCondWord(g).toLowerCase()+")";
+      else if(d&&g.time){const ar=Number.isInteger(g.arrive)?g.arrive:30; if(ar>0)ln+=". Arrive by "+tm(new Date(d.getTime()-ar*60000))}
+      lines.push(ln) }) }
+  else { lines.push(""); lines.push("Game times coming soon."); }
+  if(t.rules){ lines.push(""); lines.push("Rules and reminders:"); lines.push(t.rules) }
+  if(t.link){ lines.push(""); lines.push("Bracket: "+t.link) }
+  return lines.join("\n");
+}
+let tEditId=null, tDelT=null;
+function openTForm(t){
+  tEditId=t?t.id:null; $("tForm").hidden=false; $("addTourney").hidden=true; $("addGame").hidden=true;
+  $("tfTitle").textContent=t?"Edit tournament":"Add tournament";
+  $("tfName").value=t?t.name||"":""; $("tfStart").value=t?t.start||"":""; $("tfEnd").value=t?t.end||"":"";
+  $("tfLoc").value=t?t.loc||"":""; $("tfFmt").value=t?t.fmt||"unsure":"unsure"; $("tfGuar").value=t&&t.guar?t.guar:"";
+  $("tfRules").value=t?t.rules||"":""; $("tfLink").value=t?t.link||"":""; $("tfDone").value=t?t.done||"":"";
+  $("tfDoneL").hidden=!t; $("tfMoveNote").hidden=!(t&&tGames(t).length);
+  $("tfDelete").hidden=!t; $("tfDelete").classList.remove("arm"); $("tfDelete").textContent="Delete";
+  $("tForm").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function closeTForm(){$("tForm").hidden=true;$("addTourney").hidden=false;$("addGame").hidden=false;tEditId=null}
+$("addTourney").onclick=()=>openTForm(null);
+$("tfCancel").onclick=closeTForm;
+$("tfSave").onclick=()=>{
+  const start=$("tfStart").value; if(!start){toast("Pick the first day");return}
+  let end=$("tfEnd").value||start; if(end<start)end=start;
+  const old=tEditId?tById(tEditId):null;
+  const t={...(old||{}),id:tEditId||Math.random().toString(36).slice(2,10),kind:"tourney",name:$("tfName").value.trim()||"Tournament",start,end,loc:$("tfLoc").value.trim(),fmt:$("tfFmt").value,guar:parseInt($("tfGuar").value,10)||0,rules:$("tfRules").value.trim(),link:$("tfLink").value.trim(),done:$("tfDone").value||""};
+  let moved=0;
+  if(old&&old.start&&old.start!==start){ const a=tDate(old), b=tDate(t), delta=Math.round((b-a)/86400000);
+    if(delta){ tGames(old).forEach(g=>{ const d=gDate(g); if(!d)return; const nd=new Date(d.getFullYear(),d.getMonth(),d.getDate()+delta); g.date=nd.getFullYear()+"-"+pad(nd.getMonth()+1)+"-"+pad(nd.getDate()); moved++ });
+      if(!$("tfEnd").value||$("tfEnd").value===old.end){ const e=tEnd(old); if(e){const ne=new Date(e.getFullYear(),e.getMonth(),e.getDate()+delta); t.end=ne.getFullYear()+"-"+pad(ne.getMonth()+1)+"-"+pad(ne.getDate())} } } }
+  const i=sched.findIndex(x=>x.id===t.id); if(i>=0)sched[i]=t; else sched.push(t);
+  closeTForm(); saveSched(); toast(moved?"Moved "+moved+" game"+(moved===1?"":"s")+". Tap Text parents to share.":"Tournament saved");
+};
+$("tfDelete").onclick=()=>{const b=$("tfDelete");
+  if(!b.classList.contains("arm")){b.classList.add("arm");b.textContent="Tap again to delete it and its games";clearTimeout(tDelT);tDelT=setTimeout(()=>{b.classList.remove("arm");b.textContent="Delete"},3500);return}
+  const id=tEditId; sched=sched.filter(x=>x.id!==id&&x.tid!==id); closeTForm(); saveSched(); toast("Tournament deleted")};
 let delT=null;
-function openGameForm(g){
-  editId=g?g.id:null; $("gameForm").hidden=false; $("addGame").hidden=true;
+function openGameForm(g,tFor){
+  editId=g?g.id:null;
+  { const ts=sched.filter(isT), sel=$("gfT"); sel.innerHTML='<option value="">None</option>'+ts.map(t=>'<option></option>').join("");
+    ts.forEach((t,i)=>{const o=sel.options[i+1]; o.value=t.id; o.textContent=t.name||"Tournament"});
+    sel.value=(g&&g.tid)||(tFor&&tFor.id)||""; $("gfCond").value=(g&&g.cond)||""; $("gfTRow").hidden=!ts.length; } $("gameForm").hidden=false; $("addGame").hidden=true;
   $("gfTitle").textContent=g?(isPrac(g)?"Edit practice":"Edit game"):"Add to schedule";
   $("gfDate").value=g?g.date||"":""; $("gfTime").value=g?g.time||"":"";
   $("gfOpp").value=g?g.opp||"":""; $("gfLoc").value=g?g.loc||"":"";
   $("gfHome").value=g&&g.home==="home"?"home":"away"; $("gfArrive").value=g&&g.arrive!=null?g.arrive:"";
   $("gfKind").value=isPrac(g)?"practice":"game"; gfFieldNo=g&&g.fieldNo?g.fieldNo:0; drawFieldPick(); kindUI();
   $("gfDelete").hidden=!g; $("gfDelete").classList.remove("arm"); $("gfDelete").textContent="Delete";
+  if(!g&&tFor){ $("gfDate").value=tFor.start||""; $("gfLoc").value=tFor.loc||""; $("gfKind").value="game"; kindUI() }
+  $("tForm").hidden=true; $("addTourney").hidden=true;
   $("gameForm").scrollIntoView({behavior:"smooth",block:"start"});
 }
 let gfFieldNo=0;
@@ -1313,12 +1472,13 @@ function drawFieldPick(){ const w=$("gfField"); w.innerHTML=""; $("gfFieldWrap")
     b.setAttribute("aria-pressed",gfFieldNo===n); b.onclick=()=>{gfFieldNo=n;drawFieldPick()}; w.appendChild(b)}) }
 function kindUI(){ const pr=$("gfKind").value==="practice"; $("gfOppL").style.visibility=pr?"hidden":""; $("gfHome").closest("label").style.display=pr?"none":"" }
 $("gfKind").onchange=kindUI;
-function closeGameForm(){$("gameForm").hidden=true;$("addGame").hidden=false;editId=null}
+function closeGameForm(){$("gameForm").hidden=true;$("addGame").hidden=false;$("addTourney").hidden=false;editId=null}
 $("addGame").onclick=()=>openGameForm(null);
 $("gfCancel").onclick=closeGameForm;
 $("gfSave").onclick=()=>{
   const pr=$("gfKind").value==="practice"; const g={id:editId||Math.random().toString(36).slice(2,10),kind:pr?"practice":"game",fieldNo:gfFieldNo||0,date:$("gfDate").value,time:$("gfTime").value,opp:$("gfOpp").value.trim(),loc:$("gfLoc").value.trim(),home:$("gfHome").value,arrive:$("gfArrive").value===""?null:parseInt($("gfArrive").value,10)};
   if(!g.date){toast("Pick a date");return}
+  { const tid=$("gfT").value; if(tid&&!pr){ g.tid=tid; if($("gfCond").value)g.cond=$("gfCond").value } const old=sched.find(x=>x.id===g.id); if(old&&old.res&&g.tid)g.res=old.res }
   const i=sched.findIndex(x=>x.id===g.id); if(i>=0)sched[i]=g; else sched.push(g);
   closeGameForm(); saveSched(); toast("Game saved");
 };
