@@ -250,6 +250,15 @@ button.chip{color:var(--fg)}
 .who{display:flex;align-items:center;gap:12px}
 .who .av{width:44px;height:44px;border-radius:50%;background:var(--red);color:var(--on-red);display:flex;align-items:center;justify-content:center;font:800 17px var(--body);flex:none}
 .who .nm{font-weight:700}.who .em{color:var(--muted);font-size:14px;overflow-wrap:anywhere}
+header .tabs{display:none!important}
+#app{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+.pagedots{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-content:center;gap:2px;padding:8px 0 calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--surface)}
+.pagedots button{width:30px;height:30px;padding:0;background:transparent;border-radius:99px;display:flex;align-items:center;justify-content:center}
+.pagedots button::before{content:"";display:block;width:8px;height:8px;border-radius:99px;background:var(--line);transition:width .2s,background .2s}
+.pagedots button[aria-current="true"]::before{width:24px;background:var(--red-ink)}
+@media (prefers-reduced-motion:reduce){.pagedots button::before{transition:none}}
+.impbox{display:flex;flex-direction:column;gap:10px}
+.impfound{font-weight:600}
 /* loading screen */
 #loader{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 #loader svg{width:min(70vw,280px);height:auto;overflow:visible}
@@ -314,6 +323,7 @@ button.chip{color:var(--fg)}
   <button class="go" type="button" id="rOpen">Open team</button>
 </div></div>
 <div class="wrap" id="app" hidden>
+<nav class="pagedots" aria-label="Pages"><button type="button" data-tab="bat" aria-label="Batting"></button><button type="button" data-tab="field" aria-label="Field"></button><button type="button" data-tab="score" aria-label="Score"></button><button type="button" data-tab="games" aria-label="Games"></button></nav>
   <header>
     <div class="brand" style="flex:1;justify-content:space-between"><h1><span id="teamName">TEAM</span><span class="live" id="live" title="Offline"></span></h1>
       <button type="button" class="acctbtn" id="acctBtn" aria-label="Account and team menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span id="acctIni" hidden></span></button></div>
@@ -431,6 +441,15 @@ button.chip{color:var(--fg)}
       <div class="games" id="gamesList"></div>
       <details class="past" id="pastWrap" hidden><summary id="pastSum">Past games</summary><div class="games" id="pastList" style="margin-top:10px"></div></details>
       <button class="go" type="button" id="addGame">Add a game</button>
+      <div class="grid2"><button class="ghost" type="button" id="impOpen">Import schedule</button><button class="ghost" type="button" id="calAll">Add all to calendar</button></div>
+      <div class="game impbox" id="impBox" hidden>
+        <h3 style="margin:0;font:900 20px var(--display);text-transform:uppercase">Import schedule</h3>
+        <p class="sub" style="margin:0">Add a calendar file (.ics) from GameChanger or your league, a CSV, or paste a list, one game per line, like <b>10/6 6:00 PM vs Red Sox, Field 1</b>. Use @ for away games.</p>
+        <div class="form"><textarea id="impText" placeholder="10/6 6:00 PM vs Red Sox, Field 1"></textarea></div>
+        <div class="gbtns"><label class="ghost" style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-weight:700;font-size:14px;cursor:pointer">Choose file<input id="impFile" type="file" accept=".ics,.csv,.txt,text/calendar,text/csv,text/plain" hidden></label><button type="button" id="impParse">Read list</button><button type="button" id="impCancel">Cancel</button></div>
+        <p class="impfound" id="impFound" hidden></p>
+        <div class="gbtns" id="impConfirm" hidden><button type="button" class="pri" id="impAdd">Add games</button></div>
+      </div>
       <div class="game" id="gameForm" hidden>
         <h3 id="gfTitle" style="margin:0;font:900 20px var(--display);text-transform:uppercase">Add a game</h3>
         <div class="form">
@@ -843,9 +862,13 @@ const TABS=["bat","field","score","games"];
 function showTab(t){
   if(!TABS.includes(t))t="bat";
   TABS.forEach(x=>{$("v-"+x).hidden=x!==t;$("t-"+x).setAttribute("aria-selected",x===t)});
+  document.querySelectorAll(".pagedots button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===t));
   store(K_TAB,t); window.scrollTo(0,0);
 }
 TABS.forEach(x=>$("t-"+x).onclick=()=>showTab(x));
+document.querySelectorAll(".pagedots button").forEach(b=>b.onclick=()=>{
+  const cur=TABS.findIndex(x=>!$("v-"+x).hidden), nx=TABS.indexOf(b.dataset.tab); if(nx===cur)return;
+  showTab(b.dataset.tab); const v=$("v-"+b.dataset.tab); v.classList.remove("slide-l","slide-r"); void v.offsetWidth; v.classList.add(nx>cur?"slide-l":"slide-r")});
 /* swipe left / right between tabs */
 (function(){
   let sx=null,sy=0,st=0;
@@ -938,6 +961,7 @@ function gameCard(g,isNext){
   btn("Text parents","pri",()=>{location.href="sms:&body="+encodeURIComponent(gameText(g))});
   btn("Copy",null,async()=>{try{await navigator.clipboard.writeText(gameText(g));toast("Message copied")}catch(e){toast("Copy failed")}});
   if(g.loc){const a=document.createElement("a");a.textContent="Map";a.href="https://maps.apple.com/?q="+encodeURIComponent(g.loc);a.target="_blank";a.rel="noopener";bx.appendChild(a)}
+  btn("Calendar",null,()=>downloadICS([g],(TEAM.name||"Game")+" "+(g.date||"")));
   btn("Edit",null,()=>openGameForm(g));
   return el;
 }
@@ -1006,6 +1030,105 @@ $("tsSave").onclick=async()=>{
   toast("Team saved");
 };
 $("tsSwitch").onclick=()=>{try{localStorage.removeItem("dugout-team")}catch(e){} location.href=location.pathname};
+
+
+/* ---- calendar export (.ics) ---- */
+function icsEsc(t){return String(t||"").replace(/\\/g,"\\\\").replace(/;/g,"\;").replace(/,/g,"\\,").replace(/\r?\n/g,"\\n")}
+const ymd=d=>d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());
+const hms=d=>pad(d.getHours())+pad(d.getMinutes())+"00";
+function icsFold(l){const out=[];while(l.length>74){out.push(l.slice(0,74));l=" "+l.slice(74)}out.push(l);return out.join("\r\n")}
+function gameVEVENT(g){
+  const d=gDate(g); if(!d)return "";
+  const nm=TEAM.name||"Team", now=new Date();
+  const L=["BEGIN:VEVENT","UID:"+g.id+"@buddydugout","DTSTAMP:"+now.getUTCFullYear()+pad(now.getUTCMonth()+1)+pad(now.getUTCDate())+"T"+pad(now.getUTCHours())+pad(now.getUTCMinutes())+"00Z"];
+  if(g.time){const e=new Date(d.getTime()+90*60000); L.push("DTSTART:"+ymd(d)+"T"+hms(d),"DTEND:"+ymd(e)+"T"+hms(e))}
+  else{const e=new Date(d); e.setDate(e.getDate()+1); L.push("DTSTART;VALUE=DATE:"+ymd(d),"DTEND;VALUE=DATE:"+ymd(e))}
+  L.push("SUMMARY:"+icsEsc(nm+(g.opp?(g.home==="home"?" vs ":" @ ")+g.opp:" game")));
+  if(g.loc)L.push("LOCATION:"+icsEsc(g.loc));
+  L.push("DESCRIPTION:"+icsEsc(gameText(g)));
+  if(g.time){const ar=parseInt(g.arrive,10)||0; L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(nm+" game"),"TRIGGER:-PT"+(ar+60)+"M","END:VALARM")}
+  L.push("END:VEVENT"); return L.map(icsFold).join("\r\n");
+}
+function downloadICS(games,name){
+  const ev=games.map(gameVEVENT).filter(Boolean); if(!ev.length){toast("Add a date first");return}
+  const body=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Buddy Dugout//EN","CALSCALE:GREGORIAN","X-WR-CALNAME:"+icsEsc((TEAM.name||"Team")+" games"),...ev,"END:VCALENDAR"].join("\r\n")+"\r\n";
+  const file=(name||"games").replace(/[^a-z0-9 -]/gi,"").trim().replace(/\s+/g,"-")+".ics";
+  const blob=new Blob([body],{type:"text/calendar;charset=utf-8"}), url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download=file; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+$("calAll").onclick=()=>{const up=sortedGames().filter(g=>!isPast(g)); downloadICS(up.length?up:sortedGames(),(TEAM.name||"Team")+" schedule")};
+
+/* ---- schedule import ---- */
+const MONTHS=["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+function inferYear(m,d){const now=new Date(), y=now.getFullYear(); const dt=new Date(y,m-1,d); return (now-dt)>60*86400000?y+1:y}
+function fmtDate(y,m,d){return y+"-"+pad(m)+"-"+pad(d)}
+function parseDateStr(t){t=t.trim(); let m;
+  if(m=t.match(/(\d{4})-(\d{1,2})-(\d{1,2})/))return fmtDate(+m[1],+m[2],+m[3]);
+  if(m=t.match(/\b(\d{1,2})[\/.-](\d{1,2})(?:[\/.-](\d{2,4}))?\b/)){let y=m[3]?+m[3]:inferYear(+m[1],+m[2]); if(y<100)y+=2000; return fmtDate(y,+m[1],+m[2])}
+  if(m=t.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:,?\s+(\d{4}))?/i)){const mo=MONTHS.indexOf(m[1].slice(0,3).toLowerCase())+1; return fmtDate(m[3]?+m[3]:inferYear(mo,+m[2]),mo,+m[2])}
+  return "";}
+function parseTimeStr(t){const m=t.match(/\b(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?|am|pm|a|p)\b/i)||t.match(/\b(\d{1,2}):(\d{2})\b/); if(!m)return "";
+  let h=+m[1], mi=m[2]?+m[2]:0; const ap=(m[3]||"").toLowerCase(); if(ap.startsWith("p")&&h<12)h+=12; if(ap.startsWith("a")&&h===12)h=0; if(h>23||mi>59)return ""; return pad(h)+":"+pad(mi)}
+function splitOpp(txt){
+  const nm=(TEAM.name||"").toLowerCase(); let t=txt.trim(), home="home", m;
+  if(m=t.match(/(?:^|\s)(?:@|at)\s+(.+)$/i)){home="away";t=m[1]} else if(m=t.match(/(?:^|\s)vs\.?\s+(.+)$/i)){t=m[1]}
+  if(nm&&t.toLowerCase().startsWith(nm))t=t.slice(nm.length).replace(/^\s*(vs\.?|@|at)\s*/i,"");
+  return {opp:t.trim().replace(/^[-:,\s]+|[-:,\s]+$/g,""),home};
+}
+function parseICS(text){
+  const lines=text.replace(/\r\n[ \t]/g,"").replace(/\n[ \t]/g,"").split(/\r?\n/), games=[]; let ev=null;
+  const un=v=>v.replace(/\\n/gi," ").replace(/\\([,;\\])/g,"$1").trim();
+  lines.forEach(l=>{
+    if(/^BEGIN:VEVENT/i.test(l))ev={}; else if(/^END:VEVENT/i.test(l)){if(ev&&ev.date)games.push(ev);ev=null}
+    else if(ev){const i=l.indexOf(":"); if(i<0)return; const key=l.slice(0,i).toUpperCase(), val=l.slice(i+1);
+      if(key.startsWith("DTSTART")){const m=val.match(/(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?/); if(m){
+        if(m[4]){let d=m[7]?new Date(Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5])):new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5]); ev.date=fmtDate(d.getFullYear(),d.getMonth()+1,d.getDate()); ev.time=pad(d.getHours())+":"+pad(d.getMinutes())}
+        else{ev.date=fmtDate(+m[1],+m[2],+m[3]); ev.time=""}}}
+      else if(key.startsWith("SUMMARY")){Object.assign(ev,splitOpp(un(val)))}
+      else if(key.startsWith("LOCATION")){ev.loc=un(val)}}
+  });
+  return games;
+}
+function parseList(text){
+  const rows=text.replace(/\r/g,"").split("\n").map(l=>l.trim()).filter(Boolean); if(!rows.length)return [];
+  const head=rows[0].toLowerCase(), games=[];
+  if(/date/.test(head)&&/[,\t;]/.test(head)){
+    const sep=head.includes("\t")?"\t":head.includes(";")?";":",", cols=head.split(sep).map(c=>c.trim());
+    const ix=re=>cols.findIndex(c=>re.test(c));
+    const iD=ix(/date/), iT=ix(/time|start/), iO=ix(/opp|vs|against|team|game|summary|event/), iL=ix(/loc|field|venue|where|park/), iH=ix(/home|away|h\/a/);
+    rows.slice(1).forEach(r=>{const c=r.split(sep).map(x=>x.trim().replace(/^"|"$/g,"")); const date=parseDateStr(c[iD]||""); if(!date)return;
+      const so=splitOpp(iO>=0?c[iO]||"":""); let home=so.home; if(iH>=0&&c[iH]){home=/^a|away/i.test(c[iH])?"away":"home"}
+      games.push({date,time:parseTimeStr(iT>=0?c[iT]||"":""),opp:so.opp,loc:iL>=0?c[iL]||"":"",home})});
+    return games;
+  }
+  rows.forEach(r=>{const date=parseDateStr(r); if(!date)return; const time=parseTimeStr(r);
+    let rest=r.replace(/^\s*(mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?,?\s*/i,"")
+      .replace(/\d{4}-\d{1,2}-\d{1,2}|\b\d{1,2}[\/.-]\d{1,2}(?:[\/.-]\d{2,4})?\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}(?:,?\s+\d{4})?/i,"")
+      .replace(/\b\d{1,2}(?::\d{2})?\s*(a\.?m\.?|p\.?m\.?|am|pm)\b|\b\d{1,2}:\d{2}\b/i,"").trim().replace(/^[-,\s]+/,"");
+    let loc=""; const ci=rest.indexOf(","); if(ci>=0){loc=rest.slice(ci+1).trim();rest=rest.slice(0,ci)}
+    const so=splitOpp(rest); games.push({date,time,opp:so.opp,loc,home:so.home})});
+  return games;
+}
+let impFoundGames=[];
+function impShow(games){
+  const key=x=>x.date+"|"+(x.time||"")+"|"+(x.opp||"").toLowerCase(), seen=new Set(sched.map(key));
+  const fresh=games.filter(g=>{const k=key(g); if(seen.has(k))return false; seen.add(k); return true});
+  impFoundGames=fresh; $("impFound").hidden=false;
+  $("impFound").textContent=!games.length?"Couldn't find any games. Check the dates, like 10/6 or Oct 6.":
+    fresh.length+" new game"+(fresh.length===1?"":"s")+" found"+(games.length>fresh.length?" ("+(games.length-fresh.length)+" already on your schedule)":"")+".";
+  $("impConfirm").hidden=!fresh.length;
+}
+$("impOpen").onclick=()=>{$("impBox").hidden=false;$("impFound").hidden=true;$("impConfirm").hidden=true;$("impBox").scrollIntoView({behavior:"smooth",block:"start"})};
+$("impCancel").onclick=()=>{$("impBox").hidden=true;$("impText").value=""};
+$("impParse").onclick=()=>{const t=$("impText").value; impShow(/BEGIN:VCALENDAR/i.test(t)?parseICS(t):parseList(t))};
+$("impFile").onchange=e=>{const f=e.target.files[0]; if(!f)return; const rd=new FileReader();
+  rd.onload=()=>{const t=String(rd.result); impShow(/BEGIN:VCALENDAR/i.test(t)||/\.ics$/i.test(f.name)?parseICS(t):parseList(t))}; rd.readAsText(f); e.target.value=""};
+$("impAdd").onclick=()=>{impFoundGames.forEach(g=>sched.push({id:Math.random().toString(36).slice(2,10),date:g.date,time:g.time||"",opp:g.opp||"",loc:g.loc||"",home:g.home||"home",arrive:null}));
+  const n=impFoundGames.length; impFoundGames=[]; $("impBox").hidden=true; $("impText").value=""; saveSched(); toast(n+" game"+(n===1?"":"s")+" added")};
+
+/* ---- first-run swipe hint ---- */
+try{ if(!localStorage.getItem("bd-swipehint")){ setTimeout(()=>toast("Swipe left or right to change pages"),900); localStorage.setItem("bd-swipehint","1") } }catch(e){}
 
 /* ---------- team context for the account menu ---------- */
 window.TEAMCTX={code:TEAM.code,ref:TEAM.ref,owner:TEAM.owner||null,openSettings:openTeamSheet,name:()=>TEAM.name};
