@@ -313,6 +313,18 @@ header .tabs{display:none!important}
 .chiprow button[aria-pressed="true"]{background:var(--hi);color:var(--on-hi);border-color:var(--hi)}
 .planbtn{background:var(--red);color:var(--on-red);font:900 22px var(--display);letter-spacing:.04em;text-transform:uppercase;padding:14px}
 .planbtn.arm{outline:3px solid var(--fg);outline-offset:2px}
+.clkrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.clkrow button{padding:14px 8px;font:900 22px var(--display);letter-spacing:.04em;text-transform:uppercase}
+.miniclk{display:flex;align-items:center;gap:4px;height:38px;padding:0 10px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font:800 16px var(--body);font-variant-numeric:tabular-nums;color:var(--fg)}
+.miniclk svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.miniclk.paused{color:var(--muted)}
+.miniclk.low{border-color:var(--red-ink);color:var(--red-ink)}
+.miniclk svg{display:none}
+body.clk-on header h1{font-size:clamp(18px,5.6vw,26px)}
+header h1{display:flex;align-items:center;min-width:0;white-space:nowrap}
+header h1 #teamName{overflow:hidden;text-overflow:ellipsis}
+header h1 .live{flex:none}
+.brand{gap:8px!important}
 /* loading screen */
 #loader{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 #loader svg{width:min(70vw,280px);height:auto;overflow:visible}
@@ -380,7 +392,7 @@ header .tabs{display:none!important}
 <nav class="pagedots" aria-label="Pages"><button type="button" data-tab="bat" aria-label="Batting"></button><button type="button" data-tab="field" aria-label="Field"></button><button type="button" data-tab="score" aria-label="Score"></button><button type="button" data-tab="games" aria-label="Games"></button></nav>
   <header>
     <div class="brand" style="flex:1;justify-content:space-between"><h1><span id="teamName">TEAM</span><span class="live" id="live" title="Offline"></span></h1>
-      <div style="display:flex;gap:8px;flex:none"><button type="button" class="acctbtn lockbtn" id="lockBtn" aria-label="Lock lineup" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path id="lockShackle" d="M8 11V7a4 4 0 0 1 7.5-2"/></svg></button><button type="button" class="acctbtn" id="acctBtn" aria-label="Account and team menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span id="acctIni" hidden></span></button></div></div>
+      <div style="display:flex;gap:8px;flex:none;align-items:center"><button type="button" class="miniclk" id="miniClk" hidden aria-label="Game clock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg><span id="miniClkT">60:00</span></button><button type="button" class="acctbtn lockbtn" id="lockBtn" aria-label="Lock lineup" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path id="lockShackle" d="M8 11V7a4 4 0 0 1 7.5-2"/></svg></button><button type="button" class="acctbtn" id="acctBtn" aria-label="Account and team menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span id="acctIni" hidden></span></button></div></div>
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="t-bat" aria-selected="true">Batting</button>
       <button type="button" role="tab" id="t-field" aria-selected="false">Field</button>
@@ -508,8 +520,8 @@ header .tabs{display:none!important}
         <button type="button" class="herehead" aria-expanded="false"><span><span class="lbl">Game clock</span><span class="sum" id="clockSum"></span></span><span class="pmicon" aria-hidden="true">+</span></button>
         <div class="herebody" hidden><div class="clockface" id="clkFace">60:00</div>
           <div class="chiprow" id="clkPresets"></div>
-          <div class="row2"><button class="ghost" type="button" id="clkReset" style="padding:12px">Reset</button><button class="go" type="button" id="clkGo" style="font-size:22px;padding:12px">Start</button></div>
-          <p class="pfull" style="margin:0">Every coach's phone shows the same clock. You get a heads up at 5 minutes and when time is up.</p></div>
+          <div class="clkrow"><button class="ghost" type="button" id="clkReset">Reset</button><button class="go" type="button" id="clkGo">Start</button></div>
+          <p class="pfull" id="clkHint" style="margin:0">Every coach's phone shows the same clock. You get a heads up at 5 minutes and when time is up.</p></div>
       </div>
       <button class="ghost" type="button" id="shareLink" style="padding:14px">Share coach link</button>
       <button class="newgame" type="button" data-newgame>New game</button>
@@ -1374,6 +1386,10 @@ function renderClock(){
   const c=sc.clock, left=clkLeft(), run=!!c.start;
   $("clkFace").textContent=fmtClk(left); $("clkFace").classList.toggle("low",left<=5*60000);
   $("clkGo").textContent=run?"Pause":(c.used?"Resume":"Start");
+  const started=run||!!c.used;
+  $("clkPresets").hidden=started; $("clkHint").hidden=run;
+  const mc=$("miniClk"); mc.hidden=!started; document.body.classList.toggle("clk-on",started); $("miniClkT").textContent=fmtClk(left);
+  mc.classList.toggle("paused",!run); mc.classList.toggle("low",left<=5*60000); mc.setAttribute("aria-label","Game clock, "+fmtClk(left)+(run?" left":" paused"));
   $("clockSum").textContent=run?fmtClk(left)+" left":(c.used?"Paused · "+fmtClk(left)+" left":c.dur+" minutes · not started");
   const pr=$("clkPresets"); if(!pr.childElementCount) CLK_PRESETS.forEach(n=>{const b=document.createElement("button");b.type="button";b.dataset.min=n;b.textContent=n+" min";b.onclick=()=>{sc.clock.dur=n;saveScore();renderClock()};pr.appendChild(b)});
   pr.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.min===c.dur));
@@ -1382,6 +1398,7 @@ function renderClock(){
   if(left>5*60000)warned5=false; if(left>0)warned0=false;
 }
 $("clkGo").onclick=()=>{ const c=sc.clock; if(c.start){c.used=(c.used||0)+(Date.now()-c.start);c.start=null}else{c.start=Date.now()} saveScore(); renderClock() };
+$("miniClk").onclick=()=>{ showTab("score"); const box=document.querySelector('[data-coll="clock"]'); if(box&&box.querySelector(".herebody").hidden) box.querySelector(".herehead").click(); setTimeout(()=>box&&box.scrollIntoView({behavior:"smooth",block:"center"}),50) };
 $("clkReset").onclick=()=>{ sc.clock={dur:sc.clock.dur||60,start:null,used:0}; saveScore(); renderClock() };
 setInterval(()=>{ if(sc.clock&&sc.clock.start) renderClock() },1000);
 
