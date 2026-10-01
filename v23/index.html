@@ -342,9 +342,9 @@ header h1 .live{flex:none}
 .teamcards{border:0;gap:8px;overflow:visible}
 .teamcards button{border-radius:12px!important;border:1px solid var(--line)!important;padding:16px 16px 16px 22px}
 .teamcards button.tc{border-color:transparent!important}
-.micfab{position:fixed;z-index:11;left:0;top:0;width:62px;height:62px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;
+.micfab{position:fixed;z-index:11;left:0;top:0;width:var(--micsz,62px);height:var(--micsz,62px);border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;
   background:var(--red);border:3px solid var(--team2);box-shadow:0 8px 22px rgba(0,0,0,.45);touch-action:none;-webkit-user-select:none;user-select:none;transition:transform .12s}
-.micfab svg{width:28px;height:28px;fill:none;stroke:var(--on-red);stroke-width:2.2;stroke-linecap:round}
+.micfab svg{width:45%;height:45%;fill:none;stroke:var(--on-red);stroke-width:2.2;stroke-linecap:round}
 .micfab.drag{transform:scale(1.12);opacity:.9;transition:none}
 .micfab.on{animation:micpulse 1.1s ease-in-out infinite}
 .micfab.on::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:3px solid var(--red);opacity:.6}
@@ -352,6 +352,7 @@ header h1 .live{flex:none}
 @media (prefers-reduced-motion:reduce){.micfab.on{animation:none}}
 #voiceHelp ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14px}
 #voiceHelp b{color:var(--red-ink)}
+.panel>*{flex-shrink:0}
 /* loading screen */
 #loader{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 #loader svg{width:min(70vw,280px);height:auto;overflow:visible}
@@ -463,9 +464,7 @@ header h1 .live{flex:none}
       <div class="bench herebox coll" data-coll="btools">
         <button type="button" class="herehead" aria-expanded="false"><span><span class="lbl">Lineup tools</span><span class="sum" id="btoolsSum"></span></span><span class="pmicon" aria-hidden="true">+</span></button>
         <div class="herebody" hidden><button class="ghost" type="button" id="shuffleOrder" style="padding:12px">Shuffle batting order</button><button class="ghost" type="button" data-card style="padding:12px">Share lineup card</button>
-          <div class="sideset" id="micToggleRow"><span class="lbl" style="color:var(--muted)">Voice button</span><div class="tabs" id="micSeg"><button type="button" data-mic="1">Show</button><button type="button" data-mic="0">Hide</button></div></div>
-          <div class="sideset"><span class="lbl" style="color:var(--muted)">Announce batters</span><div class="tabs" id="annSeg"><button type="button" data-ann="1">On</button><button type="button" data-ann="0">Off</button></div></div>
-          <div id="voiceHelp" class="pfull"><span class="lbl" style="color:var(--muted)">Voice commands (tap the mic, hold to move it)</span><ul>
+                    <div id="voiceHelp" class="pfull"><span class="lbl" style="color:var(--muted)">Voice commands (tap the mic, hold to move it)</span><span class="pfull" style="display:block;margin-bottom:4px">Show, hide or resize the mic and turn announcements on or off from the account menu.</span><ul>
             <li><b>"Next"</b> or <b>"Batted"</b> moves to the next batter</li>
             <li><b>"Back"</b> undoes the last batter</li>
             <li><b>"Nash is up"</b> jumps to a batter by name</li>
@@ -650,6 +649,7 @@ header h1 .live{flex:none}
       <div class="menu teamcards" id="acMineList"></div>
     </div>
     <div class="sideset"><span class="lbl" style="color:var(--muted)">Appearance</span><div class="tabs" id="apSeg"><button type="button" data-mode="auto">Auto</button><button type="button" data-mode="light">Light</button><button type="button" data-mode="dark">Dark</button></div></div>
+    <div id="voiceSet" hidden style="display:flex;flex-direction:column;gap:12px"><div class="sideset" id="micToggleRow"><span class="lbl" style="color:var(--muted)">Voice button</span><div class="tabs" id="micSeg"><button type="button" data-mic="1">Show</button><button type="button" data-mic="0">Hide</button></div></div><div class="sideset" id="micSizeRow"><span class="lbl" style="color:var(--muted)">Voice button size</span><div class="tabs" id="micSize"><button type="button" data-sz="52">S</button><button type="button" data-sz="62">M</button><button type="button" data-sz="76">L</button></div></div><div class="sideset"><span class="lbl" style="color:var(--muted)">Announce batters</span><div class="tabs" id="annSeg"><button type="button" data-ann="1">On</button><button type="button" data-ann="0">Off</button></div></div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
   </div>
 </div>
@@ -1540,9 +1540,10 @@ function micToggle(){
   rec.onend=()=>{ listening=false; $("micBtn").classList.remove("on") };
   try{ rec.start(); listening=true; $("micBtn").classList.add("on"); try{navigator.vibrate&&navigator.vibrate(15)}catch(e){} }catch(e){ toast("Voice didn't start. Try again.") }
 }
+const micSz=()=>{try{const v=+localStorage.getItem("bd-mic-sz");return [52,62,76].includes(v)?v:62}catch(e){return 62}};
 const micShown=()=>{try{return localStorage.getItem("bd-mic")!=="0"}catch(e){return true}};
 function placeMic(){
-  const b=$("micBtn"), W=innerWidth, H=innerHeight, sz=62, pad=10;
+  const b=$("micBtn"), W=innerWidth, H=innerHeight, sz=micSz(), pad=10;
   let pos=null; try{pos=JSON.parse(localStorage.getItem("bd-mic-pos"))}catch(e){}
   let x=pos?pos.x*W-sz/2:W-sz-18, y=pos?pos.y*H-sz/2:H-sz-96;
   x=Math.max(pad,Math.min(W-sz-pad,x)); y=Math.max(pad+40,Math.min(H-sz-70,y));
@@ -1550,7 +1551,10 @@ function placeMic(){
 }
 function renderMic(){ const on=!!SR&&micShown(); $("micBtn").hidden=!on;
   document.querySelectorAll("#micSeg button").forEach(x=>x.setAttribute("aria-selected",(x.dataset.mic==="1")===micShown()));
-  $("micToggleRow").hidden=!SR; $("voiceHelp").hidden=!SR; if(on)placeMic() }
+  document.documentElement.style.setProperty("--micsz",micSz()+"px");
+  document.querySelectorAll("#micSize button").forEach(x=>x.setAttribute("aria-selected",+x.dataset.sz===micSz()));
+  $("voiceSet").hidden=!SR; $("micSizeRow").hidden=!micShown(); $("voiceHelp").hidden=!SR; if(on)placeMic() }
+document.querySelectorAll("#micSize button").forEach(x=>x.onclick=()=>{try{localStorage.setItem("bd-mic-sz",x.dataset.sz)}catch(e){} renderMic()});
 document.querySelectorAll("#micSeg button").forEach(x=>x.onclick=()=>{try{localStorage.setItem("bd-mic",x.dataset.mic)}catch(e){} renderMic(); toast(x.dataset.mic==="1"?"Voice button on":"Voice button hidden")});
 if(SR){
   const b=$("micBtn"); let sx=0,sy=0,ox=0,oy=0,moved=false,down=false,pid=null;
@@ -1559,7 +1563,7 @@ if(SR){
   b.addEventListener("pointerdown",e=>{ down=true; moved=false; pid=e.pointerId; sx=e.clientX; sy=e.clientY; ox=parseFloat(b.style.left)||0; oy=parseFloat(b.style.top)||0; try{b.setPointerCapture(pid)}catch(_){} e.preventDefault() });
   b.addEventListener("pointermove",e=>{ if(!down)return; const dx=e.clientX-sx, dy=e.clientY-sy;
     if(!moved&&Math.hypot(dx,dy)>8){moved=true; b.classList.add("drag")}
-    if(moved){ const W=innerWidth,H=innerHeight; b.style.left=Math.max(6,Math.min(W-68,ox+dx))+"px"; b.style.top=Math.max(40,Math.min(H-68,oy+dy))+"px" } });
+    if(moved){ const W=innerWidth,H=innerHeight; const z=micSz(); b.style.left=Math.max(6,Math.min(W-z-6,ox+dx))+"px"; b.style.top=Math.max(40,Math.min(H-z-6,oy+dy))+"px" } });
   const up=e=>{ if(!down)return; down=false; try{b.releasePointerCapture(pid)}catch(_){}
     if(moved){ b.classList.remove("drag"); const r=b.getBoundingClientRect(); try{localStorage.setItem("bd-mic-pos",JSON.stringify({x:(r.left+r.width/2)/innerWidth,y:(r.top+r.height/2)/innerHeight}))}catch(_){} }
     else micToggle() };
