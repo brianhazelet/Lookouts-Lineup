@@ -427,6 +427,8 @@ header h1 .live{flex:none}
 
 /* ---------- 2.5: outs + half inning on the Batting page ---------- */
 .outstrip{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line-soft);border-radius:14px;padding:8px 8px 8px 14px;box-shadow:var(--glass-shadow);position:relative}
+.osgo{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:transparent;border:0;padding:0;text-align:left;color:inherit;border-radius:10px}
+.oschev{width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex:none;margin-left:-4px}
 .oshalf{font:900 20px var(--display);text-transform:uppercase;letter-spacing:.02em;white-space:nowrap}
 .oswho{flex:1;min-width:0;color:var(--muted);font-weight:700;font-size:13px;line-height:1.2}
 .odots{display:flex;gap:6px}
@@ -501,9 +503,8 @@ body.fielding .plate .lbl{opacity:1}
   <!-- BATTING -->
   <section id="v-bat">
     <div style="display:flex;flex-direction:column;gap:14px">
-      <button type="button" class="nextgame" id="nextGame" hidden><span class="lbl" id="nextLbl">Next game</span><span id="nextGameTxt"></span></button>
+      <div class="outstrip" id="outStrip"><button type="button" class="osgo" id="osGo" aria-label="Open the score page"><span class="oshalf" id="osHalf">Top 1</span><span class="oswho" id="osWho"></span><span class="odots" id="osDots" aria-hidden="true"><i></i><i></i><i></i></span><svg class="oschev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button><button type="button" class="osout" id="osOut" aria-label="Add an out">+ Out</button></div>
       <p class="sub" id="round"></p>
-      <div class="outstrip" id="outStrip"><span class="oshalf" id="osHalf">Top 1</span><span class="oswho" id="osWho"></span><span class="odots" id="osDots" aria-hidden="true"><i></i><i></i><i></i></span><button type="button" class="osout" id="osOut" aria-label="Add an out">+ Out</button></div>
       <section class="plate" aria-live="polite">
         <span class="lbl" id="plateLbl">At bat</span>
         <span class="big" id="upName"></span>
@@ -551,6 +552,7 @@ body.fielding .plate .lbl{opacity:1}
             <li><b>"Lock"</b>, <b>"Unlock"</b></li>
           </ul></div></div>
       </div>
+      <button type="button" class="nextgame" id="nextGame" hidden><span class="lbl" id="nextLbl">Next game</span><span id="nextGameTxt"></span></button>
       <button class="newgame" type="button" data-newgame>New game</button>
     </div>
   </section>
@@ -1798,6 +1800,7 @@ function renderOutStrip(){
   $("plateLbl").textContent=ub?"At bat":"Leads off when we bat";
   $("osOut").hidden=false;
 }
+$("osGo").onclick=()=>{ const b=document.querySelector('.pagedots [data-tab="score"]'); if(b)b.click(); else showTab("score") };
 $("osOut").onclick=()=>{ $("outPlus").click(); try{navigator.vibrate&&navigator.vibrate(10)}catch(e){} };
 { const _rS2=renderScore; renderScore=function(){ _rS2(); try{renderOutStrip()}catch(e){} } }
 { const _rB=renderBat; renderBat=function(){ _rB(); try{renderOutStrip()}catch(e){} } }
