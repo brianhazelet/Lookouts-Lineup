@@ -238,6 +238,18 @@ button.chip{color:var(--fg)}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
 #teamSheet .panel{max-height:92%}
 @media (max-width:620px){header .tabs{width:100%}header .tabs button{flex:1;padding:9px 6px}}
+.acctbtn{width:38px;height:38px;flex:none;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:0;font:800 14px var(--body);color:var(--on-red)}
+.acctbtn svg{width:20px;height:20px;stroke:var(--fg);fill:none;stroke-width:2;stroke-linecap:round}
+.acctbtn.in{background:var(--red);border-color:var(--red)}
+.linkbtn{background:transparent;color:var(--red-ink);font-weight:700;padding:6px 0;align-self:center}
+.menu{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.menu button{background:var(--surface);text-align:left;padding:14px;border-radius:0;border-bottom:1px solid var(--line);font-weight:600;display:flex;justify-content:space-between;gap:10px}
+.menu button:last-child{border-bottom:0}
+.menu button small{color:var(--muted);font-weight:500}
+.gbtn{background:#ffffff;color:#1f1f1f;font:700 17px var(--body);padding:14px;display:flex;align-items:center;justify-content:center;gap:10px}
+.who{display:flex;align-items:center;gap:12px}
+.who .av{width:44px;height:44px;border-radius:50%;background:var(--red);color:var(--on-red);display:flex;align-items:center;justify-content:center;font:800 17px var(--body);flex:none}
+.who .nm{font-weight:700}.who .em{color:var(--muted);font-size:14px;overflow-wrap:anywhere}
 /* loading screen */
 #loader{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 #loader svg{width:min(70vw,280px);height:auto;overflow:visible}
@@ -303,8 +315,8 @@ button.chip{color:var(--fg)}
 </div></div>
 <div class="wrap" id="app" hidden>
   <header>
-    <div class="brand"><h1><span id="teamName">TEAM</span><span class="live" id="live" title="Offline"></span></h1>
-      <button type="button" class="gear" id="gearBtn" aria-label="Team settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+    <div class="brand" style="flex:1;justify-content:space-between"><h1><span id="teamName">TEAM</span><span class="live" id="live" title="Offline"></span></h1>
+      <button type="button" class="acctbtn" id="acctBtn" aria-label="Account and team menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span id="acctIni" hidden></span></button></div>
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="t-bat" aria-selected="true">Batting</button>
       <button type="button" role="tab" id="t-field" aria-selected="false">Field</button>
@@ -451,6 +463,33 @@ button.chip{color:var(--fg)}
     <button class="ghost" type="button" id="tsSwitch" style="padding:12px">Switch to a different team</button>
   </div>
 </div>
+<div id="acct" hidden style="position:fixed;inset:0;z-index:15;display:flex;flex-direction:column;justify-content:flex-end">
+  <div class="scrim" id="acScrim"></div>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="acTitle">
+    <h2 id="acTitle">Account</h2>
+    <div id="acOut" style="display:flex;flex-direction:column;gap:12px">
+      <p class="sub" id="acWhy" style="margin:0">Head coaches sign in to create and manage teams. Assistant coaches only need the coach link.</p>
+      <button type="button" class="gbtn" id="acGoogle"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.9 7.2l7.6 5.9c4.4-4.1 7.1-10.1 7.1-17.6z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.9 6C6.5 42.6 14.6 48 24 48z"/></svg>Continue with Google</button>
+      <div class="or">or use email</div>
+      <div class="form">
+        <label>Email<input id="acEmail" type="email" autocomplete="email" inputmode="email" placeholder="coach@example.com"></label>
+        <label>Password<input id="acPass" type="password" autocomplete="current-password" placeholder="At least 6 characters"></label>
+      </div>
+      <div class="row2"><button class="ghost" type="button" id="acSignIn" style="padding:12px">Sign in</button><button class="ghost" type="button" id="acSignUp" style="padding:12px">Create account</button></div>
+      <button type="button" class="linkbtn" id="acForgot">Forgot password?</button>
+    </div>
+    <div id="acIn" hidden style="display:flex;flex-direction:column;gap:12px">
+      <div class="who"><div class="av" id="acAv"></div><div style="min-width:0"><div class="nm" id="acName"></div><div class="em" id="acMail"></div></div></div>
+    </div>
+    <p class="msg" id="acMsg" style="margin:0;color:var(--red-ink);text-align:center"></p>
+    <div class="menu" id="acTeam" hidden>
+      <button type="button" id="acSettings"><span>Team settings</span><small id="acSetNote"></small></button>
+      <button type="button" id="acShare"><span>Share coach link</span></button>
+      <button type="button" id="acSwitch"><span>Switch team</span></button>
+    </div>
+    <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
+  </div>
+</div>
 <div id="sheet" hidden>
   <div class="scrim" id="scrim"></div>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
@@ -465,6 +504,7 @@ button.chip{color:var(--fg)}
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 function boot(LINEUP,TEAM){
 
@@ -953,7 +993,7 @@ function drawTsRows(){
     box.appendChild(row)});
 }
 function closeTeamSheet(){$("teamSheet").hidden=true; applyTheme(TEAM.colors||CLASSIC)}
-$("gearBtn").onclick=openTeamSheet; $("tsCancel").onclick=closeTeamSheet; $("tsScrim").onclick=closeTeamSheet;
+$("tsCancel").onclick=closeTeamSheet; $("tsScrim").onclick=closeTeamSheet;
 $("tsAddRow").onclick=()=>{tsRows.push({id:null,name:"",num:"",hidden:false});drawTsRows();const ins=$("tsRows").querySelectorAll(".rrow input[type=text]");ins[ins.length-2]&&ins[ins.length-2].focus()};
 $("tsSave").onclick=async()=>{
   const name=$("tsName").value.trim()||"Team";
@@ -966,6 +1006,12 @@ $("tsSave").onclick=async()=>{
   toast("Team saved");
 };
 $("tsSwitch").onclick=()=>{try{localStorage.removeItem("dugout-team")}catch(e){} location.href=location.pathname};
+
+/* ---------- team context for the account menu ---------- */
+window.TEAMCTX={code:TEAM.code,ref:TEAM.ref,owner:TEAM.owner||null,openSettings:openTeamSheet,name:()=>TEAM.name};
+$("acctBtn").onclick=()=>openAcct();
+if(TEAM.ref) TEAM.ref.child("owner").on("value",s=>{TEAMCTX.owner=s.val()||null; renderAcct()});
+renderAcct();
 
 /* ---------- share ---------- */
 $("shareLink").onclick=async()=>{
@@ -1100,7 +1146,8 @@ function showSetup(){
     const tee=clean.map((r,i)=>r.tee?i:-1).filter(i=>i>=0);
     const code=newCode(); const b=$$("sCreate"); b.disabled=true; b.textContent="Creating...";
     try{ firebase.apps.length||firebase.initializeApp(FB);
-      await firebase.database().ref("teams/"+code).set({name,colors:JSON.stringify(colors),roster:JSON.stringify(roster),state:{default:JSON.stringify(buildDefault(clean)),tee:JSON.stringify(tee)}});
+      if(!USER)throw new Error("signed out");
+      await firebase.database().ref("teams/"+code).update({owner:USER.uid,name,colors:JSON.stringify(colors),roster:JSON.stringify(roster),"state/default":JSON.stringify(buildDefault(clean)),"state/tee":JSON.stringify(tee)});
     }catch(e){b.disabled=false;b.textContent="Create team";$$("sMsg").textContent="Couldn't create the team. Check your connection and try again.";return}
     try{localStorage.setItem("dugout-team",code)}catch(e){}
     $$("setup").hidden=true; $$("ready").hidden=false; $$("rCode").textContent=code; scrollTo(0,0);
@@ -1110,6 +1157,56 @@ function showSetup(){
   draw();
 }
 
+
+/* ---- sign-in ---- */
+let AUTH=null, USER=null, afterSignIn=null;
+function initAuth(){ if(AUTH)return; try{AUTH=firebase.auth(); AUTH.onAuthStateChanged(u=>{USER=u; renderAcct();
+  if(u&&afterSignIn){const f=afterSignIn; afterSignIn=null; closeAcct(); f()}})}catch(e){} }
+const el=id=>document.getElementById(id);
+function initialsOf(u){const n=(u.displayName||u.email||"?").trim(); const p=n.split(/[\s@._-]+/).filter(Boolean); return ((p[0]||"?")[0]+(u.displayName&&p[1]?p[1][0]:"")).toUpperCase()}
+function renderAcct(){
+  const b=el("acctBtn"); if(b){ const ini=el("acctIni"), svg=b.querySelector("svg");
+    if(USER){ini.textContent=initialsOf(USER); ini.hidden=false; svg.style.display="none"; b.classList.add("in")}
+    else{ini.hidden=true; svg.style.display=""; b.classList.remove("in")} }
+  if(!el("acct"))return;
+  el("acOut").hidden=!!USER; el("acIn").hidden=!USER; el("acSignOut").hidden=!USER;
+  if(USER){el("acAv").textContent=initialsOf(USER); el("acName").textContent=USER.displayName||"Coach"; el("acMail").textContent=USER.email||""}
+  const T=window.TEAMCTX; el("acTeam").hidden=!T;
+  if(T){ el("acSetNote").textContent=!USER?"Sign in":(!T.owner?"Claim as head coach":(T.owner===USER.uid?"Head coach":"View only")) }
+  el("acTitle").textContent=USER?"Account":"Sign in";
+}
+function acMsg(t){el("acMsg").textContent=t||""}
+function openAcct(why,then){ initAuth(); acMsg(""); if(why)el("acWhy").textContent=why; afterSignIn=then||null; renderAcct(); el("acct").hidden=false }
+function closeAcct(){ el("acct").hidden=true; afterSignIn=null }
+function authErr(e){const c=(e&&e.code)||"";
+  if(/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c))return"That email and password don't match. Try again or reset your password.";
+  if(/email-already-in-use/.test(c))return"That email already has an account. Tap Sign in instead.";
+  if(/weak-password/.test(c))return"Use a password with at least 6 characters.";
+  if(/invalid-email/.test(c))return"That email doesn't look right.";
+  if(/missing-password/.test(c))return"Enter your password.";
+  if(/popup|operation-not-supported|web-storage|unauthorized-domain/.test(c))return"Google sign-in couldn't open here. Use email and password, or open the app in Safari.";
+  if(/network/.test(c))return"No connection. Check your signal and try again.";
+  if(/too-many-requests/.test(c))return"Too many tries. Wait a minute and try again.";
+  return"Sign-in didn't work. Try again.";}
+function wireAcct(){
+  el("acScrim").onclick=closeAcct; el("acClose").onclick=closeAcct;
+  el("acGoogle").onclick=async()=>{acMsg(""); if(!AUTH)return acMsg("Sign-in isn't available right now.");
+    try{await AUTH.signInWithPopup(new firebase.auth.GoogleAuthProvider())}catch(e){if(e&&/popup-closed|cancelled-popup/.test(e.code||""))return; acMsg(authErr(e))}};
+  const creds=()=>[el("acEmail").value.trim(),el("acPass").value];
+  el("acSignIn").onclick=async()=>{acMsg(""); const [e,p]=creds(); if(!e||!p)return acMsg("Enter your email and password."); try{await AUTH.signInWithEmailAndPassword(e,p)}catch(x){acMsg(authErr(x))}};
+  el("acSignUp").onclick=async()=>{acMsg(""); const [e,p]=creds(); if(!e||!p)return acMsg("Enter an email and pick a password."); try{await AUTH.createUserWithEmailAndPassword(e,p)}catch(x){acMsg(authErr(x))}};
+  el("acForgot").onclick=async()=>{const e=el("acEmail").value.trim(); if(!e)return acMsg("Enter your email above, then tap Forgot password."); try{await AUTH.sendPasswordResetEmail(e); acMsg("Check your email for a reset link.")}catch(x){acMsg(authErr(x))}};
+  el("acSignOut").onclick=async()=>{try{await AUTH.signOut()}catch(e){} acMsg("Signed out.")};
+  el("acSwitch").onclick=()=>{try{localStorage.removeItem("dugout-team")}catch(e){} location.href=location.pathname};
+  el("acShare").onclick=()=>{const T=window.TEAMCTX; if(T){closeAcct(); shareLink(T.code,T.name())}};
+  el("acSettings").onclick=async()=>{const T=window.TEAMCTX; if(!T)return;
+    const go=async()=>{ if(!T.owner){ try{await T.ref.child("owner").set(USER.uid); T.owner=USER.uid}catch(e){return acMsg("Couldn't claim this team. Check your connection.")} }
+      if(T.owner!==USER.uid)return acMsg("Only the head coach can change team settings.");
+      closeAcct(); T.openSettings(); };
+    if(!USER){ el("acWhy").textContent="Sign in to manage this team."; afterSignIn=go; return }
+    go(); };
+}
+
 function showGate(msg){
   document.getElementById("loader").hidden=true; const g=document.getElementById("gate"); g.hidden=false; document.getElementById("app").hidden=true;
   if(msg)document.getElementById("gateMsg").textContent=msg;
@@ -1117,9 +1214,11 @@ function showGate(msg){
     try{localStorage.setItem("dugout-team",c)}catch(e){} location.hash=c; location.reload()};
   document.getElementById("gateGo").onclick=go;
   document.getElementById("gateCode").onkeydown=e=>{if(e.key==="Enter")go()};
-  document.getElementById("gateCreate").onclick=showSetup;
+  document.getElementById("gateCreate").onclick=()=>{ if(USER)return showSetup(); openAcct("Sign in to create your team. You'll be its head coach.",showSetup) };
 }
 (function(){
+  try{firebase.apps.length||firebase.initializeApp(FB); initAuth()}catch(e){}
+  wireAcct();
   let code="",seed=null; const h=decodeURIComponent(location.hash.slice(1));
   if(h){const parts=h.split("."); if(CODE_RE.test(parts[0]))code=parts[0]; if(parts[1]){try{seed=JSON.parse(b64dec(parts[1]))}catch(e){}}}
   if(!code){try{code=localStorage.getItem("dugout-team")||""}catch(e){}}
@@ -1127,15 +1226,15 @@ function showGate(msg){
   try{localStorage.setItem("dugout-team",code)}catch(e){}
   history.replaceState(null,"",location.pathname+"#"+code);
   let db=null,ref=null;
-  try{firebase.initializeApp(FB); db=firebase.database(); ref=db.ref("teams/"+code)}catch(e){}
+  try{firebase.apps.length||firebase.initializeApp(FB); db=firebase.database(); ref=db.ref("teams/"+code)}catch(e){}
   const RK="dugout-roster@"+code, MK="dugout-meta@"+code;
   let meta={}; try{meta=JSON.parse(localStorage.getItem(MK))||{}}catch(e){}
   applyTheme(meta.colors||CLASSIC);
   let cached=null; try{cached=JSON.parse(localStorage.getItem(RK))}catch(e){}
   let booted=false, used=null;
-  const go=(r,init)=>{if(booted)return; booted=true; used=JSON.stringify(r); boot(r,{code,ref,db,init,name:meta.name,colors:meta.colors})};
-  const metaOnce=()=>Promise.race([Promise.all([ref.child("name").once("value"),ref.child("colors").once("value")]).then(([n,c])=>{
-      const m={name:n.val()||meta.name||""}; try{m.colors=c.val()?JSON.parse(c.val()):null}catch(e){m.colors=null}
+  const go=(r,init)=>{if(booted)return; booted=true; used=JSON.stringify(r); boot(r,{code,ref,db,init,name:meta.name,colors:meta.colors,owner:meta.owner})};
+  const metaOnce=()=>Promise.race([Promise.all([ref.child("name").once("value"),ref.child("colors").once("value"),ref.child("owner").once("value")]).then(([n,c,o])=>{
+      const m={name:n.val()||meta.name||"",owner:o.val()||null}; try{m.colors=c.val()?JSON.parse(c.val()):null}catch(e){m.colors=null}
       meta=m; try{localStorage.setItem(MK,JSON.stringify(m))}catch(e){} applyTheme(m.colors||CLASSIC)}),new Promise(r=>setTimeout(r,2500))]).catch(()=>{});
   if(!ref){ if(cached&&cached.length)go(cached,null); else showGate("Can't reach the team database. Check your connection, then pull down to retry."); return }
   const stateOnce=()=>Promise.race([ref.child("state").once("value").then(s=>s.val()||{}),new Promise(r=>setTimeout(()=>r(null),2500))]).catch(()=>null);
