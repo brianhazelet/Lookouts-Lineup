@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Buddy Dugout">
+<meta name="apple-mobile-web-app-title" content="Buddy Dugout" id="appTitle">
 <meta name="theme-color" content="#0c0c0e">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=21">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=21">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=21" id="touchIcon">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=21" id="favIcon">
 <title>Buddy Dugout</title>
 <script>try{var t=localStorage.getItem("bd-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -341,6 +341,16 @@ header h1 .live{flex:none}
 .teamcards{border:0;gap:8px;overflow:visible}
 .teamcards button{border-radius:12px!important;border:1px solid var(--line)!important;padding:16px 16px 16px 22px}
 .teamcards button.tc{border-color:transparent!important}
+.micfab{position:fixed;z-index:11;left:0;top:0;width:var(--micsz,62px);height:var(--micsz,62px);border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;
+  background:var(--red);border:3px solid var(--team2);box-shadow:0 8px 22px rgba(0,0,0,.45);touch-action:none;-webkit-user-select:none;user-select:none;transition:transform .12s}
+.micfab svg{width:45%;height:45%;fill:none;stroke:var(--on-red);stroke-width:2.2;stroke-linecap:round}
+.micfab.drag{transform:scale(1.12);opacity:.9;transition:none}
+.micfab.on{animation:micpulse 1.1s ease-in-out infinite}
+.micfab.on::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:3px solid var(--red);opacity:.6}
+@keyframes micpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@media (prefers-reduced-motion:reduce){.micfab.on{animation:none}}
+#voiceHelp ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+#voiceHelp b{color:var(--red-ink)}
 .panel>*{flex-shrink:0}
 /* loading screen */
 #loader{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
@@ -406,6 +416,7 @@ header h1 .live{flex:none}
   <button class="go" type="button" id="rOpen">Open team</button>
 </div></div>
 <div class="wrap" id="app" hidden>
+<button type="button" class="micfab" id="micBtn" aria-label="Voice command. Hold and drag to move." hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
 <nav class="pagedots" aria-label="Pages"><button type="button" data-tab="bat" aria-label="Batting"></button><button type="button" data-tab="field" aria-label="Field"></button><button type="button" data-tab="score" aria-label="Score"></button><button type="button" data-tab="games" aria-label="Games"></button></nav>
   <header>
     <div class="brand" style="flex:1;justify-content:space-between"><h1><span id="teamName">TEAM</span><span class="live" id="live" title="Offline"></span></h1>
@@ -451,7 +462,17 @@ header h1 .live{flex:none}
       </div>
       <div class="bench herebox coll" data-coll="btools">
         <button type="button" class="herehead" aria-expanded="false"><span><span class="lbl">Lineup tools</span><span class="sum" id="btoolsSum"></span></span><span class="pmicon" aria-hidden="true">+</span></button>
-        <div class="herebody" hidden><button class="ghost" type="button" id="shuffleOrder" style="padding:12px">Shuffle batting order</button><button class="ghost" type="button" data-card style="padding:12px">Share lineup card</button></div>
+        <div class="herebody" hidden><button class="ghost" type="button" id="shuffleOrder" style="padding:12px">Shuffle batting order</button><button class="ghost" type="button" data-card style="padding:12px">Share lineup card</button>
+                    <div id="voiceHelp" class="pfull"><span class="lbl" style="color:var(--muted)">Voice commands (tap the mic, hold to move it)</span><span class="pfull" style="display:block;margin-bottom:4px">Show, hide or resize the mic and turn announcements on or off from the account menu.</span><ul>
+            <li><b>"Next"</b> or <b>"Batted"</b> moves to the next batter</li>
+            <li><b>"Back"</b> undoes the last batter</li>
+            <li><b>"Nash is up"</b> jumps to a batter by name</li>
+            <li><b>"Who's up"</b> reads the batter and on deck</li>
+            <li><b>"Out"</b>, <b>"Undo out"</b></li>
+            <li><b>"Run"</b> for the team batting, <b>"Run for them"</b>, <b>"Take away a run"</b></li>
+            <li><b>"Score"</b> reads the score and outs</li>
+            <li><b>"Lock"</b>, <b>"Unlock"</b></li>
+          </ul></div></div>
       </div>
       <button class="newgame" type="button" data-newgame>New game</button>
     </div>
@@ -627,6 +648,12 @@ header h1 .live{flex:none}
       <div class="menu teamcards" id="acMineList"></div>
     </div>
     <div class="sideset"><span class="lbl" style="color:var(--muted)">Appearance</span><div class="tabs" id="apSeg"><button type="button" data-mode="auto">Auto</button><button type="button" data-mode="light">Light</button><button type="button" data-mode="dark">Dark</button></div></div>
+    <div id="voiceSet" hidden style="display:flex;flex-direction:column;gap:12px"><div class="sideset" id="micToggleRow"><span class="lbl" style="color:var(--muted)">Voice button</span><div class="tabs" id="micSeg"><button type="button" data-mic="1">Show</button><button type="button" data-mic="0">Hide</button></div></div><div class="sideset" id="micSizeRow"><span class="lbl" style="color:var(--muted)">Voice button size</span><div class="tabs" id="micSize"><button type="button" data-sz="52">S</button><button type="button" data-sz="62">M</button><button type="button" data-sz="76">L</button></div></div><div class="sideset"><span class="lbl" style="color:var(--muted)">Announce batters</span><div class="tabs" id="annSeg"><button type="button" data-ann="1">On</button><button type="button" data-ann="0">Off</button></div></div>
+      <div class="sideset"><span class="lbl" style="color:var(--muted)">Voice style</span><div class="tabs" id="vStyle"><button type="button" data-st="pa">Announcer</button><button type="button" data-st="calm">Calm</button></div></div>
+      <div class="form"><label>Voice<select id="vPick"><option value="">Best on this phone</option></select></label></div>
+      <button class="ghost" type="button" id="vTest" style="padding:12px">Test voice</button>
+      <p class="pfull" style="margin:0">For the most natural sound on iPhone, download a better voice: Settings, Accessibility, Spoken Content, Voices, English, then pick one marked Premium or Enhanced (Ava, Zoe, Evan or Nathan sound great).</p>
+    </div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
   </div>
 </div>
@@ -1056,8 +1083,9 @@ $("app").hidden=false; $("loader").hidden=true;
 /* ================= 2.1 additions ================= */
 function applyTeam(){
   const nm=(TEAM.name||"Team").trim()||"Team";
-  $("teamName").textContent=nm.toUpperCase(); $("usName").textContent=nm.toUpperCase(); $("weBatLbl").textContent=nm+" bat"; document.title=nm+" · Buddy Dugout";
+  $("teamName").textContent=nm.toUpperCase(); $("usName").textContent=nm.toUpperCase(); $("weBatLbl").textContent=nm+" bat"; document.title="Buddy Dugout";
   applyTheme(TEAM.colors||CLASSIC);
+  if(typeof makeTeamIcon==="function")setTimeout(makeTeamIcon,0);
 }
 $("nextGame").onclick=()=>showTab("games");
 { const h=$("teamName").closest("h1"); h.style.cursor="pointer"; h.setAttribute("role","button"); h.setAttribute("tabindex","0"); h.setAttribute("aria-label","Go to batting");
@@ -1465,6 +1493,139 @@ $("clkGo").onclick=()=>{ const c=sc.clock; if(c.start){c.used=(c.used||0)+(Date.
 $("miniClk").onclick=()=>{ showTab("score"); const box=document.querySelector('[data-coll="clock"]'); if(box&&box.querySelector(".herebody").hidden) box.querySelector(".herehead").click(); setTimeout(()=>box&&box.scrollIntoView({behavior:"smooth",block:"center"}),50) };
 $("clkReset").onclick=()=>{ sc.clock={dur:sc.clock.dur||60,start:null,used:0}; saveScore(); renderClock() };
 setInterval(()=>{ if(sc.clock&&sc.clock.start) renderClock() },1000);
+
+/* ================= 2.3: voice + team icon ================= */
+let VOICES=[];
+function loadVoices(){ try{ VOICES=(speechSynthesis.getVoices()||[]).filter(v=>/^en/i.test(v.lang)) }catch(e){ VOICES=[] } fillVoicePick() }
+function vScore(v){ const n=(v.name||"")+" "+(v.voiceURI||""); let sc=0;
+  if(/premium/i.test(n))sc+=60; if(/enhanced|neural|natural/i.test(n))sc+=40; if(/siri/i.test(n))sc+=35;
+  if(/\b(ava|zoe|evan|nathan|noelle|joelle|samantha|allison|susan|tom|alex|aaron|nicky|serena|daniel|karen|moira)\b/i.test(n))sc+=12;
+  if(/^en[-_]US/i.test(v.lang))sc+=8; if(v.localService)sc+=3;
+  if(/\b(albert|bad news|bahh|bells|boing|bubbles|cellos|deranged|good news|hysterical|jester|organ|superstar|trinoids|whisper|wobble|zarvox|bruce|fred|junior|ralph|kathy|grandma|grandpa|rocko|shelley|flo|eddy|reed|sandy)\b/i.test(n))sc-=80;
+  return sc }
+const vPref=()=>{try{return localStorage.getItem("bd-voice")||""}catch(e){return ""}};
+const vStyle=()=>{try{return localStorage.getItem("bd-vstyle")||"pa"}catch(e){return "pa"}};
+function bestVoice(){ const want=vPref(); if(want){ const v=VOICES.find(x=>x.voiceURI===want||x.name===want); if(v)return v }
+  return [...VOICES].sort((a,b)=>vScore(b)-vScore(a))[0]||null }
+function fillVoicePick(){ const sel=document.getElementById("vPick"); if(!sel)return; const cur=vPref();
+  sel.innerHTML='<option value="">Best on this phone</option>';
+  [...VOICES].sort((a,b)=>vScore(b)-vScore(a)).forEach(v=>{const o=document.createElement("option"); o.value=v.voiceURI||v.name; o.textContent=v.name.replace(/\s*\(.*?\)\s*$/,"")+(/premium/i.test(v.name+v.voiceURI)?" · Premium":/enhanced/i.test(v.name+v.voiceURI)?" · Enhanced":"")+" ("+v.lang.replace("_","-")+")"; sel.appendChild(o)});
+  sel.value=cur }
+try{ if("speechSynthesis" in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; setTimeout(loadVoices,800) } }catch(e){}
+function speak(t){ try{ if(!("speechSynthesis" in window))return; speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t), v=bestVoice(), pa=vStyle()==="pa";
+  if(v){u.voice=v; u.lang=v.lang} u.rate=pa?0.92:1.0; u.pitch=pa?0.95:1.0; u.volume=1; speechSynthesis.speak(u) }catch(e){} }
+const annOn=()=>{try{return localStorage.getItem("bd-announce")!=="0"}catch(e){return true}};
+function renderAnn(){ document.querySelectorAll("#annSeg button").forEach(b=>b.setAttribute("aria-selected",(b.dataset.ann==="1")===annOn())) }
+document.querySelectorAll("#annSeg button").forEach(b=>b.onclick=()=>{try{localStorage.setItem("bd-announce",b.dataset.ann)}catch(e){} renderAnn(); if(b.dataset.ann==="1")speak("Announcements on")});
+renderAnn();
+function renderVoiceSet(){ document.querySelectorAll("#vStyle button").forEach(b=>b.setAttribute("aria-selected",b.dataset.st===vStyle())) }
+document.querySelectorAll("#vStyle button").forEach(b=>b.onclick=()=>{try{localStorage.setItem("bd-vstyle",b.dataset.st)}catch(e){} renderVoiceSet(); speak(upLine())});
+$("vPick").onchange=e=>{try{localStorage.setItem("bd-voice",e.target.value)}catch(_){} speak(upLine())};
+$("vTest").onclick=()=>speak(upLine());
+renderVoiceSet(); fillVoicePick();
+function upLine(){ const A=act(), L=A.length, i=bat.count%L, up=A[i], dk=A[(i+1)%L];
+  if(vStyle()==="pa"){ const num=LINEUP[up][1]; return "Now batting... "+(num!==""&&num!=null?"number "+num+"... ":"")+first(up)+"!"+(onTee(up)?" Off the tee.":"")+"  On deck, "+first(dk)+"." }
+  return "Now batting, "+first(up)+(onTee(up)?", off the tee":"")+". On deck, "+first(dk)+"." }
+{ const goTap=$("go").onclick, undoTap=$("undo").onclick;
+  $("go").onclick=()=>{ goTap(); if(annOn())speak(upLine()) };
+  $("undo").onclick=()=>{ undoTap(); if(annOn())speak("Back to "+first(act()[bat.count%act().length])) }; }
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null, listening=false;
+const norm=t=>String(t||"").toLowerCase().replace(/[^a-z0-9' ]+/g," ").replace(/\s+/g," ").trim();
+function lev(a,b){const m=a.length,n=b.length; if(!m)return n; if(!n)return m; const d=Array.from({length:m+1},(_,i)=>[i]); for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); return d[m][n]}
+function findPlayer(word){ word=norm(word); if(!word)return null; let best=null,bd=9;
+  act().forEach(p=>{ const f=norm(first(p)); const d=f===word?0:(f.startsWith(word)&&word.length>=3)?0:lev(word,f); if(d<bd){bd=d;best=p} });
+  return best!=null&&bd<=Math.max(1,Math.floor(norm(first(best)).length/3))?best:null }
+function scoreLine(){ return (TEAM.name||"We")+" "+sc.us+", "+(sc.opp||"them")+" "+sc.them+". "+(sc.top?"Top":"Bottom")+" of the "+ordinal(sc.inning)+", "+sc.outs+" out"+(sc.outs===1?"":"s")+"." }
+function handleVoice(alts){
+  const list=(Array.isArray(alts)?alts:[alts]).map(norm).filter(Boolean); if(!list.length){toast("Didn't catch that");return null}
+  const THEM=/\b(them|they|their|other team|opponents?|visitors?)\b/, US=/\b(us|we|our|ours)\b/;
+  for(const t of list){
+    let m;
+    if(/\b(undo|take back|cancel|remove|minus) (the |an |one )?out\b/.test(t)){ $("outMinus").click(); toast("Out removed"); speak(sc.outs+" out"+(sc.outs===1?"":"s")); return "undo-out" }
+    if(/\b(take away|remove|minus|subtract|undo|take back) (a |the |one )?run\b/.test(t)){ const them=THEM.test(t), us=US.test(t); subRun(them?false:us?true:usBat()); toast("Run removed"); speak(scoreLine()); return "sub-run" }
+    if(/\b(run|runs|scored|scores|score one)\b/.test(t)&&!/^(what|what's|whats)\b|\bthe score\b/.test(t)){ const them=THEM.test(t), us=US.test(t)||(TEAM.name&&t.includes(norm(TEAM.name))); addRun(them?false:us?true:usBat()); toast("Run added"); speak(scoreLine()); return "run" }
+    if(/^(an? )?outs?$|^out\b|\b(that'?s an?|that is an?|add an?|one more|another|got an?|got him|he'?s|she'?s) out\b|\bstrike ?out\b|\bthree strikes\b/.test(t)){ $("outPlus").click(); toast("Out"); speak(sc.outs?sc.outs+" out"+(sc.outs===1?"":"s"):"Three outs. Switch sides."); return "out" }
+    if(/\b(who'?s|who is|whose|who) (up|batting|on deck|next)\b/.test(t)){ speak(upLine()); toast(first(act()[bat.count%act().length])+" is up"); return "who" }
+    if(/\b(the )?score\b/.test(t)){ speak(scoreLine()); toast("Reading the score"); return "score" }
+    if(/^unlock\b/.test(t)){ if(bat.locked)$("lockBtn").click(); speak("Unlocked"); return "unlock" }
+    if(/^lock\b/.test(t)){ if(!bat.locked)$("lockBtn").click(); speak("Locked"); return "lock" }
+    if(/^(back|go back|undo|previous|oops)\b/.test(t)){ $("undo").click(); return "back" }
+    if((m=t.match(/^(?:batter |now batting |put )?([a-z']+)(?: is|'s)? (?:up|batting|at bat|hitting)$/))||(m=t.match(/^(?:batter|now batting|put in) ([a-z']+)$/))){
+      if(!/^(who|next|batter)$/.test(m[1])){ const p=findPlayer(m[1]);
+        if(p!=null){ if(guard())return "locked"; const A=act(),L=A.length; bat.count=Math.floor(bat.count/L)*L+A.indexOf(p); saveBat(); renderBat(); if(annOn())speak(upLine()); toast(first(p)+" is up"); return "set:"+first(p) } } }
+    if(/\b(next|batted|next batter|next up|done|he'?s done|she'?s done)\b/.test(t)){ $("go").click(); return "next" }
+  }
+  toast("Heard “"+list[0]+"”. Try “next” or “out”."); return null;
+}
+window.__bdVoice=handleVoice;
+function micToggle(){
+  if(listening){ try{rec&&rec.stop()}catch(e){} return }
+  try{ rec=new SR(); rec.lang="en-US"; rec.interimResults=false; rec.maxAlternatives=4; rec.continuous=false }catch(e){ toast("Voice isn't available here"); return }
+  rec.onresult=e=>{ const r=e.results[0], alts=[]; for(let i=0;i<r.length;i++)alts.push(r[i].transcript); handleVoice(alts) };
+  rec.onerror=e=>{ toast(e.error==="not-allowed"||e.error==="service-not-allowed"?"Allow the microphone for this site in Settings":e.error==="no-speech"?"Didn't hear anything":"Voice didn't work. Try again.") };
+  rec.onend=()=>{ listening=false; $("micBtn").classList.remove("on") };
+  try{ rec.start(); listening=true; $("micBtn").classList.add("on"); try{navigator.vibrate&&navigator.vibrate(15)}catch(e){} }catch(e){ toast("Voice didn't start. Try again.") }
+}
+const micSz=()=>{try{const v=+localStorage.getItem("bd-mic-sz");return [52,62,76].includes(v)?v:62}catch(e){return 62}};
+const micShown=()=>{try{return localStorage.getItem("bd-mic")!=="0"}catch(e){return true}};
+function placeMic(){
+  const b=$("micBtn"), W=innerWidth, H=innerHeight, sz=micSz(), pad=10;
+  let pos=null; try{pos=JSON.parse(localStorage.getItem("bd-mic-pos"))}catch(e){}
+  let x=pos?pos.x*W-sz/2:W-sz-18, y=pos?pos.y*H-sz/2:H-sz-96;
+  x=Math.max(pad,Math.min(W-sz-pad,x)); y=Math.max(pad+40,Math.min(H-sz-70,y));
+  b.style.left=x+"px"; b.style.top=y+"px";
+}
+function renderMic(){ const on=!!SR&&micShown(); $("micBtn").hidden=!on;
+  document.querySelectorAll("#micSeg button").forEach(x=>x.setAttribute("aria-selected",(x.dataset.mic==="1")===micShown()));
+  document.documentElement.style.setProperty("--micsz",micSz()+"px");
+  document.querySelectorAll("#micSize button").forEach(x=>x.setAttribute("aria-selected",+x.dataset.sz===micSz()));
+  $("voiceSet").hidden=!SR; $("micSizeRow").hidden=!micShown(); $("voiceHelp").hidden=!SR; if(on)placeMic() }
+document.querySelectorAll("#micSize button").forEach(x=>x.onclick=()=>{try{localStorage.setItem("bd-mic-sz",x.dataset.sz)}catch(e){} renderMic()});
+document.querySelectorAll("#micSeg button").forEach(x=>x.onclick=()=>{try{localStorage.setItem("bd-mic",x.dataset.mic)}catch(e){} renderMic(); toast(x.dataset.mic==="1"?"Voice button on":"Voice button hidden")});
+if(SR){
+  const b=$("micBtn"); let sx=0,sy=0,ox=0,oy=0,moved=false,down=false,pid=null;
+  const stop=e=>e.stopPropagation();
+  ["touchstart","touchmove","touchend"].forEach(ev=>b.addEventListener(ev,stop,{passive:true}));
+  b.addEventListener("pointerdown",e=>{ down=true; moved=false; pid=e.pointerId; sx=e.clientX; sy=e.clientY; ox=parseFloat(b.style.left)||0; oy=parseFloat(b.style.top)||0; try{b.setPointerCapture(pid)}catch(_){} e.preventDefault() });
+  b.addEventListener("pointermove",e=>{ if(!down)return; const dx=e.clientX-sx, dy=e.clientY-sy;
+    if(!moved&&Math.hypot(dx,dy)>8){moved=true; b.classList.add("drag")}
+    if(moved){ const W=innerWidth,H=innerHeight; const z=micSz(); b.style.left=Math.max(6,Math.min(W-z-6,ox+dx))+"px"; b.style.top=Math.max(40,Math.min(H-z-6,oy+dy))+"px" } });
+  const up=e=>{ if(!down)return; down=false; try{b.releasePointerCapture(pid)}catch(_){}
+    if(moved){ b.classList.remove("drag"); const r=b.getBoundingClientRect(); try{localStorage.setItem("bd-mic-pos",JSON.stringify({x:(r.left+r.width/2)/innerWidth,y:(r.top+r.height/2)/innerHeight}))}catch(_){} }
+    else micToggle() };
+  b.addEventListener("pointerup",up); b.addEventListener("pointercancel",()=>{down=false;b.classList.remove("drag")});
+  b.addEventListener("click",e=>{ if(e.detail===0)micToggle() });
+  addEventListener("resize",()=>{ if(!b.hidden)placeMic() });
+}
+renderMic();
+
+/* ---- team icon for the Home Screen ---- */
+async function makeTeamIcon(){
+  try{
+    const c=TEAM.colors||CLASSIC, P=c.p||"#c8202f", S2=c.s||"#ffffff", nm=((TEAM.name||"Team").trim()||"Team").toUpperCase();
+    try{ await document.fonts.load("400 100px Graduate") }catch(e){}
+    const Z=360, cv=document.createElement("canvas"); cv.width=Z; cv.height=Z; const x=cv.getContext&&cv.getContext("2d"); if(!x)return;
+    const on=contrast(P,"#ffffff")>=contrast(P,"#0c0c0e")?"#ffffff":"#0c0c0e", ink=contrast(S2,P)>=3?S2:on, trim=contrast(S2,P)>=1.6?S2:on;
+    const rr=(a,b,w,h,r)=>{x.beginPath(); if(x.roundRect)x.roundRect(a,b,w,h,r); else x.rect(a,b,w,h)};
+    x.fillStyle=P; x.fillRect(0,0,Z,Z);
+    x.strokeStyle=trim; x.lineWidth=10; rr(22,22,Z-44,Z-44,46); x.stroke();
+    const words=nm.split(/\s+/), lines=[]; let line="";
+    const fits=(t,sz)=>{x.font="400 "+sz+"px Graduate, Georgia, serif"; return x.measureText(t).width<=Z-96};
+    words.forEach(w=>{ const t=line?line+" "+w:w; if(line&&!fits(t,64)){lines.push(line);line=w}else line=t }); if(line)lines.push(line);
+    const L=lines.slice(0,3); let sz=120; while(sz>30&&!L.every(t=>fits(t,sz)))sz-=4;
+    x.textAlign="center"; x.textBaseline="middle"; x.font="400 "+sz+"px Graduate, Georgia, serif";
+    const gap=sz*1.05, y0=Z/2-14-(L.length-1)*gap/2, shade=mix(P,"#000000",.45);
+    L.forEach((t,i)=>{ x.fillStyle=shade; x.fillText(t,Z/2+5,y0+i*gap+5); x.fillStyle=ink; x.fillText(t,Z/2,y0+i*gap) });
+    const yb=Z-88; [[trim,0],[ink===trim?on:ink,13],[trim,26]].forEach(([col,dy])=>{x.fillStyle=col; rr(110,yb+dy,Z-220,8,4); x.fill()});
+    const url=cv.toDataURL("image/png");
+    const ti=document.getElementById("touchIcon"); if(ti)ti.href=url;
+    const fi=document.getElementById("favIcon"); if(fi)fi.href=url;
+    window.__bdIcon=url;
+  }catch(e){}
+}
 
 /* ---------- team context for the account menu ---------- */
 window.TEAMCTX={code:TEAM.code,ref:TEAM.ref,owner:TEAM.owner||null,openSettings:openTeamSheet,name:()=>TEAM.name};
