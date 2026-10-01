@@ -1079,7 +1079,7 @@ $("app").hidden=false; $("loader").hidden=true;
 /* ================= 2.1 additions ================= */
 function applyTeam(){
   const nm=(TEAM.name||"Team").trim()||"Team";
-  $("teamName").textContent=nm.toUpperCase(); $("usName").textContent=nm.toUpperCase(); $("weBatLbl").textContent=nm+" bat"; document.title=nm+" · Buddy Dugout";
+  $("teamName").textContent=nm.toUpperCase(); $("usName").textContent=nm.toUpperCase(); $("weBatLbl").textContent=nm+" bat"; document.title="Buddy Dugout";
   applyTheme(TEAM.colors||CLASSIC);
   if(typeof makeTeamIcon==="function")setTimeout(makeTeamIcon,0);
 }
@@ -1590,7 +1590,6 @@ async function makeTeamIcon(){
     const url=cv.toDataURL("image/png");
     const ti=document.getElementById("touchIcon"); if(ti)ti.href=url;
     const fi=document.getElementById("favIcon"); if(fi)fi.href=url;
-    const at=document.getElementById("appTitle"); if(at)at.setAttribute("content",(TEAM.name||"Buddy Dugout").slice(0,14));
     window.__bdIcon=url;
   }catch(e){}
 }
