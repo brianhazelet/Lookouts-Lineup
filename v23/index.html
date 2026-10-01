@@ -649,7 +649,12 @@ header h1 .live{flex:none}
       <div class="menu teamcards" id="acMineList"></div>
     </div>
     <div class="sideset"><span class="lbl" style="color:var(--muted)">Appearance</span><div class="tabs" id="apSeg"><button type="button" data-mode="auto">Auto</button><button type="button" data-mode="light">Light</button><button type="button" data-mode="dark">Dark</button></div></div>
-    <div id="voiceSet" hidden style="display:flex;flex-direction:column;gap:12px"><div class="sideset" id="micToggleRow"><span class="lbl" style="color:var(--muted)">Voice button</span><div class="tabs" id="micSeg"><button type="button" data-mic="1">Show</button><button type="button" data-mic="0">Hide</button></div></div><div class="sideset" id="micSizeRow"><span class="lbl" style="color:var(--muted)">Voice button size</span><div class="tabs" id="micSize"><button type="button" data-sz="52">S</button><button type="button" data-sz="62">M</button><button type="button" data-sz="76">L</button></div></div><div class="sideset"><span class="lbl" style="color:var(--muted)">Announce batters</span><div class="tabs" id="annSeg"><button type="button" data-ann="1">On</button><button type="button" data-ann="0">Off</button></div></div></div>
+    <div id="voiceSet" hidden style="display:flex;flex-direction:column;gap:12px"><div class="sideset" id="micToggleRow"><span class="lbl" style="color:var(--muted)">Voice button</span><div class="tabs" id="micSeg"><button type="button" data-mic="1">Show</button><button type="button" data-mic="0">Hide</button></div></div><div class="sideset" id="micSizeRow"><span class="lbl" style="color:var(--muted)">Voice button size</span><div class="tabs" id="micSize"><button type="button" data-sz="52">S</button><button type="button" data-sz="62">M</button><button type="button" data-sz="76">L</button></div></div><div class="sideset"><span class="lbl" style="color:var(--muted)">Announce batters</span><div class="tabs" id="annSeg"><button type="button" data-ann="1">On</button><button type="button" data-ann="0">Off</button></div></div>
+      <div class="sideset"><span class="lbl" style="color:var(--muted)">Voice style</span><div class="tabs" id="vStyle"><button type="button" data-st="pa">Announcer</button><button type="button" data-st="calm">Calm</button></div></div>
+      <div class="form"><label>Voice<select id="vPick"><option value="">Best on this phone</option></select></label></div>
+      <button class="ghost" type="button" id="vTest" style="padding:12px">Test voice</button>
+      <p class="pfull" style="margin:0">For the most natural sound on iPhone, download a better voice: Settings, Accessibility, Spoken Content, Voices, English, then pick one marked Premium or Enhanced (Ava, Zoe, Evan or Nathan sound great).</p>
+    </div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
   </div>
 </div>
@@ -1491,12 +1496,37 @@ $("clkReset").onclick=()=>{ sc.clock={dur:sc.clock.dur||60,start:null,used:0}; s
 setInterval(()=>{ if(sc.clock&&sc.clock.start) renderClock() },1000);
 
 /* ================= 2.3: voice + team icon ================= */
-function speak(t){ try{ if(!("speechSynthesis" in window))return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=1.02; speechSynthesis.speak(u) }catch(e){} }
+let VOICES=[];
+function loadVoices(){ try{ VOICES=(speechSynthesis.getVoices()||[]).filter(v=>/^en/i.test(v.lang)) }catch(e){ VOICES=[] } fillVoicePick() }
+function vScore(v){ const n=(v.name||"")+" "+(v.voiceURI||""); let sc=0;
+  if(/premium/i.test(n))sc+=60; if(/enhanced|neural|natural/i.test(n))sc+=40; if(/siri/i.test(n))sc+=35;
+  if(/\b(ava|zoe|evan|nathan|noelle|joelle|samantha|allison|susan|tom|alex|aaron|nicky|serena|daniel|karen|moira)\b/i.test(n))sc+=12;
+  if(/^en[-_]US/i.test(v.lang))sc+=8; if(v.localService)sc+=3;
+  if(/\b(albert|bad news|bahh|bells|boing|bubbles|cellos|deranged|good news|hysterical|jester|organ|superstar|trinoids|whisper|wobble|zarvox|bruce|fred|junior|ralph|kathy|grandma|grandpa|rocko|shelley|flo|eddy|reed|sandy)\b/i.test(n))sc-=80;
+  return sc }
+const vPref=()=>{try{return localStorage.getItem("bd-voice")||""}catch(e){return ""}};
+const vStyle=()=>{try{return localStorage.getItem("bd-vstyle")||"pa"}catch(e){return "pa"}};
+function bestVoice(){ const want=vPref(); if(want){ const v=VOICES.find(x=>x.voiceURI===want||x.name===want); if(v)return v }
+  return [...VOICES].sort((a,b)=>vScore(b)-vScore(a))[0]||null }
+function fillVoicePick(){ const sel=document.getElementById("vPick"); if(!sel)return; const cur=vPref();
+  sel.innerHTML='<option value="">Best on this phone</option>';
+  [...VOICES].sort((a,b)=>vScore(b)-vScore(a)).forEach(v=>{const o=document.createElement("option"); o.value=v.voiceURI||v.name; o.textContent=v.name.replace(/\s*\(.*?\)\s*$/,"")+(/premium/i.test(v.name+v.voiceURI)?" · Premium":/enhanced/i.test(v.name+v.voiceURI)?" · Enhanced":"")+" ("+v.lang.replace("_","-")+")"; sel.appendChild(o)});
+  sel.value=cur }
+try{ if("speechSynthesis" in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; setTimeout(loadVoices,800) } }catch(e){}
+function speak(t){ try{ if(!("speechSynthesis" in window))return; speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t), v=bestVoice(), pa=vStyle()==="pa";
+  if(v){u.voice=v; u.lang=v.lang} u.rate=pa?0.92:1.0; u.pitch=pa?0.95:1.0; u.volume=1; speechSynthesis.speak(u) }catch(e){} }
 const annOn=()=>{try{return localStorage.getItem("bd-announce")!=="0"}catch(e){return true}};
 function renderAnn(){ document.querySelectorAll("#annSeg button").forEach(b=>b.setAttribute("aria-selected",(b.dataset.ann==="1")===annOn())) }
 document.querySelectorAll("#annSeg button").forEach(b=>b.onclick=()=>{try{localStorage.setItem("bd-announce",b.dataset.ann)}catch(e){} renderAnn(); if(b.dataset.ann==="1")speak("Announcements on")});
 renderAnn();
+function renderVoiceSet(){ document.querySelectorAll("#vStyle button").forEach(b=>b.setAttribute("aria-selected",b.dataset.st===vStyle())) }
+document.querySelectorAll("#vStyle button").forEach(b=>b.onclick=()=>{try{localStorage.setItem("bd-vstyle",b.dataset.st)}catch(e){} renderVoiceSet(); speak(upLine())});
+$("vPick").onchange=e=>{try{localStorage.setItem("bd-voice",e.target.value)}catch(_){} speak(upLine())};
+$("vTest").onclick=()=>speak(upLine());
+renderVoiceSet(); fillVoicePick();
 function upLine(){ const A=act(), L=A.length, i=bat.count%L, up=A[i], dk=A[(i+1)%L];
+  if(vStyle()==="pa"){ const num=LINEUP[up][1]; return "Now batting... "+(num!==""&&num!=null?"number "+num+"... ":"")+first(up)+"!"+(onTee(up)?" Off the tee.":"")+"  On deck, "+first(dk)+"." }
   return "Now batting, "+first(up)+(onTee(up)?", off the tee":"")+". On deck, "+first(dk)+"." }
 { const goTap=$("go").onclick, undoTap=$("undo").onclick;
   $("go").onclick=()=>{ goTap(); if(annOn())speak(upLine()) };
