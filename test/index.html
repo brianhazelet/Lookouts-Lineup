@@ -1745,9 +1745,10 @@ function resMode(){
 }
 function recordResult(r){
   const A=act(); if(!A.length)return; const pid=A[bat.count%A.length];
+  if(!usBat()){ setHalf(1); toast((TEAM.name||"We")+" batting · "+(sc.top?"Top ":"Bottom ")+sc.inning) }
   sc.ab=Array.isArray(sc.ab)?sc.ab:[]; sc.ab.push({p:pid,r,n:bat.count,i:sc.inning,t:sc.top});
   const isOut=!RES[r].on;
-  if(isOut&&usBat()){ $("outPlus").click() } else saveScore();
+  if(isOut){ $("outPlus").click() } else saveScore();
   $("go").click();
   try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}
   if(!(isOut&&sc.outs===0)) toast(first(pid)+": "+RES[r].l);
