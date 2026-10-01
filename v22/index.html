@@ -121,8 +121,8 @@ button:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
 
 /* tee */
 #order li{position:relative}
-#order li button.row{padding-right:74px}
-.list li .teeb{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:50px;height:28px;padding:0;display:block;
+#order li button.row{padding-right:56px}
+.list li .teeb{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%!important;
   border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.08em;border:1px dashed var(--line);color:var(--muted);background:transparent;text-align:center}
 .list li .teeb.on{background:var(--hi);color:var(--on-hi);border:1px solid var(--hi)}
 #order li.up .teeb:not(.on){border-color:rgba(255,255,255,.5);color:rgba(255,255,255,.8)}
@@ -405,7 +405,7 @@ header .tabs{display:none!important}
       </div>
       <p class="locked-note" id="lockNote" hidden>Lineup locked. Tap the lock up top to make changes.</p>
       <ol class="list" id="order"></ol>
-      <p class="hint">Tap a name to make them the batter. Hold a name, then drag to change the order. Dots show times up this game.</p>
+      <p class="hint">Tap a name to make them the batter. Hold a name, then drag to change the order. Dots show times up. The tee icon marks tee hitters.</p>
       <div class="bench herebox">
         <button type="button" class="herehead" id="hereToggle" aria-expanded="false" aria-controls="hereBody">
           <span><span class="lbl">Who's here</span><span class="sum" id="hereSum"></span></span><span class="pmicon" id="herePm" aria-hidden="true">+</span>
@@ -714,7 +714,7 @@ function renderBat(){
     else if(i===(slot+2)%L){li.className="hole";tag="Hole"} else if(i<slot){li.className="batted";tag="Batted"}
     const n=abOf(pid), dots=n?`<span class="abd" title="Batted ${n} times">${"<i></i>".repeat(Math.min(n,4))}${n>4?"<b>+"+(n-4)+"</b>":""}</span>`:"";
     const pk=posOf(pid,inn(fld.inning));
-    li.innerHTML=`<button type="button" class="row"><span class="ord">${i+1}</span><span class="pn"><span class="nmx"></span><span class="gp ${grp(pk)}">${pk||"BN"}</span>${isGuest(pid)?'<span class="gp gst">GUEST</span>':""}${dots}</span><span class="jn">${p[1]?"#"+p[1]:""}</span><span class="tag">${tag}</span></button><button type="button" class="teeb${onTee(pid)?" on":""}" aria-pressed="${onTee(pid)}" aria-label="Hits off tee">TEE</button>`;
+    li.innerHTML=`<button type="button" class="row"><span class="ord">${i+1}</span><span class="pn"><span class="nmx"></span><span class="gp ${grp(pk)}">${pk||"BN"}</span>${isGuest(pid)?'<span class="gp gst">GUEST</span>':""}${dots}</span><span class="jn">${p[1]?"#"+p[1]:""}</span><span class="tag">${tag}</span></button><button type="button" class="teeb${onTee(pid)?" on":""}" aria-pressed="${onTee(pid)}" aria-label="Hits off the tee" title="Hits off the tee"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="6" r="3.2"/><path d="M12 9.5v9"/><path d="M7 20.5h10"/></svg></button>`;
     li.querySelector(".nmx").textContent=p[0];
     const row=li.querySelector(".row");
     row.onclick=()=>{if(guard())return; bat.count=Math.floor(bat.count/L)*L+i;saveBat();renderBat()};
