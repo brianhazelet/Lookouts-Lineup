@@ -559,7 +559,7 @@ header h1 .live{flex:none}
           <div class="two"><label>Type<select id="gfKind"><option value="game">Game</option><option value="practice">Practice</option></select></label><label id="gfOppL">Opponent<input id="gfOpp" type="text" maxlength="24" placeholder="Red Sox" autocomplete="off"></label></div>
           <div id="gfFieldWrap" hidden><label>Field</label><div class="fieldpick" id="gfField"></div></div>
           <label>Location<input id="gfLoc" type="text" maxlength="110" placeholder="Leave blank for home field" autocomplete="off"></label>
-          <div class="two"><label>We are<select id="gfHome"><option value="away">Away (bat top)</option><option value="home">Home (bat bottom)</option></select></label><label>Arrive early (min)<input id="gfArrive" type="number" min="0" max="120" step="5" placeholder="30"></label></div>
+          <div class="two"><label>We are<select id="gfHome"><option value="away">Away (bat top)</option><option value="home">Home (bat bottom)</option></select></label><label>Arrive early (min)<input id="gfArrive" type="number" min="0" max="120" step="5" placeholder="30 if blank"></label></div>
         </div>
         <div class="gbtns"><button type="button" class="pri" id="gfSave">Save</button><button type="button" id="gfCancel">Cancel</button><button type="button" id="gfDelete" hidden>Delete</button></div>
       </div>
@@ -1100,13 +1100,20 @@ function gameWhen(g){const d=gDate(g); if(!d)return "Date TBD";
 function sortedGames(){return [...sched].sort((a,b)=>(gDate(a)||0)-(gDate(b)||0))}
 function isPast(g){const d=gDate(g); if(!d)return false; const end=new Date(d); end.setHours(end.getHours()+3); return end<new Date()}
 function nextGame(){return sortedGames().find(g=>!isPast(g))||null}
+function dayWord(d){ const t=new Date(); t.setHours(0,0,0,0); const x=new Date(d); x.setHours(0,0,0,0); const n=Math.round((x-t)/86400000);
+  return n===0?"today":n===1?"tomorrow":(n>1&&n<7?"this "+d.toLocaleDateString(undefined,{weekday:"long"}):"on "+d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})) }
 function gameText(g){
-  const nm=TEAM.name||"Team", d=gDate(g);
-  let t=nm+(isPrac(g)?" practice":" game"+(g.opp?" vs "+g.opp:""))+"\n"+gameWhen(g);
-  if(locOf(g))t+="\n"+locOf(g);
-  const ar=parseInt(g.arrive,10);
-  if(d&&g.time&&ar>0){const a=new Date(d.getTime()-ar*60000); t+="\nPlease arrive by "+a.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})+"."}
-  return t;
+  const nm=TEAM.name||"Team", d=gDate(g), tm=dt=>dt.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
+  const what=isPrac(g)?"practice":"game"+(g.opp?" vs "+g.opp:"");
+  const lines=[];
+  lines.push(nm+" "+what+(d?" "+dayWord(d):"")+"!");
+  if(d) lines.push(d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})+(g.time?" at "+tm(d):""));
+  const place=placeOf(g), ci=place.indexOf(","), pname=ci>0?place.slice(0,ci).trim():place, addr=ci>0?place.slice(ci+1).trim():"";
+  const where=[fieldLbl(g),pname].filter(Boolean).join(", ");
+  if(where) lines.push(where);
+  if(addr) lines.push(addr);
+  if(d&&g.time){ const ar=Number.isInteger(g.arrive)?g.arrive:30; if(ar>0) lines.push("Please arrive by "+tm(new Date(d.getTime()-ar*60000))+" to warm up.") }
+  return lines.join("\n");
 }
 function saveSched(){store(K_SCHED,sched);renderGames();renderBat()}
 let editId=null;
