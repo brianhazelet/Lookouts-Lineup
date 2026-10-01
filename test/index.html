@@ -400,6 +400,7 @@ header h1 .live{flex:none}
 .gp.pit{background:var(--pc-p)!important;color:#fff!important;box-shadow:none!important}
 .mk .pcdot{stroke:#0c0c0e;stroke-width:1.5}.mk .pcdot.pit{fill:var(--pc-p)}.mk .pcdot.cat{fill:var(--pc-c)}
 .fp td.c.pit{background:var(--pc-p)!important;color:#fff!important;box-shadow:none!important}.fp td.c.cat{background:var(--pc-c)!important;color:#fff!important;box-shadow:none!important}
+.pchip.pit{background:var(--pc-p)!important;color:#fff!important;box-shadow:none!important}.pchip.cat{background:var(--pc-c)!important;color:#fff!important;box-shadow:none!important}
 .gp.cat{background:var(--pc-c)!important;color:#fff!important;box-shadow:none!important}
 
 </style>
@@ -939,7 +940,7 @@ function renderField(){
   const ol=$("poslist"); ol.innerHTML="";
   curPOS().forEach(po=>{
     const p=map[po.k], li=document.createElement("li");
-    li.innerHTML=`<button type="button"><span class="pchip ${grp(po.k)}">${po.k}</span><span class="pn"><span class="who"></span><span class="pfull">${po.n}</span></span><span class="jn"></span></button>`;
+    li.innerHTML=`<button type="button"><span class="pchip ${grp(po.k)}${po.k==="P"?" pit":po.k==="C"?" cat":""}">${po.k}</span><span class="pn"><span class="who"></span><span class="pfull">${po.n}</span></span><span class="jn"></span></button>`;
     const who=li.querySelector(".who");
     if(p!=null){who.textContent=LINEUP[p][0];li.querySelector(".jn").textContent="#"+LINEUP[p][1]}
     else{who.textContent="Empty";who.className="who empty-txt"}
@@ -1493,9 +1494,9 @@ async function shareCard(){
     x.font="700 30px Barlow, sans-serif"; const nm=(LINEUP[p][1]?"#"+LINEUP[p][1]+"  ":"")+LINEUP[p][0]; x.fillText(nm.length>24?nm.slice(0,23)+"…":nm,nameX,y+rowH/2);
     for(let i=1;i<=INNINGS;i++){ const m=fld.innings[i]; const k=m&&Object.keys(m).length?posOf(p,m):undefined; const cx=gx+cw*(i-1)+6;
       if(k===undefined){continue}
-      const gk=grp(k); x.fillStyle=COLS[gk]; const rw=cw-12, rh=rowH-16; x.beginPath(); x.roundRect?x.roundRect(cx,y+8,rw,rh,10):x.rect(cx,y+8,rw,rh); x.fill();
+      const gk=grp(k); x.fillStyle=k==="P"?col("--pc-p"):k==="C"?col("--pc-c"):COLS[gk]; const rw=cw-12, rh=rowH-16; x.beginPath(); x.roundRect?x.roundRect(cx,y+8,rw,rh,10):x.rect(cx,y+8,rw,rh); x.fill();
       if(gk==="of"){x.lineWidth=3;x.strokeStyle=INK.of;x.stroke()}
-      x.fillStyle=INK[gk]; x.font="800 26px Barlow, sans-serif"; x.textAlign="center"; x.fillText(k||"BN",cx+rw/2,y+rowH/2+1); x.textAlign="left" }
+      x.fillStyle=(k==="P"||k==="C")?"#ffffff":INK[gk]; x.font="800 26px Barlow, sans-serif"; x.textAlign="center"; x.fillText(k||"BN",cx+rw/2,y+rowH/2+1); x.textAlign="left" }
   });
   x.fillStyle="#9a9aa3"; x.font="700 24px Barlow, sans-serif"; x.fillText("Made with Buddy Dugout",48,H-48);
   const blob=await new Promise(r=>cv.toBlob(r,"image/png")); if(!blob){toast("Couldn't make the card");return}
