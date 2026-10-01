@@ -823,6 +823,7 @@ body.fielding .plate .lbl{opacity:1}
       <p class="pfull" style="margin:0">For the most natural sound on iPhone, download a better voice: Settings, Accessibility, Spoken Content, Voices, English, then pick one marked Premium or Enhanced (Ava, Zoe, Evan or Nathan sound great).</p>
     </div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
+    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.6.3</p>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -2097,6 +2098,15 @@ document.addEventListener("keydown",e=>{
   else if(k==="ArrowUp"){ $("outMinus").click(); toast("Out removed"); did="undo-out" }
   if(did){ e.preventDefault(); if(did==="next"||did==="back"){ const b=document.querySelector('.pagedots [data-tab="bat"]'); if($("v-bat").hidden&&b)b.click() } }
 });
+/* 2.6.3: iPhone can keep a stale screen height after rotating or closing the keyboard, which strands the bottom bar mid-screen. Nudge it to re-measure. */
+(function(){ let t=null;
+  const heal=()=>{ clearTimeout(t); t=setTimeout(()=>{ const ae=document.activeElement; if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))return;
+    const y=window.scrollY; window.scrollTo(0,y+1); window.scrollTo(0,y);
+    const n=document.querySelector(".pagedots"); if(n){ n.style.display="none"; void n.offsetHeight; n.style.display="" } },350) };
+  addEventListener("orientationchange",heal); addEventListener("resize",heal); document.addEventListener("focusout",heal);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden)heal() });
+  if(window.visualViewport) visualViewport.addEventListener("resize",heal);
+})();
 /* ---------- team context for the account menu ---------- */
 window.TEAMCTX={code:TEAM.code,ref:TEAM.ref,owner:TEAM.owner||null,openSettings:openTeamSheet,name:()=>TEAM.name};
 if(window.PENDING_HANDOFF&&PENDING_HANDOFF.code===TEAM.code&&TEAM.ref){
