@@ -19,7 +19,7 @@
   color-scheme:dark;
   --bg:#0c0c0e; --surface:#17171a; --surface2:#202024; --line:#2e2e33;
   --fg:#f6f4f1; --muted:#a6a6ad; --done:#5c5c63;
-  --red:#c8202f; --red-deep:#8f141f; --red-ink:#e0323f; --on-red:#ffffff; --team2:#ffffff; --white:#ffffff; --ink:#0c0c0e;
+  --red:#f6b40e; --red-deep:#8a6200; --red-ink:#f6b40e; --on-red:#0c0c0e; --team2:#ffffff; --gold:#f6b40e; --white:#ffffff; --ink:#0c0c0e;
   --grass:#2f5a2c; --grass2:#3b6b36; --clay:#a9643d; --chalk:#f4f2ec;
   --varsity:"Graduate","Rockwell",Georgia,serif;
   --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
@@ -190,7 +190,7 @@ button.chip{color:var(--fg)}
 .live.on{background:#3fbf6a}
 #gate{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px 16px}
 #gate .card{max-width:380px;width:100%;display:flex;flex-direction:column;gap:14px;text-align:center}
-#gate h2{margin:0;font-family:var(--varsity);font-weight:400;font-size:26px;color:var(--white);text-shadow:2px 2px 0 var(--red-ink)}
+#gate h2{margin:0;font-family:var(--varsity);font-weight:400;font-size:30px;color:var(--gold);text-shadow:2px 2px 0 #000,3px 3px 0 #5c4300}
 #gate input{background:var(--surface);border:1px solid var(--line);border-radius:12px;color:var(--fg);font:600 18px var(--body);padding:14px;text-align:center}
 #gate .msg{color:var(--muted);margin:0;font-size:14px}
 /* ---------- 2.1 ---------- */
@@ -231,7 +231,7 @@ button.chip{color:var(--fg)}
 .rrow .x{background:transparent;border:1px solid var(--line);color:var(--muted);height:34px;border-radius:8px;padding:0;font-size:18px}
 .rhead{display:grid;grid-template-columns:1fr 64px 78px 34px;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
 .page{min-height:100%;max-width:480px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:16px}
-.page h2{margin:0;font:400 26px var(--varsity);color:var(--white)}
+.page h2{margin:0;font:400 26px var(--varsity);color:var(--gold);text-shadow:2px 2px 0 #000}
 .page h3{margin:0;font:900 20px var(--display);text-transform:uppercase;letter-spacing:.03em}
 .codebox{background:var(--surface);border:2px dashed var(--red-ink);border-radius:12px;padding:14px;text-align:center;font:700 22px var(--body);letter-spacing:.08em;overflow-wrap:anywhere}
 .or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
@@ -274,7 +274,7 @@ button.chip{color:var(--fg)}
 <div id="setup" hidden><div class="page">
   <h2>NEW TEAM</h2>
   <div class="form">
-    <label>Team name<input id="sName" type="text" maxlength="24" placeholder="Lookouts" autocomplete="off"></label>
+    <label>Team name<input id="sName" type="text" maxlength="24" placeholder="Rockets" autocomplete="off"></label>
   </div>
   <h3>Team colors</h3>
   <div class="form"><label>Main color</label></div><div class="swatches" id="sC1"></div>
@@ -837,7 +837,7 @@ $("app").hidden=false; $("loader").hidden=true;
 function applyTeam(){
   const nm=(TEAM.name||"Team").trim()||"Team";
   $("teamName").textContent=nm.toUpperCase(); document.title=nm+" · Buddy Dugout";
-  applyTheme(TEAM.colors);
+  applyTheme(TEAM.colors||CLASSIC);
 }
 $("nextGame").onclick=()=>showTab("games");
 
@@ -936,7 +936,7 @@ $("gfDelete").onclick=()=>{const b=$("gfDelete");
 let tsRows=[], tsColors=null;
 function openTeamSheet(){
   $("tsName").value=TEAM.name||"";
-  tsColors={...(TEAM.colors||{p:"#c8202f",s:"#ffffff"})};
+  tsColors={...(TEAM.colors||CLASSIC)};
   colorPicker($("tsC1"),tsColors.p,v=>{tsColors.p=v;applyTheme(tsColors)});
   colorPicker($("tsC2"),tsColors.s,v=>{tsColors.s=v;applyTheme(tsColors)},true);
   tsRows=LINEUP.map((p,i)=>({id:i,name:p[0],num:p[1],hidden:!!p[2]}));
@@ -952,7 +952,7 @@ function drawTsRows(){
     row.querySelector(".x").onclick=()=>{ if(r.id==null)tsRows.splice(i,1); else r.hidden=true; drawTsRows() };
     box.appendChild(row)});
 }
-function closeTeamSheet(){$("teamSheet").hidden=true; applyTheme(TEAM.colors)}
+function closeTeamSheet(){$("teamSheet").hidden=true; applyTheme(TEAM.colors||CLASSIC)}
 $("gearBtn").onclick=openTeamSheet; $("tsCancel").onclick=closeTeamSheet; $("tsScrim").onclick=closeTeamSheet;
 $("tsAddRow").onclick=()=>{tsRows.push({id:null,name:"",num:"",hidden:false});drawTsRows();const ins=$("tsRows").querySelectorAll(".rrow input[type=text]");ins[ins.length-2]&&ins[ins.length-2].focus()};
 $("tsSave").onclick=async()=>{
@@ -1021,7 +1021,8 @@ const CODE_RE=/^[a-z0-9]{12,40}$/i;
 function b64dec(x){x=x.replace(/-/g,"+").replace(/_/g,"/");while(x.length%4)x+="=";return decodeURIComponent(escape(atob(x)))}
 
 /* ---- shared helpers (theme, colors, roster parsing) ---- */
-const SWATCH=["#c8202f","#8a1538","#e8622a","#f2b705","#1f7a3a","#0e7c86","#1d4fb8","#14285a","#5b2a86","#1a1a1d","#8a8d93","#ffffff"];
+const CLASSIC={p:"#c8202f",s:"#ffffff"};
+const SWATCH=["#c8202f","#8a1538","#e8622a","#f6b40e","#1f7a3a","#0e7c86","#1d4fb8","#14285a","#5b2a86","#1a1a1d","#8a8d93","#ffffff"];
 function hexRgb(h){h=h.replace("#","");if(h.length===3)h=h.split("").map(c=>c+c).join("");const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255]}
 function rgbHex(r){return"#"+r.map(v=>Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,"0")).join("")}
 function lum(h){const c=hexRgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
@@ -1029,7 +1030,7 @@ function contrast(a,b){const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.m
 function mix(a,b,t){const x=hexRgb(a),y=hexRgb(b);return rgbHex(x.map((v,i)=>v+(y[i]-v)*t))}
 function readableOn(bg,c){let t=0;while(contrast(c,bg)<3.2&&t<1){t+=.1;c=mix(c,lum(bg)>.4?"#000000":"#ffffff",t)}return c}
 function applyTheme(c){
-  const p=(c&&/^#[0-9a-f]{6}$/i.test(c.p||""))?c.p:"#c8202f", s2=(c&&/^#[0-9a-f]{6}$/i.test(c.s||""))?c.s:"#ffffff";
+  const p=(c&&/^#[0-9a-f]{6}$/i.test(c.p||""))?c.p:"#f6b40e", s2=(c&&/^#[0-9a-f]{6}$/i.test(c.s||""))?c.s:"#ffffff";
   const r=document.documentElement.style, bg="#17171a";
   r.setProperty("--red",p); r.setProperty("--red-deep",mix(p,"#000000",.3));
   r.setProperty("--on-red",contrast(p,"#ffffff")>=contrast(p,"#0c0c0e")?"#ffffff":"#0c0c0e");
@@ -1074,7 +1075,7 @@ function alertMsg(m){let t=document.getElementById("toast"); if(!t){t=document.c
 function showSetup(){
   ["loader","gate","app","ready"].forEach(id=>document.getElementById(id).hidden=true);
   const $$=id=>document.getElementById(id); $$("setup").hidden=false; scrollTo(0,0);
-  let rows=[], colors={p:"#c8202f",s:"#ffffff"};
+  let rows=[], colors={p:"#f6b40e",s:"#ffffff"};
   const prev=()=>{const pv=$$("sPrev");pv.textContent=($$("sName").value.trim()||"Team name").toUpperCase();applyTheme(colors);
     pv.style.color=getComputedStyle(document.documentElement).getPropertyValue("--team2");pv.style.textShadow="2px 2px 0 "+getComputedStyle(document.documentElement).getPropertyValue("--red-ink");pv.style.borderColor=colors.p};
   colorPicker($$("sC1"),colors.p,v=>{colors.p=v;prev()}); colorPicker($$("sC2"),colors.s,v=>{colors.s=v;prev()},true);
@@ -1129,13 +1130,13 @@ function showGate(msg){
   try{firebase.initializeApp(FB); db=firebase.database(); ref=db.ref("teams/"+code)}catch(e){}
   const RK="dugout-roster@"+code, MK="dugout-meta@"+code;
   let meta={}; try{meta=JSON.parse(localStorage.getItem(MK))||{}}catch(e){}
-  applyTheme(meta.colors);
+  applyTheme(meta.colors||CLASSIC);
   let cached=null; try{cached=JSON.parse(localStorage.getItem(RK))}catch(e){}
   let booted=false, used=null;
   const go=(r,init)=>{if(booted)return; booted=true; used=JSON.stringify(r); boot(r,{code,ref,db,init,name:meta.name,colors:meta.colors})};
   const metaOnce=()=>Promise.race([Promise.all([ref.child("name").once("value"),ref.child("colors").once("value")]).then(([n,c])=>{
       const m={name:n.val()||meta.name||""}; try{m.colors=c.val()?JSON.parse(c.val()):null}catch(e){m.colors=null}
-      meta=m; try{localStorage.setItem(MK,JSON.stringify(m))}catch(e){} applyTheme(m.colors)}),new Promise(r=>setTimeout(r,2500))]).catch(()=>{});
+      meta=m; try{localStorage.setItem(MK,JSON.stringify(m))}catch(e){} applyTheme(m.colors||CLASSIC)}),new Promise(r=>setTimeout(r,2500))]).catch(()=>{});
   if(!ref){ if(cached&&cached.length)go(cached,null); else showGate("Can't reach the team database. Check your connection, then pull down to retry."); return }
   const stateOnce=()=>Promise.race([ref.child("state").once("value").then(s=>s.val()||{}),new Promise(r=>setTimeout(()=>r(null),2500))]).catch(()=>null);
   if(cached&&cached.length) Promise.all([stateOnce(),metaOnce()]).then(([st])=>go(cached,st));
