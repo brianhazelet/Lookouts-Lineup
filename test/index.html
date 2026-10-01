@@ -284,7 +284,8 @@ header .tabs{display:none!important}
 .mk.empty rect{fill:rgba(12,12,14,.45);stroke:var(--chalk);stroke-dasharray:4 3;stroke-width:1.5}
 .mk.empty .ab{fill:var(--chalk);opacity:1}
 .mk.empty .nm{fill:var(--chalk);font:600 11px var(--body);text-transform:none;opacity:.85}
-.mk .pin{fill:var(--gold);stroke:#0c0c0e;stroke-width:1.5}
+.mk .pin{fill:var(--gold);stroke:#0c0c0e;stroke-width:1.5}.mk .pinin{fill:#0c0c0e}
+#pinRow{display:flex;flex-direction:column;gap:8px}#pinRow:empty{display:none}
 .mk.droptarget rect,.mk:focus-visible rect{stroke:var(--fg);stroke-width:3.5}
 .coll .herebody{gap:10px}
 .lockbtn svg{fill:none}
@@ -985,10 +986,10 @@ function renderField(){
     const m=document.createElementNS(SVGNS,"g");
     m.setAttribute("class","mk "+grp(po.k)+(has?"":" empty")); m.setAttribute("tabindex","0"); m.setAttribute("role","button");
     m.setAttribute("aria-label",po.n+": "+(has?LINEUP[p][0]:"empty"));
-    const pinned=has&&fld.pins&&fld.pins[po.k]===p;
+    const AP=activePins(), pinned=has&&AP[po.k]===p, always=pinned&&!(fld.pins&&fld.pins[po.k]===p)&&Number(ALWAYS()[po.k])===p;
     m.innerHTML=`<rect x="${po.x-37}" y="${po.y-17}" width="74" height="34" rx="8"/>
       <text class="ab" x="${po.x}" y="${po.y-4}" text-anchor="middle">${po.k}</text>
-      <text class="nm" x="${po.x}" y="${po.y+11}" text-anchor="middle"></text>${has&&(po.k==="P"||po.k==="C")?`<circle class="pcdot ${po.k==="P"?"pit":"cat"}" cx="${po.x-34}" cy="${po.y-14}" r="5.5"/>`:""}${pinned?`<circle class="pin" cx="${po.x+34}" cy="${po.y-14}" r="5"/>`:""}`;
+      <text class="nm" x="${po.x}" y="${po.y+11}" text-anchor="middle"></text>${has&&(po.k==="P"||po.k==="C")?`<circle class="pcdot ${po.k==="P"?"pit":"cat"}" cx="${po.x-34}" cy="${po.y-14}" r="5.5"/>`:""}${pinned?`<circle class="pin" cx="${po.x+34}" cy="${po.y-14}" r="5"/>`+(always?`<circle class="pinin" cx="${po.x+34}" cy="${po.y-14}" r="1.8"/>`:""):""}`;
     m.querySelector(".nm").textContent=has?first(p):"Tap to set";
     m.setAttribute("data-pos",po.k);
     if(has)attachHold(m,"field",()=>({id:p,label:LINEUP[p][0]}));
@@ -1040,12 +1041,15 @@ function openSheet(k){
     box.appendChild(b);
   });
   const pr=$("pinRow"); pr.innerHTML="";
-  if(map[k]!=null){ const pid=map[k], on=fld.pins&&fld.pins[k]===pid, b=document.createElement("button");
-    b.type="button"; b.className="ghost"; b.style.cssText="padding:12px;width:100%";
-    b.textContent=on?"Unpin "+first(pid)+" from "+k:"Keep "+first(pid)+" at "+k+" every inning";
-    b.onclick=()=>{ fld.pins=fld.pins||{}; for(const x in fld.pins) if(fld.pins[x]===pid) delete fld.pins[x];
-      if(!on) fld.pins[k]=pid; else delete fld.pins[k]; save(); closeSheet(); toast(on?"Unpinned":first(pid)+" pinned to "+k) };
-    pr.appendChild(b) }
+  if(map[k]!=null){ const pid=map[k], on=!!(fld.pins&&fld.pins[k]===pid), al=Number(ALWAYS()[k])===pid;
+    const mk=(txt,fn)=>{const b=document.createElement("button"); b.type="button"; b.className="ghost"; b.style.cssText="padding:12px;width:100%"; b.textContent=txt; b.onclick=()=>{fn();closeSheet()}; pr.appendChild(b)};
+    const clearGame=()=>{ fld.pins=fld.pins||{}; for(const x in fld.pins) if(fld.pins[x]===pid) delete fld.pins[x] };
+    const setAlways=on2=>{ const lk={...ALWAYS()}; for(const x in lk) if(Number(lk[x])===pid) delete lk[x]; if(on2) lk[k]=pid; AVOID={...AVOID}; if(Object.keys(lk).length) AVOID._lock=lk; else delete AVOID._lock; store(K_AVOID,AVOID) };
+    if(al){ mk("Stop keeping "+first(pid)+" at "+k+" every game",()=>{ setAlways(false); clearGame(); save(); toast(first(pid)+" no longer locked to "+k) }) }
+    else {
+      mk(on?"Unpin "+first(pid)+" for this game":"Keep "+first(pid)+" at "+k+" this game",()=>{ clearGame(); if(!on) fld.pins[k]=pid; save(); toast(on?"Unpinned":first(pid)+" pinned to "+k+" this game") });
+      mk("Lock "+first(pid)+" at "+k+" every game",()=>{ clearGame(); setAlways(true); applyPins(inn(fld.inning)); save(); toast(first(pid)+" locked to "+k+" every game") });
+    } }
   $("sheet").hidden=false;
 }
 function closeSheet(){$("sheet").hidden=true;sheetPos=null}
@@ -1137,7 +1141,7 @@ document.querySelectorAll("[data-newgame]").forEach(b=>b.onclick=()=>{
   clearTimeout(armT); all.forEach(x=>{x.classList.remove("arm");x.textContent="New game"});
   bat={count:0,order:[...IDS].filter(i=>!isGuest(i)),abs:{},out:[],locked:false}; saveBat();
   fld={inning:1,of:4,innings:{1:{...DEFAULT}}}; setOF(autoOF(IDS.length));
-  { const m=fld.innings[1], bench=IDS.filter(p=>posOf(p,m)===null); curPOS().forEach(po=>{if(m[po.k]==null&&bench.length)m[po.k]=bench.shift()}); store(K_FIELD,fld); }
+  { const m=fld.innings[1]; try{applyPins(m)}catch(e){} const bench=IDS.filter(p=>posOf(p,m)===null); curPOS().forEach(po=>{if(m[po.k]==null&&bench.length)m[po.k]=bench.shift()}); store(K_FIELD,fld); }
 
   sc={...NEWSCORE(),weTop:sc.weTop}; { const g=sortedGames().find(x=>!isPast(x)&&!isPrac(x)); if(g){ sc.opp=g.opp||""; sc.weTop=g.home!=="home" } } store(K_SCORE,sc);
   renderField(); renderBat(); renderScore(); window.scrollTo(0,0);
@@ -1217,7 +1221,12 @@ function fixAvoid(m,keys){
     const b=act().find(x=>posOf(x,m)===null&&!avoids(x,k)); if(b!=null){m[k]=b} });
   return m;
 }
-function activePins(){ const ks=curPOS().map(p=>p.k), A=act(), out={}; for(const k in (fld.pins||{})){ const pid=fld.pins[k]; if(ks.includes(k)&&A.includes(pid)&&!Object.values(out).includes(pid)) out[k]=pid } return out }
+function ALWAYS(){ return (AVOID&&AVOID._lock&&typeof AVOID._lock==="object")?AVOID._lock:{} }
+function activePins(){ const ks=curPOS().map(p=>p.k), A=act(), out={};
+  const add=(k,pid)=>{ pid=Number(pid); if(ks.includes(k)&&out[k]==null&&A.includes(pid)&&!Object.values(out).includes(pid)) out[k]=pid };
+  for(const k in (fld.pins||{})) add(k,fld.pins[k]);
+  const al=ALWAYS(); for(const k in al) add(k,al[k]);
+  return out }
 function applyPins(m){ const pins=activePins(); for(const k in pins){ const pid=pins[k], from=posOf(pid,m); if(from&&from!==k)delete m[from]; m[k]=pid } return pins }
 $("shuffleF").onclick=()=>{
   if(guard())return;
@@ -1350,7 +1359,7 @@ $("tsSave").onclick=async()=>{
   const name=$("tsName").value.trim()||"Team";
   const hf=$("tsHome").value.trim(); if(hf!==homeField){homeField=hf; store(K_HOME,hf)}
   const nf=Math.max(0,Math.min(12,parseInt($("tsNF").value,10)||0)); if(nf!==nFields){nFields=nf; store(K_NFIELDS,nf)}
-  const av={}; tsRows.forEach(r=>{if(r.id!=null&&r.avoid.length)av[r.id]=r.avoid}); if(JSON.stringify(av)!==JSON.stringify(AVOID)){AVOID=av; store(K_AVOID,av)}
+  const av={}; tsRows.forEach(r=>{if(r.id!=null&&r.avoid.length)av[r.id]=r.avoid}); if(AVOID._lock)av._lock=AVOID._lock; if(JSON.stringify(av)!==JSON.stringify(AVOID)){AVOID=av; store(K_AVOID,av)}
   renderGames(); renderBat(); renderField();
   const roster=tsRows.filter(r=>r.id!=null||r.name.trim()).map(r=>{const e=[r.name.trim()||"Player",String(r.num||"").replace(/[^0-9]/g,"").slice(0,3)]; if(r.hidden)e.push(1); return e});
   if(!roster.some(e=>!e[2])){toast("Keep at least one player");return}
