@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lookouts">
+<meta name="theme-color" content="#0c0c0e">
+<meta name="robots" content="noindex,nofollow">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
+<title>Lookouts Dugout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Graduate&family=Big+Shoulders+Display:wght@700;900&family=Barlow:wght@500;600;700&display=swap">
+<style>
+/* Layout: one-column dugout card. Team block-letter header, Batting / Field tabs, big action on top, detail list below. Deliberately single dark look in team red, black and white. */
+:root{
+  color-scheme:dark;
+  --bg:#0c0c0e; --surface:#17171a; --surface2:#202024; --line:#2e2e33;
+  --fg:#f6f4f1; --muted:#a6a6ad; --done:#5c5c63;
+  --red:#c8202f; --red-deep:#8f141f; --white:#ffffff; --ink:#0c0c0e;
+  --grass:#2f5a2c; --grass2:#3b6b36; --clay:#a9643d; --chalk:#f4f2ec;
+  --varsity:"Graduate","Rockwell",Georgia,serif;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;touch-action:manipulation}
+button,.mk{-webkit-user-select:none;user-select:none}
+html,body{background:var(--bg);color:var(--fg);margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+.wrap{max-width:480px;margin:0 auto;padding:12px 16px 32px;display:flex;flex-direction:column;gap:14px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h1{font-family:var(--varsity);font-weight:400;font-size:30px;letter-spacing:.03em;margin:0;color:var(--white);
+   text-shadow:2px 2px 0 var(--red)}
+.tabs{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.tabs button{background:transparent;color:var(--muted);font-weight:700;padding:8px 13px;border-radius:999px;font-size:15px}
+.tabs button[aria-selected="true"]{background:var(--red);color:var(--white)}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;color:inherit}
+button:focus-visible{outline:3px solid var(--white);outline-offset:2px}
+.sub{color:var(--muted);font-weight:600;font-size:14px;font-variant-numeric:tabular-nums;margin:0}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+
+/* batting */
+.plate{background:var(--red);color:var(--white);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:4px;
+  background-image:linear-gradient(90deg,transparent 0 calc(100% - 22px),var(--ink) calc(100% - 22px) calc(100% - 16px),var(--white) calc(100% - 16px) calc(100% - 12px),var(--ink) calc(100% - 12px) calc(100% - 6px),transparent calc(100% - 6px))}
+.plate .lbl{opacity:.85}
+.big{font-family:var(--display);font-weight:900;font-size:44px;line-height:1;text-transform:uppercase;text-wrap:balance;padding-right:18px}
+.meta{font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
+.next{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.slot{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
+.slot .lbl{color:var(--muted)}
+.slot.deck{border:2px solid var(--red)}
+.slot.deck .lbl{color:var(--red)}
+.slot .name{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.05;text-transform:uppercase;margin-top:2px;overflow-wrap:anywhere}
+.slot .meta{color:var(--muted);font-size:14px}
+.actions{display:grid;grid-template-columns:auto 1fr;gap:10px}
+.go{background:var(--white);color:var(--ink);font-family:var(--display);font-weight:900;font-size:26px;letter-spacing:.04em;text-transform:uppercase;padding:18px 12px}
+.go:active{transform:scale(.98)}
+.ghost{background:var(--surface);color:var(--fg);border:1px solid var(--line);font-weight:700;padding:0 18px}
+.ghost:disabled{opacity:.4}
+.list{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.list li button{width:100%;display:grid;grid-template-columns:28px 1fr auto auto;gap:10px;align-items:center;padding:12px 14px;background:transparent;border-radius:0;text-align:left;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.list li:last-child button{border-bottom:0}
+.ord{color:var(--muted);font-weight:700}
+.pn{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.jn{color:var(--muted);font-weight:600}
+.tag{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:99px;min-width:58px;text-align:center}
+#order li.up button{background:var(--red);color:var(--white)}
+#order li.up .ord,#order li.up .jn{color:var(--white);opacity:.85}
+#order li.up .tag{background:var(--white);color:var(--red)}
+#order li.deck .tag{background:var(--ink);color:var(--white);border:1px solid var(--red)}
+#order li.hole .tag{border:1px solid var(--line);color:var(--muted)}
+#order li.batted .pn{color:var(--done);text-decoration:line-through}
+#order li.batted .tag{color:var(--done)}
+.hint{color:var(--muted);font-size:13px;margin:0;text-align:center}
+
+/* field */
+.innings{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.innings .lbl{color:var(--muted);margin-right:4px}
+.innings button{width:40px;height:40px;background:var(--surface);border:1px solid var(--line);font-weight:700;font-variant-numeric:tabular-nums}
+.innings button[aria-pressed="true"]{background:var(--white);color:var(--ink);border-color:var(--white)}
+.fieldbox{border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+#field{display:block;width:100%;height:auto}
+.mk{cursor:pointer}
+.mk rect{fill:var(--ink);stroke:var(--red);stroke-width:2}
+.mk.empty rect{fill:rgba(12,12,14,.55);stroke:var(--chalk);stroke-dasharray:4 3;stroke-width:1.5}
+.mk .ab{fill:var(--red);font:700 9px var(--body);letter-spacing:.08em}
+.mk.empty .ab{fill:var(--chalk)}
+.mk .nm{fill:var(--white);font:700 14px var(--display);letter-spacing:.02em;text-transform:uppercase}
+.mk.empty .nm{fill:var(--chalk);font:600 11px var(--body);text-transform:none;opacity:.85}
+.mk:focus{outline:none}
+.mk:focus-visible rect{stroke:var(--white);stroke-width:3}
+#poslist li button{grid-template-columns:52px 1fr auto}
+.pchip{font-family:var(--display);font-weight:900;font-size:18px;color:var(--red)}
+.pfull{color:var(--muted);font-size:13px;font-weight:600;display:block}
+.empty-txt{color:var(--muted);font-style:italic}
+.bench{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.bench .lbl{color:var(--muted)}
+.row2{display:flex;gap:10px}
+.row2 .ghost{flex:1;padding:12px}
+
+/* picker sheet */
+#sheet{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;justify-content:flex-end}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.panel{position:relative;background:var(--surface2);border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));max-height:82%;overflow:auto;max-width:480px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.panel h2{margin:0;font-family:var(--display);font-weight:900;font-size:26px;text-transform:uppercase}
+.panel h2 span{color:var(--red)}
+.picks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.picks button{background:var(--surface);border:1px solid var(--line);padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;min-width:0}
+.picks button.cur{border:2px solid var(--red)}
+.picks .n{font-weight:700;overflow-wrap:anywhere}
+.picks .w{color:var(--muted);font-size:13px;font-weight:600}
+@media (prefers-reduced-motion:reduce){.go:active{transform:none}}
+
+/* tee */
+#order li{position:relative}
+#order li button.row{padding-right:74px}
+.list li .teeb{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:50px;height:28px;padding:0;display:block;
+  border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.08em;border:1px dashed var(--line);color:var(--muted);background:transparent;text-align:center}
+.list li .teeb.on{background:var(--white);color:var(--ink);border:1px solid var(--white)}
+#order li.up .teeb:not(.on){border-color:rgba(255,255,255,.5);color:rgba(255,255,255,.8)}
+.teebadge{align-self:flex-start;background:var(--white);color:var(--red);font-weight:800;font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:99px;margin-top:4px}
+.newgame{background:transparent;border:1px solid var(--red);color:var(--fg);font-weight:700;padding:14px}
+.newgame.arm{background:var(--red);color:var(--white)}
+/* score */
+.halfbar{display:grid;grid-template-columns:52px 1fr 52px;gap:10px;align-items:stretch}
+.halfbar button{background:var(--surface);border:1px solid var(--line);font-size:24px;font-weight:700}
+.halfmid{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.halfmid .lbl{color:var(--muted)}
+.halfmid .v{font-family:var(--display);font-weight:900;font-size:34px;line-height:1;text-transform:uppercase}
+.halfmid .v b{color:var(--red)}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.team{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.team{border-width:2px}
+.team.batting{border-color:var(--red)}
+.team .tn{font-family:var(--varsity);font-size:15px;letter-spacing:.04em;text-align:center;line-height:22px;height:24px;padding:2px 0;border-bottom:1px solid transparent;width:100%}
+.team input{height:24px;line-height:22px;width:100%;background:transparent;border:0;border-bottom:1px dashed var(--line);color:var(--fg);font:400 15px var(--varsity);text-align:center;padding:2px 0}
+.team input::placeholder{color:var(--muted)}
+.runs{font-family:var(--display);font-weight:900;font-size:72px;line-height:1;font-variant-numeric:tabular-nums}
+.pm{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.pm button{background:var(--surface2);border:1px solid var(--line);font-size:22px;font-weight:700;padding:10px 0}
+.pm button.plus{background:var(--white);color:var(--ink);border-color:var(--white)}
+.outsbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.outsrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dots{display:flex;gap:12px}
+.dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--red)}
+.dot.on{background:var(--red)}
+.outbtns{display:grid;grid-template-columns:auto 1fr;gap:10px}
+.addout{background:var(--red);color:var(--white);font-family:var(--display);font-weight:900;font-size:24px;letter-spacing:.04em;text-transform:uppercase;padding:14px}
+.vtag{font:700 11px var(--body);letter-spacing:.1em;color:var(--ink);background:var(--white);padding:2px 6px;border-radius:6px;vertical-align:middle;text-shadow:none}
+/* drag + at-bat dots */
+.abd{display:inline-flex;gap:3px;margin-left:8px;vertical-align:middle}
+.abd i{width:7px;height:7px;border-radius:50%;background:var(--red);display:block}
+#order li.up .abd i{background:var(--white)}
+.abd b{font-size:11px;color:var(--muted);font-weight:700;line-height:7px}
+#order li button.row,#poslist li button,.mk,.chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.dragsrc{opacity:.35}
+#ghost{position:fixed;left:0;top:0;z-index:30;pointer-events:none;background:var(--white);color:var(--ink);font:900 20px var(--display);text-transform:uppercase;
+  padding:8px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.5);border:2px solid var(--red);white-space:nowrap}
+#order li.dropbefore{box-shadow:inset 0 3px 0 var(--white)}
+#order li.dropafter{box-shadow:inset 0 -3px 0 var(--white)}
+.mk.droptarget rect{stroke:var(--white);stroke-width:3.5}
+#poslist li.droptarget,.bench.droptarget{outline:2px solid var(--white);outline-offset:-2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--surface2);border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-weight:600;font-size:14px}
+.sideset{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sideset .lbl{color:var(--muted)}
+.batwho{text-align:center;margin:0;font-weight:700;font-size:15px}
+.batwho b{color:var(--red)}
+.team .atbat{font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--white);background:var(--red);padding:2px 8px;border-radius:99px;border:1px solid var(--red)}
+.team .atbat.fld{background:var(--ink);color:var(--white);border-color:var(--white)}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translateX(-50%);z-index:25;background:var(--white);color:var(--ink);
+  font:900 22px var(--display);text-transform:uppercase;letter-spacing:.03em;padding:12px 18px;border-radius:12px;border:3px solid var(--red);box-shadow:0 10px 30px rgba(0,0,0,.5);white-space:nowrap}
+.chip.out{text-decoration:line-through;opacity:.45;border-style:dashed}
+button.chip{color:var(--fg)}
+.herebox{gap:0}
+.herehead{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:transparent;padding:0;text-align:left;border-radius:8px}
+.herehead .lbl{color:var(--muted)}
+.herehead .sum{color:var(--fg);font-weight:600;font-size:14px;margin-top:4px;display:block}
+.pmicon{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font:700 22px/1 var(--body);color:var(--fg)}
+.herebody{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.slide-l{animation:slideL .22s ease-out}.slide-r{animation:slideR .22s ease-out}
+@keyframes slideL{from{opacity:.3;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes slideR{from{opacity:.3;transform:translateX(-40px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.slide-l,.slide-r{animation:none}}
+.live{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--done);margin-left:8px;vertical-align:middle;box-shadow:none}
+.live.on{background:#3fbf6a}
+#gate{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+#gate .card{max-width:380px;width:100%;display:flex;flex-direction:column;gap:14px;text-align:center}
+#gate h2{margin:0;font-family:var(--varsity);font-weight:400;font-size:26px;color:var(--white);text-shadow:2px 2px 0 var(--red)}
+#gate input{background:var(--surface);border:1px solid var(--line);border-radius:12px;color:var(--fg);font:600 18px var(--body);padding:14px;text-align:center}
+#gate .msg{color:var(--muted);margin:0;font-size:14px}
+/* pull to refresh */
+#ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:20;width:40px;height:40px;margin-left:-20px;border-radius:50%;
+  background:var(--surface2);border:2px solid var(--red);display:flex;align-items:center;justify-content:center;
+  transform:translateY(-70px);opacity:0;pointer-events:none}
+#ptr svg{width:20px;height:20px;stroke:var(--white);fill:none;stroke-width:2.5;stroke-linecap:round}
+#ptr.ready svg{stroke:var(--red)}
+#ptr.spin svg{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#ptr.spin svg{animation:none}}
+</style>
+</head>
+<body>
+<div id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg></div>
+<div id="gate" hidden><div class="card"><h2>DUGOUT</h2><p class="msg" id="gateMsg">Enter your team code to open your team.</p><input id="gateCode" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Team code" aria-label="Team code"><button class="go" type="button" id="gateGo">Open team</button></div></div>
+<div class="wrap" id="app" hidden>
+  <header>
+    <h1>LOOKOUTS<span class="live" id="live" title="Offline"></span></h1>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="t-bat" aria-selected="true">Batting</button>
+      <button type="button" role="tab" id="t-field" aria-selected="false">Field</button>
+      <button type="button" role="tab" id="t-score" aria-selected="false">Score</button>
+    </div>
+  </header>
+
+  <!-- BATTING -->
+  <section id="v-bat">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <p class="sub" id="round"></p>
+      <section class="plate" aria-live="polite">
+        <span class="lbl">At bat</span>
+        <span class="big" id="upName"></span>
+        <span class="meta" id="upMeta"></span>
+        <span class="teebadge" id="upTee" hidden>Hits off the tee</span>
+      </section>
+      <div class="next">
+        <div class="slot deck"><span class="lbl">On deck</span><div class="name" id="deckName"></div><div class="meta" id="deckMeta"></div></div>
+        <div class="slot"><span class="lbl">In the hole</span><div class="name" id="holeName"></div><div class="meta" id="holeMeta"></div></div>
+      </div>
+      <div class="actions">
+        <button class="ghost" id="undo" type="button">Back</button>
+        <button class="go" id="go" type="button">Batted, next up</button>
+      </div>
+      <ol class="list" id="order"></ol>
+      <p class="hint">Tap a name to make them the batter. Hold a name, then drag to change the order. Dots show times up this game.</p>
+      <div class="bench herebox">
+        <button type="button" class="herehead" id="hereToggle" aria-expanded="false" aria-controls="hereBody">
+          <span><span class="lbl">Who's here</span><span class="sum" id="hereSum"></span></span><span class="pmicon" id="herePm" aria-hidden="true">+</span>
+        </button>
+        <div class="herebody" id="hereBody" hidden><div class="chips" id="here"></div><span class="pfull">Tap a name to mark them out for this game. They're skipped in the order and taken off the field.</span></div>
+      </div>
+      <button class="newgame" type="button" data-newgame>New game</button>
+    </div>
+  </section>
+
+  <!-- FIELD -->
+  <section id="v-field" hidden>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="innings" id="innings"><span class="lbl">Inning</span></div>
+      <div class="sideset"><span class="lbl">Outfielders</span><div class="tabs"><button type="button" id="of2">2</button><button type="button" id="of3">3</button><button type="button" id="of4">4</button></div></div>
+      <div class="fieldbox">
+        <svg id="field" viewBox="0 0 360 338" role="img" aria-label="Baseball field with player positions">
+          <rect x="0" y="0" width="360" height="338" fill="var(--grass)"/>
+          <path d="M180,292 L18,130 Q180,-42 342,130 Z" fill="var(--grass2)"/>
+          <path d="M18,130 Q180,-42 342,130" fill="none" stroke="var(--clay)" stroke-width="7" opacity=".7"/>
+          <path d="M180,292 L94,206 Q180,108 266,206 Z" fill="var(--clay)"/>
+          <polygon points="180,277 229,230 180,183 131,230" fill="var(--grass2)"/>
+          <circle cx="180" cy="290" r="19" fill="var(--clay)"/>
+          <line x1="180" y1="292" x2="18" y2="130" stroke="var(--chalk)" stroke-width="1.5"/>
+          <line x1="180" y1="292" x2="342" y2="130" stroke="var(--chalk)" stroke-width="1.5"/>
+          <circle cx="180" cy="232" r="10" fill="var(--clay)"/>
+          <rect x="235" y="225" width="9" height="9" fill="var(--chalk)" transform="rotate(45 239.5 229.5)"/>
+          <rect x="175.5" y="166" width="9" height="9" fill="var(--chalk)" transform="rotate(45 180 170.5)"/>
+          <rect x="116" y="225" width="9" height="9" fill="var(--chalk)" transform="rotate(45 120.5 229.5)"/>
+          <polygon points="174,288 186,288 186,293 180,298 174,293" fill="var(--chalk)"/>
+          <g id="markers"></g>
+        </svg>
+      </div>
+      <ol class="list" id="poslist"></ol>
+      <div class="bench" id="bench"></div>
+      <div class="row2">
+        <button class="ghost" type="button" id="copyPrev">Copy last inning</button>
+        <button class="ghost" type="button" id="clearInn">Clear inning</button>
+      </div>
+      <button class="newgame" type="button" id="saveDef">Save as starting lineup</button>
+      <p class="hint">Tap a spot to pick a player, or hold a player and drag them onto a spot. Dropping on someone swaps them. Drag to the bench to sit them.</p>
+    </div>
+  </section>
+
+  <!-- SCORE -->
+  <section id="v-score" hidden>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="halfbar">
+        <button type="button" id="halfBack" aria-label="Previous half inning">&lsaquo;</button>
+        <div class="halfmid"><span class="lbl">Inning</span><span class="v" id="halfTxt"></span></div>
+        <button type="button" id="halfNext" aria-label="Next half inning">&rsaquo;</button>
+      </div>
+      <p class="batwho" id="batWho"></p>
+      <div class="teams">
+        <div class="team us" id="usCard">
+          <span class="tn">LOOKOUTS</span><span class="atbat" id="usAt">AT BAT</span>
+          <span class="runs" id="usRuns">0</span>
+          <div class="pm"><button type="button" id="usMinus" aria-label="Lookouts minus one">&minus;</button><button type="button" class="plus" id="usPlus" aria-label="Lookouts plus one">+</button></div>
+        </div>
+        <div class="team" id="themCard">
+          <input id="oppName" type="text" placeholder="OPPONENT" maxlength="18" autocomplete="off" aria-label="Opponent name"><span class="atbat" id="themAt">AT BAT</span>
+          <span class="runs" id="themRuns">0</span>
+          <div class="pm"><button type="button" id="themMinus" aria-label="Opponent minus one">&minus;</button><button type="button" class="plus" id="themPlus" aria-label="Opponent plus one">+</button></div>
+        </div>
+      </div>
+      <div class="outsbox">
+        <div class="outsrow"><span class="lbl" style="color:var(--muted)">Outs</span><div class="dots" id="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>
+        <div class="outbtns"><button class="ghost" type="button" id="outMinus">Undo</button><button class="addout" type="button" id="outPlus">Out</button></div>
+      </div>
+      <div class="sideset"><span class="lbl">Lookouts bat</span><div class="tabs"><button type="button" id="wtTop">Top</button><button type="button" id="wtBot">Bottom</button></div></div>
+      <p class="hint">Three outs or five runs ends the half inning and switches sides.</p>
+      <button class="ghost" type="button" id="shareLink" style="padding:14px">Share coach link</button>
+      <button class="newgame" type="button" data-newgame>New game</button>
+    </div>
+  </section>
+</div>
+
+<div id="sheet" hidden>
+  <div class="scrim" id="scrim"></div>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle"></h2>
+    <div class="picks" id="picks"></div>
+    <div class="row2">
+      <button class="ghost" type="button" id="leaveEmpty">Leave empty</button>
+      <button class="ghost" type="button" id="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+function boot(LINEUP,TEAM){
+
+
+const N=LINEUP.length;
+const POS4=[
+ {k:"P",n:"Pitcher",x:180,y:232},{k:"C",n:"Catcher",x:180,y:314},
+ {k:"1B",n:"First base",x:262,y:212},{k:"2B",n:"Second base",x:222,y:170},
+ {k:"3B",n:"Third base",x:98,y:212},{k:"SS",n:"Shortstop",x:138,y:170},
+ {k:"LF",n:"Left field",x:52,y:118},{k:"LCF",n:"Left center",x:132,y:70},
+ {k:"RCF",n:"Right center",x:228,y:70},{k:"RF",n:"Right field",x:308,y:118}
+];
+const POS3=[...POS4.filter(p=>!["LCF","RCF"].includes(p.k)).slice(0,7),{k:"CF",n:"Center field",x:180,y:62},POS4.find(p=>p.k==="RF")];
+const POS2=[...POS4.filter(p=>!["LF","RF"].includes(p.k))];
+const curPOS=()=>fld.of===2?POS2:fld.of===3?POS3:POS4;
+const OFK={4:["LF","LCF","RCF","RF"],3:["LF","CF","RF"],2:["LCF","RCF"]}, XS={LF:52,LCF:132,CF:180,RCF:228,RF:308};
+const STOCK={}; ["P","C","1B","2B","3B","SS","LF","LCF","RCF","RF"].forEach((k,i)=>{if(i<N)STOCK[k]=i});
+
+const INNINGS=4;
+
+const K_BAT="dugout-bat",K_FIELD="dugout-field",K_TAB="dugout-tab",K_TEE="dugout-tee",K_SCORE="dugout-score",K_DEF="dugout-default";
+const NODE={[K_BAT]:"bat",[K_FIELD]:"field",[K_TEE]:"tee",[K_SCORE]:"score",[K_DEF]:"default"};
+const NS="@"+TEAM.code;
+const load=(k,d)=>{const n=NODE[k];
+  if(n&&TEAM.init&&TEAM.init[n]!=null){try{return JSON.parse(TEAM.init[n])}catch(e){}}
+  try{const v=JSON.parse(localStorage.getItem(k+NS));return v??d}catch(e){return d}};
+const store=(k,v)=>{const str=JSON.stringify(v); try{localStorage.setItem(k+NS,str)}catch(e){}
+  const n=NODE[k]; if(n&&TEAM.ref){try{TEAM.ref.child("state/"+n).set(str)}catch(e){}}};
+let DEFAULT=load(K_DEF,null); if(!DEFAULT||typeof DEFAULT!=="object"||!Object.keys(DEFAULT).length)DEFAULT={...STOCK};
+const $=id=>document.getElementById(id);
+
+const IDS=LINEUP.map((_,i)=>i);
+let bat=load(K_BAT,null);
+function normBat(){
+  if(!bat||!Array.isArray(bat.order))bat={count:0,order:[...IDS],abs:{}};
+  if(bat.order.length!==N||!IDS.every(i=>bat.order.includes(i)))bat.order=[...IDS];
+  if(!Number.isInteger(bat.count)||bat.count<0)bat.count=0;
+  bat.abs=bat.abs&&typeof bat.abs==="object"?bat.abs:{};
+  bat.out=Array.isArray(bat.out)?bat.out.filter(p=>IDS.includes(p)):[];
+  if(bat.out.length>=N)bat.out=[];
+}
+normBat();
+const isOut=p=>bat.out.includes(p);
+const act=()=>bat.order.filter(p=>!isOut(p));
+const abOf=p=>bat.abs[p]||0;
+const ordinal=n=>n+(n%100>10&&n%100<14?"th":({1:"st",2:"nd",3:"rd"}[n%10]||"th"));
+function saveBat(){store(K_BAT,bat)}
+let tee=load(K_TEE,null); if(!Array.isArray(tee))tee=[];
+const NEWSCORE=()=>({us:0,them:0,opp:"",inning:1,top:true,outs:0,hr:0,weTop:true});
+let sc=load(K_SCORE,null);
+function normSc(){ if(!sc||typeof sc.us!=="number")sc=NEWSCORE(); if(typeof sc.weTop!=="boolean")sc.weTop=true; if(typeof sc.hr!=="number")sc.hr=0; }
+normSc();
+const onTee=p=>tee.includes(p);
+let fld=load(K_FIELD,null); if(!fld||!fld.innings)fld={inning:1,of:4,innings:{1:{...DEFAULT}}};
+
+function convertOF(m,to){
+  const pl=Object.keys(XS).filter(k=>m[k]!=null).map(k=>({k,p:m[k],x:XS[k]}));
+  Object.keys(XS).forEach(k=>delete m[k]);
+  const pairs=[]; OFK[to].forEach(nk=>pl.forEach(o=>pairs.push({nk,o,score:(o.k===nk?0:1000)+Math.abs(o.x-XS[nk])})));
+  pairs.sort((a,b)=>a.score-b.score); const usedK=new Set(),usedP=new Set();
+  pairs.forEach(({nk,o})=>{if(usedK.has(nk)||usedP.has(o.p))return; m[nk]=o.p; usedK.add(nk); usedP.add(o.p)});
+  return m;
+}
+function clean(m){for(const k in m) if(isOut(m[k])) delete m[k]; return m}
+function inn(i){
+  if(!fld.innings[i]){ const m={...(i>1?inn(i-1):DEFAULT)}; if(fld.of!==4)convertOF(m,fld.of); fld.innings[i]=clean(m) }
+  return fld.innings[i];
+}
+function setOF(n){ if(fld.of===n)return; fld.of=n; for(const k in fld.innings) convertOF(fld.innings[k],n) }
+const autoOF=L=>L<=8?2:L<=9?3:4;
+function posOf(p,map){for(const k in map) if(map[k]===p) return k; return null}
+const first=p=>LINEUP[p][0].split(" ")[0];
+function meta(p){const k=posOf(p,inn(fld.inning));return "#"+LINEUP[p][1]+" · "+(k||"Bench")+(onTee(p)?" · Tee":"")}
+
+/* ---------- batting ---------- */
+function renderBat(){
+  const A=act(), L=A.length, slot=bat.count%L, at=k=>A[(slot+k)%L], up=at(0),deck=at(1),hole=at(2), round=Math.floor(bat.count/L)+1;
+  $("round").textContent="Time through the order: "+round+"  ·  positions from inning "+fld.inning;
+  $("upName").textContent=LINEUP[up][0]; $("upMeta").textContent=(slot+1)+" in order · "+meta(up)+" · "+ordinal(abOf(up)+1)+" time up";
+  $("deckName").textContent=LINEUP[deck][0]; $("deckMeta").textContent=meta(deck);
+  $("holeName").textContent=LINEUP[hole][0]; $("holeMeta").textContent=meta(hole);
+  $("undo").disabled=bat.count===0;
+  $("upTee").hidden=!onTee(up);
+  const ol=$("order"); ol.innerHTML="";
+  A.forEach((pid,i)=>{
+    const p=LINEUP[pid], li=document.createElement("li"); let tag="";
+    li.dataset.i=i;
+    if(i===slot){li.className="up";tag="Up"} else if(i===(slot+1)%L){li.className="deck";tag="Deck"}
+    else if(i===(slot+2)%L){li.className="hole";tag="Hole"} else if(i<slot){li.className="batted";tag="Batted"}
+    const n=abOf(pid), dots=n?`<span class="abd" title="Batted ${n} times">${"<i></i>".repeat(Math.min(n,4))}${n>4?"<b>+"+(n-4)+"</b>":""}</span>`:"";
+    li.innerHTML=`<button type="button" class="row"><span class="ord">${i+1}</span><span class="pn"><span class="nmx"></span>${dots}</span><span class="jn">#${p[1]}</span><span class="tag">${tag}</span></button><button type="button" class="teeb${onTee(pid)?" on":""}" aria-pressed="${onTee(pid)}" aria-label="Hits off tee">TEE</button>`;
+    li.querySelector(".nmx").textContent=p[0];
+    const row=li.querySelector(".row");
+    row.onclick=()=>{bat.count=Math.floor(bat.count/L)*L+i;saveBat();renderBat()};
+    li.querySelector(".teeb").onclick=()=>{tee=onTee(pid)?tee.filter(x=>x!==pid):[...tee,pid];store(K_TEE,tee);renderBat()};
+    attachHold(row,"bat",()=>({id:pid,from:i,label:p[0]}));
+    ol.appendChild(li);
+  });
+  const outs=bat.order.filter(isOut);
+  $("hereSum").textContent=act().length+" of "+N+" here"+(outs.length?" · Out: "+outs.map(p=>LINEUP[p][0].split(" ")[0]).join(", "):"");
+  const hb=$("here"); hb.innerHTML="";
+  bat.order.forEach(pid=>{const c=document.createElement("button");c.type="button";c.className="chip"+(isOut(pid)?" out":"");
+    c.setAttribute("aria-pressed",!isOut(pid)); c.textContent=LINEUP[pid][0]; c.onclick=()=>setOut(pid,!isOut(pid)); hb.appendChild(c)});
+}
+$("hereToggle").onclick=()=>{const open=$("hereBody").hidden; $("hereBody").hidden=!open;
+  $("hereToggle").setAttribute("aria-expanded",open); $("herePm").textContent=open?"\u2212":"+"};
+function setOut(pid,out){
+  const A=act(), L=A.length, round=Math.floor(bat.count/L); let upPid=A[bat.count%L];
+  if(out){ if(L<=1)return; if(upPid===pid) upPid=A[(bat.count+1)%L]; bat.out=[...bat.out,pid];
+    for(const k in fld.innings) clean(fld.innings[k]); }
+  else bat.out=bat.out.filter(x=>x!==pid);
+  const B=act(); bat.count=round*B.length+B.indexOf(upPid);
+  setOF(autoOF(B.length));
+  if(out) for(const k in fld.innings){ const m=fld.innings[k];
+    const bench=act().filter(p=>posOf(p,m)===null);
+    curPOS().forEach(po=>{ if(m[po.k]==null&&bench.length) m[po.k]=bench.shift() }); }
+  saveBat(); save();
+}
+$("go").onclick=()=>{const A=act();const pid=A[bat.count%A.length];bat.abs[pid]=abOf(pid)+1;bat.count++;saveBat();renderBat()};
+$("undo").onclick=()=>{if(bat.count>0){bat.count--;const A=act();const pid=A[bat.count%A.length];bat.abs[pid]=Math.max(0,abOf(pid)-1);saveBat();renderBat()}};
+function moveInOrder(from,to){
+  const A=act(), L=A.length; if(to===from||to===from+1)return;
+  const upPid=A[bat.count%L], round=Math.floor(bat.count/L), pid=A[from], before=to<L?A[to]:null;
+  bat.order.splice(bat.order.indexOf(pid),1);
+  if(before==null) bat.order.push(pid); else bat.order.splice(bat.order.indexOf(before),0,pid);
+  bat.count=round*L+act().indexOf(upPid); saveBat(); renderBat();
+}
+
+/* ---------- hold to drag ---------- */
+const HOLD=350; let drag=null, suppress=false;
+function attachHold(el,kind,payload){
+  let timer=null,sx=0,sy=0,pending=false;
+  const begin=(x,y)=>{const pl=payload(); if(!pl)return; drag={kind,pl,src:el,x,y}; el.classList.add("dragsrc");
+    const g=document.createElement("div"); g.id="ghost"; g.textContent=pl.label; document.body.appendChild(g); drag.ghost=g;
+    try{navigator.vibrate&&navigator.vibrate(12)}catch(e){} dragMove(x,y)};
+  el.addEventListener("touchstart",e=>{if(e.touches.length>1)return;const t=e.touches[0];sx=t.clientX;sy=t.clientY;pending=true;
+    timer=setTimeout(()=>{pending=false;begin(sx,sy)},HOLD)},{passive:true});
+  el.addEventListener("touchmove",e=>{const t=e.touches[0];
+    if(pending){if(Math.hypot(t.clientX-sx,t.clientY-sy)>8){clearTimeout(timer);pending=false}return}
+    if(drag&&drag.src===el){e.preventDefault();dragMove(t.clientX,t.clientY)}},{passive:false});
+  el.addEventListener("touchend",e=>{clearTimeout(timer);pending=false;if(drag&&drag.src===el){e.preventDefault();dragEnd()}});
+  el.addEventListener("touchcancel",()=>{clearTimeout(timer);pending=false;if(drag&&drag.src===el)dragEnd(true)});
+  el.addEventListener("mousedown",e=>{if(e.button)return;sx=e.clientX;sy=e.clientY;pending=true;
+    timer=setTimeout(()=>{pending=false;begin(sx,sy);
+      const mm=ev=>dragMove(ev.clientX,ev.clientY), mu=()=>{removeEventListener("mousemove",mm);removeEventListener("mouseup",mu);dragEnd()};
+      addEventListener("mousemove",mm);addEventListener("mouseup",mu)},HOLD)});
+  el.addEventListener("mousemove",e=>{if(pending&&Math.hypot(e.clientX-sx,e.clientY-sy)>6){clearTimeout(timer);pending=false}});
+  el.addEventListener("mouseup",()=>{clearTimeout(timer);pending=false});
+  el.addEventListener("contextmenu",e=>e.preventDefault());
+}
+document.addEventListener("click",e=>{if(suppress){e.stopPropagation();e.preventDefault();suppress=false}},true);
+function clearMarks(){document.querySelectorAll(".dropbefore,.dropafter,.droptarget").forEach(x=>x.classList.remove("dropbefore","dropafter","droptarget"))}
+function dragTarget(x,y){
+  const el=document.elementFromPoint(x,y); if(!el)return null;
+  if(drag.kind==="bat"){const li=el.closest("#order li"); if(!li)return null; const r=li.getBoundingClientRect();
+    const i=+li.dataset.i; return {li,to:y<r.top+r.height/2?i:i+1,after:y>=r.top+r.height/2}}
+  const pos=el.closest("[data-pos]"); if(pos)return {el:pos,pos:pos.getAttribute("data-pos")};
+  const b=el.closest("[data-bench]"); if(b)return {el:b,bench:true};
+  return null;
+}
+function dragMove(x,y){
+  if(!drag)return; drag.x=x; drag.y=y;
+  drag.ghost.style.transform=`translate(${x-40}px,${y-46}px)`;
+  if(y<70)scrollBy(0,-12); else if(y>innerHeight-70)scrollBy(0,12);
+  clearMarks(); const t=dragTarget(x,y); drag.t=t; if(!t)return;
+  if(drag.kind==="bat")t.li.classList.add(t.after?"dropafter":"dropbefore"); else t.el.classList.add("droptarget");
+}
+function dragEnd(cancel){
+  if(!drag)return; const d=drag; drag=null; clearMarks(); d.ghost.remove(); d.src.classList.remove("dragsrc");
+  suppress=true; setTimeout(()=>suppress=false,400);
+  if(cancel||!d.t)return;
+  if(d.kind==="bat") moveInOrder(d.pl.from,d.t.to);
+  else if(d.t.pos) assign(d.t.pos,d.pl.id);
+  else if(d.t.bench){const map=inn(fld.inning),k=posOf(d.pl.id,map); if(k){delete map[k];save()}}
+}
+
+/* ---------- field ---------- */
+const SVGNS="http://www.w3.org/2000/svg";
+function renderField(){
+  const map=inn(fld.inning);
+  const ib=$("innings"); ib.querySelectorAll("button").forEach(b=>b.remove());
+  for(let i=1;i<=INNINGS;i++){
+    const b=document.createElement("button"); b.type="button"; b.textContent=i;
+    b.setAttribute("aria-pressed",i===fld.inning); b.onclick=()=>{fld.inning=i;inn(i);save()};
+    ib.appendChild(b);
+  }
+  const g=$("markers"); g.innerHTML="";
+  curPOS().forEach(po=>{
+    const p=map[po.k], has=p!=null;
+    const m=document.createElementNS(SVGNS,"g");
+    m.setAttribute("class","mk"+(has?"":" empty")); m.setAttribute("tabindex","0"); m.setAttribute("role","button");
+    m.setAttribute("aria-label",po.n+": "+(has?LINEUP[p][0]:"empty"));
+    m.innerHTML=`<rect x="${po.x-37}" y="${po.y-17}" width="74" height="34" rx="8"/>
+      <text class="ab" x="${po.x}" y="${po.y-4}" text-anchor="middle">${po.k}</text>
+      <text class="nm" x="${po.x}" y="${po.y+11}" text-anchor="middle"></text>`;
+    m.querySelector(".nm").textContent=has?first(p):"Tap to set";
+    m.setAttribute("data-pos",po.k);
+    if(has)attachHold(m,"field",()=>({id:p,label:LINEUP[p][0]}));
+    m.onclick=()=>openSheet(po.k);
+    m.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openSheet(po.k)}};
+    g.appendChild(m);
+  });
+  const ol=$("poslist"); ol.innerHTML="";
+  curPOS().forEach(po=>{
+    const p=map[po.k], li=document.createElement("li");
+    li.innerHTML=`<button type="button"><span class="pchip">${po.k}</span><span class="pn"><span class="who"></span><span class="pfull">${po.n}</span></span><span class="jn"></span></button>`;
+    const who=li.querySelector(".who");
+    if(p!=null){who.textContent=LINEUP[p][0];li.querySelector(".jn").textContent="#"+LINEUP[p][1]}
+    else{who.textContent="Empty";who.className="who empty-txt"}
+    li.setAttribute("data-pos",po.k);
+    if(p!=null)attachHold(li.querySelector("button"),"field",()=>({id:p,label:LINEUP[p][0]}));
+    li.querySelector("button").onclick=()=>openSheet(po.k);
+    ol.appendChild(li);
+  });
+  const benched=bat.order.filter(i=>!isOut(i)&&posOf(i,map)===null);
+  const bx=$("bench"); bx.setAttribute("data-bench","1");
+  bx.innerHTML=`<span class="lbl">Bench</span><div class="chips"></div>`;
+  const ch=bx.querySelector(".chips");
+  if(!benched.length){const sp=document.createElement("span");sp.className="pn";sp.style.color="var(--muted)";sp.textContent="Nobody sitting. Drag a player here to sit them.";ch.appendChild(sp)}
+  benched.forEach(i=>{const c=document.createElement("span");c.className="chip";c.textContent=LINEUP[i][0];attachHold(c,"field",()=>({id:i,label:LINEUP[i][0]}));ch.appendChild(c)});
+  $("copyPrev").disabled=fld.inning===1;
+  [2,3,4].forEach(n=>$("of"+n).setAttribute("aria-selected",fld.of===n));
+}
+function save(){store(K_FIELD,fld);renderField();renderBat()}
+let sheetPos=null;
+function openSheet(k){
+  sheetPos=k; const map=inn(fld.inning), po=curPOS().find(x=>x.k===k);
+  $("sheetTitle").innerHTML=`<span>${k}</span> ${po.n}`;
+  const box=$("picks"); box.innerHTML="";
+  LINEUP.forEach((pl,i)=>{
+    if(isOut(i))return;
+    const where=posOf(i,map), b=document.createElement("button"); b.type="button";
+    if(map[k]===i) b.className="cur";
+    b.innerHTML=`<span class="n"></span><span class="w"></span>`;
+    b.querySelector(".n").textContent=pl[0];
+    b.querySelector(".w").textContent="#"+pl[1]+" · "+(where?(where===k?"Here now":"Playing "+where):"Bench");
+    b.onclick=()=>{assign(k,i);closeSheet()};
+    box.appendChild(b);
+  });
+  $("sheet").hidden=false;
+}
+function closeSheet(){$("sheet").hidden=true;sheetPos=null}
+function assign(k,p){
+  const map=inn(fld.inning), from=posOf(p,map), occupant=map[k];
+  map[k]=p;
+  if(from&&from!==k){ if(occupant!=null) map[from]=occupant; else delete map[from]; }
+  save();
+}
+$("leaveEmpty").onclick=()=>{if(sheetPos){delete inn(fld.inning)[sheetPos];save()}closeSheet()};
+$("cancel").onclick=closeSheet; $("scrim").onclick=closeSheet;
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("sheet").hidden)closeSheet()});
+[2,3,4].forEach(n=>$("of"+n).onclick=()=>{setOF(n);save()});
+let saveT=null;
+$("saveDef").onclick=()=>{
+  const b=$("saveDef");
+  if(!b.classList.contains("arm")){b.classList.add("arm");b.textContent="Tap again to save inning "+fld.inning+" as the start";
+    clearTimeout(saveT);saveT=setTimeout(()=>{b.classList.remove("arm");b.textContent="Save as starting lineup"},3500);return}
+  clearTimeout(saveT); b.classList.remove("arm"); b.textContent="Save as starting lineup";
+  const m={...inn(fld.inning)}; if(fld.of!==4)convertOF(m,4);
+  DEFAULT=m; store(K_DEF,m);
+  toast("Saved · new games start here");
+};
+$("copyPrev").onclick=()=>{if(fld.inning>1){fld.innings[fld.inning]={...inn(fld.inning-1)};save()}};
+$("clearInn").onclick=()=>{fld.innings[fld.inning]={};save()};
+
+/* ---------- score ---------- */
+function renderScore(){
+  $("halfTxt").innerHTML=(sc.top?"Top":"Bottom")+" <b>"+sc.inning+"</b>";
+  $("usRuns").textContent=sc.us; $("themRuns").textContent=sc.them;
+  if(document.activeElement!==$("oppName")) $("oppName").value=sc.opp||"";
+  [...$("dots").children].forEach((d,i)=>d.classList.toggle("on",i<sc.outs));
+  const ub=usBat();
+  $("batWho").innerHTML=""; const bw=document.createElement("span"); bw.textContent=(ub?"Lookouts":(sc.opp||"Opponent"))+" batting · ";
+  const rr=document.createElement("b"); rr.textContent=sc.hr+" of 5 runs"; $("batWho").append(bw,rr);
+  [["usAt","usCard",ub],["themAt","themCard",!ub]].forEach(([pill,card,b])=>{
+    $(pill).textContent=b?"AT BAT":"IN FIELD"; $(pill).classList.toggle("fld",!b); $(card).classList.toggle("batting",b)});
+  $("wtTop").setAttribute("aria-selected",sc.weTop); $("wtBot").setAttribute("aria-selected",!sc.weTop);
+  $("outMinus").disabled=sc.outs===0; $("halfBack").disabled=sc.inning===1&&sc.top;
+}
+function saveScore(){store(K_SCORE,sc);renderScore()}
+function setHalf(dir){
+  if(dir>0){ if(sc.top) sc.top=false; else {sc.top=true;sc.inning++} }
+  else { if(!sc.top) sc.top=true; else if(sc.inning>1){sc.top=false;sc.inning--} }
+  sc.outs=0; sc.hr=0;
+  const fi=Math.min(sc.inning,INNINGS); if(fi!==fld.inning){fld.inning=fi;inn(fi);save()}
+  saveScore();
+}
+function usBat(){return sc.top===sc.weTop}
+let toastT=null;
+function toast(msg){let t=$("toast"); if(!t){t=document.createElement("div");t.id="toast";t.setAttribute("role","status");document.body.appendChild(t)}
+  t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,3000)}
+function addRun(us){
+  if(us)sc.us++; else sc.them++;
+  if(us===usBat()){ sc.hr++; if(sc.hr>=5){ const who=us?"Lookouts":(sc.opp||"Opponent"); setHalf(1); toast("5 runs · switch sides"); return } }
+  saveScore();
+}
+function subRun(us){
+  if(us){if(sc.us<1)return;sc.us--} else {if(sc.them<1)return;sc.them--}
+  if(us===usBat()&&sc.hr>0)sc.hr--;
+  saveScore();
+}
+$("usPlus").onclick=()=>addRun(true); $("usMinus").onclick=()=>subRun(true);
+$("themPlus").onclick=()=>addRun(false); $("themMinus").onclick=()=>subRun(false);
+$("wtTop").onclick=()=>{sc.weTop=true;saveScore()}; $("wtBot").onclick=()=>{sc.weTop=false;saveScore()};
+$("oppName").oninput=e=>{sc.opp=e.target.value;store(K_SCORE,sc)};
+$("outPlus").onclick=()=>{sc.outs++; if(sc.outs>=3){setHalf(1);toast("3 outs · switch sides")} else saveScore()};
+$("outMinus").onclick=()=>{if(sc.outs>0){sc.outs--;saveScore()}};
+$("halfNext").onclick=()=>setHalf(1); $("halfBack").onclick=()=>setHalf(-1);
+
+/* ---------- new game (tap twice) ---------- */
+let armT=null;
+document.querySelectorAll("[data-newgame]").forEach(b=>b.onclick=()=>{
+  const all=document.querySelectorAll("[data-newgame]");
+  if(!b.classList.contains("arm")){
+    all.forEach(x=>{x.classList.add("arm");x.textContent="Tap again to start a new game"});
+    clearTimeout(armT); armT=setTimeout(()=>all.forEach(x=>{x.classList.remove("arm");x.textContent="New game"}),3500);
+    return;
+  }
+  clearTimeout(armT); all.forEach(x=>{x.classList.remove("arm");x.textContent="New game"});
+  bat={count:0,order:[...IDS],abs:{},out:[]}; saveBat();
+  fld={inning:1,of:4,innings:{1:{...DEFAULT}}}; store(K_FIELD,fld);
+  { const m=fld.innings[1], bench=IDS.filter(p=>posOf(p,m)===null); POS4.forEach(po=>{if(m[po.k]==null&&bench.length)m[po.k]=bench.shift()}); store(K_FIELD,fld); }
+  sc={...NEWSCORE(),weTop:sc.weTop}; store(K_SCORE,sc);
+  renderField(); renderBat(); renderScore(); window.scrollTo(0,0);
+});
+
+/* ---------- tabs ---------- */
+const TABS=["bat","field","score"];
+function showTab(t){
+  if(!TABS.includes(t))t="bat";
+  TABS.forEach(x=>{$("v-"+x).hidden=x!==t;$("t-"+x).setAttribute("aria-selected",x===t)});
+  store(K_TAB,t); window.scrollTo(0,0);
+}
+TABS.forEach(x=>$("t-"+x).onclick=()=>showTab(x));
+/* swipe left / right between tabs */
+(function(){
+  let sx=null,sy=0,st=0;
+  addEventListener("touchstart",e=>{
+    if(e.touches.length>1||!$("sheet").hidden||e.target.closest("input")){sx=null;return}
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; st=Date.now()},{passive:true});
+  addEventListener("touchend",e=>{
+    if(sx===null||drag)return; const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy; sx=null;
+    if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)*0.6||Date.now()-st>700)return;
+    const cur=TABS.findIndex(x=>!$("v-"+x).hidden), nx=cur+(dx<0?1:-1);
+    if(nx<0||nx>=TABS.length)return;
+    showTab(TABS[nx]); const v=$("v-"+TABS[nx]); v.classList.remove("slide-l","slide-r"); void v.offsetWidth; v.classList.add(dx<0?"slide-l":"slide-r");
+  },{passive:true});
+})();
+
+try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
+function normFld(){
+  if(!fld||!fld.innings||typeof fld.innings!=="object")fld={inning:1,of:4,innings:{1:{...DEFAULT}}};
+  if(!Number.isInteger(fld.inning)||fld.inning<1)fld.inning=1;
+  if(fld.inning>INNINGS)fld.inning=INNINGS;
+  if(![2,3,4].includes(fld.of)){fld.of=4; setOF(autoOF(act().length))}
+}
+normFld();
+renderField(); renderBat(); renderScore(); showTab(load(K_TAB,"bat"));
+$("app").hidden=false;
+
+/* ---------- share ---------- */
+$("shareLink").onclick=async()=>{
+  const url=location.origin+location.pathname+"#"+TEAM.code;
+  try{ if(navigator.share){await navigator.share({title:"Lookouts Dugout",url});return} }catch(e){if(e&&e.name==="AbortError")return}
+  try{await navigator.clipboard.writeText(url);toast("Coach link copied")}catch(e){toast("Copy failed")}
+};
+
+/* ---------- live sync ---------- */
+if(TEAM.ref){
+  TEAM.db.ref(".info/connected").on("value",s=>{const on=!!s.val(); $("live").classList.toggle("on",on); $("live").title=on?"Live":"Offline"});
+  const cur={bat:()=>bat,field:()=>fld,score:()=>sc,tee:()=>tee,default:()=>DEFAULT};
+  const apply={bat:v=>{bat=v;normBat()},field:v=>{fld=v;normFld()},score:v=>{sc=v;normSc()},tee:v=>{tee=Array.isArray(v)?v:[]},default:v=>{if(v&&typeof v==="object")DEFAULT=v}};
+  const KEYOF={bat:K_BAT,field:K_FIELD,score:K_SCORE,tee:K_TEE,default:K_DEF};
+  let pend=false;
+  const rerender=()=>{ if(drag){ if(!pend){pend=true; setTimeout(()=>{pend=false;rerender()},400)} return }
+    renderField(); renderBat(); renderScore(); };
+  Object.keys(cur).forEach(n=>TEAM.ref.child("state/"+n).on("value",snap=>{
+    const v=snap.val(), mine=JSON.stringify(cur[n]());
+    if(v==null){ try{TEAM.ref.child("state/"+n).set(mine)}catch(e){} return }
+    if(v===mine)return;
+    let parsed; try{parsed=JSON.parse(v)}catch(e){return}
+    apply[n](parsed); try{localStorage.setItem(KEYOF[n]+NS,v)}catch(e){}
+    rerender();
+  }));
+}
+
+/* ---------- pull to refresh ---------- */
+(function(){
+  const ptr=$("ptr"),TH=80;let y0=null,dy=0,busy=false;
+  const atTop=()=>(window.scrollY||document.documentElement.scrollTop)<=0;
+  addEventListener("touchstart",e=>{if(busy||!$("sheet").hidden||!atTop()){y0=null;return}y0=e.touches[0].clientY;dy=0},{passive:true});
+  addEventListener("touchmove",e=>{
+    if(y0===null)return; dy=e.touches[0].clientY-y0;
+    if(dy<=0||!atTop()){ptr.style.opacity=0;ptr.style.transform="translateY(-70px)";return}
+    const d=Math.min(dy*0.5,TH+20);
+    ptr.style.opacity=Math.min(1,d/TH); ptr.style.transform=`translateY(${d-60}px) rotate(${d*3}deg)`;
+    ptr.classList.toggle("ready",dy*0.5>=TH);
+  },{passive:true});
+  addEventListener("touchend",()=>{
+    if(y0===null)return; y0=null;
+    if(dy*0.5>=TH){busy=true;ptr.classList.add("spin");ptr.style.transform="translateY(20px)";setTimeout(()=>location.reload(),300)}
+    else{ptr.style.opacity=0;ptr.style.transform="translateY(-70px)";ptr.classList.remove("ready")}
+  });
+})();
+
+}
+
+const FB={apiKey:"AIzaSyBs96a9RVbSiuzdP6JhEkSHwDPG1pdycOk",authDomain:"lookouts-dugout.firebaseapp.com",databaseURL:"https://lookouts-dugout-default-rtdb.firebaseio.com",projectId:"lookouts-dugout",storageBucket:"lookouts-dugout.firebasestorage.app",messagingSenderId:"697447288187",appId:"1:697447288187:web:2532a4d5c61781b74701de"};
+const CODE_RE=/^[a-z0-9]{12,40}$/i;
+function b64dec(x){x=x.replace(/-/g,"+").replace(/_/g,"/");while(x.length%4)x+="=";return decodeURIComponent(escape(atob(x)))}
+function showGate(msg){
+  const g=document.getElementById("gate"); g.hidden=false; document.getElementById("app").hidden=true;
+  if(msg)document.getElementById("gateMsg").textContent=msg;
+  const go=()=>{const c=document.getElementById("gateCode").value.trim(); if(!CODE_RE.test(c)){document.getElementById("gateMsg").textContent="That code doesn't look right. Check it and try again.";return}
+    try{localStorage.setItem("dugout-team",c)}catch(e){} location.hash=c; location.reload()};
+  document.getElementById("gateGo").onclick=go;
+  document.getElementById("gateCode").onkeydown=e=>{if(e.key==="Enter")go()};
+}
+(function(){
+  let code="",seed=null; const h=decodeURIComponent(location.hash.slice(1));
+  if(h){const parts=h.split("."); if(CODE_RE.test(parts[0]))code=parts[0]; if(parts[1]){try{seed=JSON.parse(b64dec(parts[1]))}catch(e){}}}
+  if(!code){try{code=localStorage.getItem("dugout-team")||""}catch(e){}}
+  if(!CODE_RE.test(code))return showGate();
+  try{localStorage.setItem("dugout-team",code)}catch(e){}
+  history.replaceState(null,"",location.pathname+"#"+code);
+  let db=null,ref=null;
+  try{firebase.initializeApp(FB); db=firebase.database(); ref=db.ref("teams/"+code)}catch(e){}
+  const RK="dugout-roster@"+code;
+  let cached=null; try{cached=JSON.parse(localStorage.getItem(RK))}catch(e){}
+  let booted=false, used=null;
+  const go=(r,init)=>{if(booted)return; booted=true; used=JSON.stringify(r); boot(r,{code,ref,db,init})};
+  if(!ref){ if(cached&&cached.length)go(cached,null); else showGate("Can't reach the team database. Check your connection, then pull down to retry."); return }
+  const stateOnce=()=>Promise.race([ref.child("state").once("value").then(s=>s.val()||{}),new Promise(r=>setTimeout(()=>r(null),2500))]).catch(()=>null);
+  if(cached&&cached.length) stateOnce().then(st=>go(cached,st));
+  ref.child("roster").on("value",async snap=>{
+    const v=snap.val();
+    if(v==null){
+      if(seed&&Array.isArray(seed.roster)&&seed.roster.length){
+        const up={roster:JSON.stringify(seed.roster),name:seed.name||""};
+        if(seed.default)up["state/default"]=JSON.stringify(seed.default);
+        if(seed.tee)up["state/tee"]=JSON.stringify(seed.tee);
+        try{await ref.update(up)}catch(e){showGate("Couldn't set up the team. Check your connection and try the link again.")}
+        return;
+      }
+      if(!booted)showGate("No team found for that code. Check it and try again.");
+      return;
+    }
+    let r; try{r=JSON.parse(v)}catch(e){return}
+    try{localStorage.setItem(RK,v)}catch(e){}
+    if(!booted){const st=await stateOnce(); go(r,st)}
+    else if(JSON.stringify(r)!==used) location.reload();
+  },()=>{ if(!booted) showGate("Couldn't open that team. Check the code and your connection."); });
+})();
+</script>
+</body>
+</html>
