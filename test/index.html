@@ -2083,6 +2083,15 @@ document.addEventListener("keydown",e=>{
   else if(k==="ArrowUp"){ $("outMinus").click(); toast("Out removed"); did="undo-out" }
   if(did){ e.preventDefault(); if(did==="next"||did==="back"){ const b=document.querySelector('.pagedots [data-tab="bat"]'); if($("v-bat").hidden&&b)b.click() } }
 });
+function runRemote(act){
+  const say=t=>{toast("Watch: "+t); try{navigator.vibrate&&navigator.vibrate([20,60,20])}catch(e){}};
+  const map={hit:"H",single:"H",walk:"BB",bb:"BB",hbp:"HBP",k:"K",strikeout:"K"};
+  if(act==="next"||act==="batted"){ $("go").click(); say("next batter") }
+  else if(act==="back"||act==="undo"){ $("undo").click(); say("back") }
+  else if(act==="out"){ if(resOn()){ recordResult("O") } else { $("osOut").click() } say("out") }
+  else if(map[act]){ if(resOn()){ recordResult(map[act]); say(RES[map[act]].l) } else if(map[act]==="K"){ $("go").click(); $("osOut").click(); say("strikeout") } else { $("go").click(); say("next batter") } }
+  else if(act==="run"){ const ub=usBat(); $(ub?"usPlus":"themPlus").click(); say("run") }
+}
 /* ---------- team context for the account menu ---------- */
 window.TEAMCTX={code:TEAM.code,ref:TEAM.ref,owner:TEAM.owner||null,openSettings:openTeamSheet,name:()=>TEAM.name};
 if(window.PENDING_HANDOFF&&PENDING_HANDOFF.code===TEAM.code&&TEAM.ref){
@@ -2117,6 +2126,11 @@ if(TEAM.ref){
   const rerender=()=>{ if(drag){ if(!pend){pend=true; setTimeout(()=>{pend=false;rerender()},400)} return }
     renderField(); renderBat(); renderScore(); renderGames(); try{renderLock();renderClock()}catch(e){} };
   TEAM.ref.child("name").on("value",s=>{const v=s.val(); if(typeof v==="string"&&v!==TEAM.name){TEAM.name=v;applyTeam()}});
+  /* 2.6.2: remote commands (Apple Watch / Shortcuts). One phone claims each command with a transaction, so it runs once. */
+  { let first=true; const cref=TEAM.ref.child("state/cmd");
+    cref.on("value",snap=>{ const v=snap.val(); if(first){first=false;return} if(typeof v!=="string"||!v||v==="done")return;
+      const act=v.trim().split(/\s+/)[0].toLowerCase();
+      cref.transaction(cur=>cur===v?"done":undefined,(err,ok)=>{ if(err||!ok)return; try{runRemote(act)}catch(e){} },false) }) }
   TEAM.ref.child("colors").on("value",s=>{const v=s.val(); if(typeof v==="string"&&v!==JSON.stringify(TEAM.colors||null)){try{TEAM.colors=JSON.parse(v);applyTeam()}catch(e){}}});
   Object.keys(cur).forEach(n=>TEAM.ref.child("state/"+n).on("value",snap=>{
     const v=snap.val(), mine=JSON.stringify(cur[n]());
