@@ -489,6 +489,7 @@ body.fielding .plate .lbl{opacity:1}
   #rotateMsg span{color:var(--muted);font-weight:600}
   html,body{overflow:hidden}
 }
+body.no-tee .teeb,body.no-tee .teehint{display:none!important}
 </style>
 </head>
 <body>
@@ -577,7 +578,7 @@ body.fielding .plate .lbl{opacity:1}
       </div>
       <p class="locked-note" id="lockNote" hidden>Lineup locked. Tap the lock up top to make changes.</p>
       <ol class="list" id="order"></ol>
-      <p class="hint">Tap a name to make them the batter. Hold a name, then drag to change the order. Dots show times up. The tee icon marks tee hitters.</p>
+      <p class="hint">Tap a name to make them the batter. Hold a name, then drag to change the order. Dots show times up.<span class="teehint"> The tee icon marks tee hitters.</span></p>
       <div class="bench herebox">
         <button type="button" class="herehead" id="hereToggle" aria-expanded="false" aria-controls="hereBody">
           <span><span class="lbl">Who's here</span><span class="sum" id="hereSum"></span></span><span class="pmicon" id="herePm" aria-hidden="true">+</span>
@@ -766,6 +767,7 @@ body.fielding .plate .lbl{opacity:1}
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="tsTitle">
     <h2 id="tsTitle">Team settings</h2>
     <div class="form"><label>Team name<input id="tsName" type="text" maxlength="24" autocomplete="off"></label><label>Home field<input id="tsHome" type="text" maxlength="110" autocomplete="off" placeholder="Park name and address"></label><label>Fields at the park<input id="tsNF" type="number" min="0" max="12" step="1" placeholder="0"></label><label>Standings link (SE Tourney)<input id="tsLgSt" type="url" maxlength="400" placeholder="Paste your SE Tourney link" autocomplete="off"></label><label>Schedule link (GameChanger)<input id="tsLgSch" type="url" maxlength="400" placeholder="Paste your GameChanger team link" autocomplete="off"></label></div>
+    <div class="sideset"><span class="lbl">Tee hitters</span><div class="tabs" id="tsTee"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
     <div class="sideset"><span class="lbl">Track at-bat results</span><div class="tabs" id="tsRes"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
     <p class="sub" style="margin:-6px 0 0">Adds Hit, Walk, HBP, K and Out buttons under the batter, and an At-bats page at the end.</p>
     <div class="form"><label>Main color</label></div><div class="swatches" id="tsC1"></div>
@@ -824,7 +826,7 @@ body.fielding .plate .lbl{opacity:1}
     </div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
     <p class="sub" id="acUid" hidden style="margin:0;text-align:center;font-size:11px;cursor:pointer;overflow-wrap:anywhere"></p>
-    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.6.4</p>
+    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.6.5</p>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -910,7 +912,7 @@ let sc=load(K_SCORE,null);
 function normSc(){ if(!sc||typeof sc.us!=="number")sc=NEWSCORE(); if(typeof sc.weTop!=="boolean")sc.weTop=true; if(typeof sc.hr!=="number")sc.hr=0;
   if(!sc.clock||typeof sc.clock!=="object")sc.clock={dur:60,start:null,used:0}; }
 normSc();
-const onTee=p=>tee.includes(p);
+const onTee=p=>!(TEAM.colors&&TEAM.colors.noTee)&&tee.includes(p);
 let fld=load(K_FIELD,null); if(!fld||!fld.innings){fld={inning:1,of:4,innings:{1:{...DEFAULT}}}; setOF(autoOF(act().length)); fillEmpty(fld.innings[1])}
 
 function convertOF(m,to){
@@ -1562,8 +1564,9 @@ function openTeamSheet(){
   colorPicker($("tsC1"),tsColors.p,v=>{tsColors.p=v;applyTheme(tsColors)});
   colorPicker($("tsC2"),tsColors.s,v=>{tsColors.s=v;applyTheme(tsColors)},true);
   tsRows=LINEUP.map((p,i)=>({id:i,name:p[0],num:p[1],hidden:!!p[2],guest:!!p[3],avoid:[...(AVOID[i]||[])],open:false})).filter(r=>!r.guest);
-  $("tsLgSt").value=tsColors.lgSt||tsColors.lgBr||tsColors.league||""; $("tsLgSch").value=tsColors.lgSch||""; drawTsRows(); drawTsRes(); $("teamSheet").hidden=false;
+  $("tsLgSt").value=tsColors.lgSt||tsColors.lgBr||tsColors.league||""; $("tsLgSch").value=tsColors.lgSch||""; drawTsRows(); drawTsRes(); drawTsTee(); $("teamSheet").hidden=false;
 }
+function drawTsTee(){ document.querySelectorAll("#tsTee button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!tsColors.noTee); b.onclick=()=>{ if(b.dataset.v==="0")tsColors.noTee=1; else delete tsColors.noTee; drawTsTee() }}) }
 function drawTsRes(){ document.querySelectorAll("#tsRes button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!!tsColors.res); b.onclick=()=>{ if(b.dataset.v==="1")tsColors.res=1; else delete tsColors.res; drawTsRes() }}) }
 function drawTsRows(){
   const box=$("tsRows"); box.innerHTML="";
@@ -2064,7 +2067,7 @@ function renderResults(){
     LL.appendChild(r) });
 }
 $("resSave").onclick=()=>{ const g=archiveGame(); if(g){toast("Saved to "+gLabel(g)); renderResults()} };
-{ const _aT=applyTeam; applyTeam=function(){ _aT(); try{resMode()}catch(e){} } }
+{ const _aT=applyTeam; applyTeam=function(){ _aT(); try{resMode()}catch(e){} try{document.body.classList.toggle("no-tee",!!(TEAM.colors&&TEAM.colors.noTee)); renderBat()}catch(e){} } }
 { const _rS=renderScore; renderScore=function(){ _rS(); try{renderResults()}catch(e){} } }
 resMode();
 
