@@ -21,7 +21,7 @@
   --bg:#0c0c0e; --surface:#17171a; --surface2:#202024; --line:#2e2e33;
   --fg:#f6f4f1; --muted:#a6a6ad; --done:#5c5c63;
   --red:#f6b40e; --red-deep:#8a6200; --red-ink:#f6b40e; --on-red:#0c0c0e; --team2:#ffffff; --gold:#f6b40e; --gold-ink:#f6b40e; --white:#ffffff; --ink:#0c0c0e;
-  --hi:#ffffff; --on-hi:#0c0c0e; --inf:#3b6fe0; --of:#0f8f86; --bn:#6c6c76;
+  --hi:#ffffff; --on-hi:#0c0c0e; --bn:#6c6c76; --if-fill:#f6b40e; --if-ink:#0c0c0e; --of-fill:#0c0c0e; --of-ink:#f6b40e; --of-name:#ffffff;
   --grass:#2f5a2c; --grass2:#3b6b36; --clay:#a9643d; --chalk:#f4f2ec;
   --varsity:"Graduate","Rockwell",Georgia,serif;
   --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
@@ -267,19 +267,24 @@ header .tabs{display:none!important}
 #acDelete.arm small{color:#fff}
 /* ---------- 2.2 ---------- */
 .gp{display:inline-block;font:800 10px/1 var(--body);letter-spacing:.04em;color:#fff;border-radius:5px;padding:3px 5px;margin-left:6px;vertical-align:2px}
-.gp.inf{background:var(--inf)}.gp.of{background:var(--of)}.gp.bn{background:var(--bn)}.gp.gst{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.gp.inf{background:var(--if-fill);color:var(--if-ink)}.gp.of{background:var(--of-fill);color:var(--of-ink);box-shadow:inset 0 0 0 1.5px var(--of-ink)}.gp.bn{background:var(--bn)}
+#order li.up .gp.inf{box-shadow:inset 0 0 0 1.5px var(--on-red)}.gp.gst{background:transparent;color:var(--muted);border:1px solid var(--line)}
 #order li.up .gp.gst{color:var(--on-red);border-color:currentColor}
 .pchip{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:28px;border-radius:8px;color:#fff!important;font-size:15px!important}
-.pchip.inf{background:var(--inf)}.pchip.of{background:var(--of)}
-.mk circle.b{stroke:#ffffff;stroke-width:2.5}
-.mk.inf circle.b{fill:var(--inf)}.mk.of circle.b{fill:var(--of)}
-.mk.empty circle.b{fill:rgba(0,0,0,.35);stroke:var(--chalk);stroke-dasharray:4 3;stroke-width:1.5}
-.mk .num{fill:#fff;font:800 13px var(--body)}
-.mk.empty .num{font:800 10px var(--body);letter-spacing:.04em}
-.mk .nm{fill:#fff;font:700 12px var(--display);letter-spacing:.03em;text-transform:uppercase;paint-order:stroke;stroke:rgba(0,0,0,.7);stroke-width:3px;stroke-linejoin:round}
+.pchip.inf{background:var(--if-fill);color:var(--if-ink)!important}.pchip.of{background:var(--of-fill);color:var(--of-ink)!important;box-shadow:inset 0 0 0 2px var(--of-ink)}
+.mk rect{stroke-width:2.5}
+.mk.inf rect{fill:var(--if-fill);stroke:var(--if-fill)}
+.mk.inf .ab{fill:var(--if-ink);opacity:.85}
+.mk.inf .nm{fill:var(--if-ink)}
+.mk.of rect{fill:var(--of-fill);stroke:var(--of-ink)}
+.mk.of .ab{fill:var(--of-ink)}
+.mk.of .nm{fill:var(--of-name)}
+.mk .nm{stroke:none;paint-order:normal}
+.mk.empty rect{fill:rgba(12,12,14,.45);stroke:var(--chalk);stroke-dasharray:4 3;stroke-width:1.5}
+.mk.empty .ab{fill:var(--chalk);opacity:1}
+.mk.empty .nm{fill:var(--chalk);font:600 11px var(--body);text-transform:none;opacity:.85}
 .mk .pin{fill:var(--gold);stroke:#0c0c0e;stroke-width:1.5}
-.mk.droptarget circle.b{stroke:var(--gold);stroke-width:4}
-.mk:focus-visible circle.b{stroke:var(--gold);stroke-width:4}
+.mk.droptarget rect,.mk:focus-visible rect{stroke:var(--fg);stroke-width:3.5}
 .coll .herebody{gap:10px}
 .lockbtn svg{fill:none}
 .lockbtn.on{background:var(--red);border-color:var(--red)}
@@ -292,7 +297,7 @@ header .tabs{display:none!important}
 .fp th button{background:transparent;color:inherit;font:inherit;padding:4px 6px;border-radius:6px}
 .fp td.n{font-weight:600;font-size:14px;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;padding-right:4px;text-align:left}
 .fp td.c{font:800 11px var(--body);color:#fff;text-align:center;border-radius:6px;padding:6px 0;min-width:38px}
-.fp td.c.inf{background:var(--inf)}.fp td.c.of{background:var(--of)}.fp td.c.bn{background:var(--bn)}
+.fp td.c.inf{background:var(--if-fill);color:var(--if-ink)}.fp td.c.of{background:var(--of-fill);color:var(--of-ink);box-shadow:inset 0 0 0 1.5px var(--of-ink)}.fp td.c.bn{background:var(--bn)}
 .fp td.c.un{background:transparent;border:1px dashed var(--line);color:var(--muted);font-weight:600}
 .fp td.s{font:700 13px var(--body);text-align:center;color:var(--muted);min-width:30px}
 .fp td.s.warn{color:var(--red-ink)}
@@ -457,7 +462,7 @@ header .tabs{display:none!important}
       <div class="bench herebox coll" data-coll="fair">
         <button type="button" class="herehead" aria-expanded="false"><span><span class="lbl">Fair play</span><span class="sum" id="fairSum"></span></span><span class="pmicon" aria-hidden="true">+</span></button>
         <div class="herebody" hidden><div class="fpwrap"><table class="fp" id="fpTable"></table></div>
-          <div class="fpkey"><span><i style="background:var(--inf)"></i>Infield</span><span><i style="background:var(--of)"></i>Outfield</span><span><i style="background:var(--bn)"></i>Bench</span><span>Sat · IF = innings on bench and in the infield</span></div>
+          <div class="fpkey"><span><i style="background:var(--if-fill)"></i>Infield</span><span><i style="background:var(--of-fill);box-shadow:inset 0 0 0 1.5px var(--of-ink)"></i>Outfield</span><span><i style="background:var(--bn)"></i>Bench</span><span>Sat · IF = innings on bench and in the infield</span></div>
           <button class="ghost" type="button" data-card style="padding:12px">Share lineup card</button></div>
       </div>
       <div class="bench herebox coll" data-coll="plist">
@@ -818,12 +823,10 @@ function renderField(){
     m.setAttribute("class","mk "+grp(po.k)+(has?"":" empty")); m.setAttribute("tabindex","0"); m.setAttribute("role","button");
     m.setAttribute("aria-label",po.n+": "+(has?LINEUP[p][0]:"empty"));
     const pinned=has&&fld.pins&&fld.pins[po.k]===p;
-    m.innerHTML=`<circle class="b" cx="${po.x}" cy="${po.y}" r="16"/>
-      <text class="num" x="${po.x}" y="${po.y+4.5}" text-anchor="middle"></text>
-      <text class="nm" x="${po.x}" y="${po.y+31}" text-anchor="middle"></text>${pinned?`<circle class="pin" cx="${po.x+12}" cy="${po.y-12}" r="4.5"/>`:""}`;
-    const num=has?(LINEUP[p][1]||first(p).slice(0,2).toUpperCase()):po.k;
-    m.querySelector(".num").textContent=num;
-    m.querySelector(".nm").textContent=has?first(p)+" · "+po.k:"";
+    m.innerHTML=`<rect x="${po.x-37}" y="${po.y-17}" width="74" height="34" rx="8"/>
+      <text class="ab" x="${po.x}" y="${po.y-4}" text-anchor="middle">${po.k}</text>
+      <text class="nm" x="${po.x}" y="${po.y+11}" text-anchor="middle"></text>${pinned?`<circle class="pin" cx="${po.x+34}" cy="${po.y-14}" r="5"/>`:""}`;
+    m.querySelector(".nm").textContent=has?first(p):"Tap to set";
     m.setAttribute("data-pos",po.k);
     if(has)attachHold(m,"field",()=>({id:p,label:LINEUP[p][0]}));
     m.onclick=()=>openSheet(po.k);
@@ -1343,15 +1346,16 @@ async function shareCard(){
   const nameX=120, gx=520, cw=(W-gx-48)/INNINGS;
   x.fillStyle="#6c6c76"; x.font="800 24px Barlow, sans-serif"; x.fillText("#",48,top-36); x.fillText("PLAYER",nameX,top-36);
   for(let i=1;i<=INNINGS;i++){x.textAlign="center"; x.fillText("INN "+i,gx+cw*(i-0.5),top-36); x.textAlign="left"}
-  const COLS={inf:"#3b6fe0",of:"#0f8f86",bn:"#9a9aa3"};
+  const COLS={inf:col("--if-fill"),of:col("--of-fill"),bn:"#9a9aa3"}, INK={inf:col("--if-ink"),of:col("--of-ink"),bn:"#ffffff"};
   A.forEach((p,r)=>{ const y=top+r*rowH;
     if(r%2===0){x.fillStyle="#f3f3f5"; x.fillRect(32,y,W-64,rowH)}
     x.fillStyle="#141416"; x.font="800 30px Barlow, sans-serif"; x.textBaseline="middle"; x.fillText(String(r+1),48,y+rowH/2);
     x.font="700 30px Barlow, sans-serif"; const nm=(LINEUP[p][1]?"#"+LINEUP[p][1]+"  ":"")+LINEUP[p][0]; x.fillText(nm.length>24?nm.slice(0,23)+"…":nm,nameX,y+rowH/2);
     for(let i=1;i<=INNINGS;i++){ const m=fld.innings[i]; const k=m&&Object.keys(m).length?posOf(p,m):undefined; const cx=gx+cw*(i-1)+6;
       if(k===undefined){continue}
-      x.fillStyle=COLS[grp(k)]; const rw=cw-12, rh=rowH-16; x.beginPath(); x.roundRect?x.roundRect(cx,y+8,rw,rh,10):x.rect(cx,y+8,rw,rh); x.fill();
-      x.fillStyle="#ffffff"; x.font="800 26px Barlow, sans-serif"; x.textAlign="center"; x.fillText(k||"BN",cx+rw/2,y+rowH/2+1); x.textAlign="left" }
+      const gk=grp(k); x.fillStyle=COLS[gk]; const rw=cw-12, rh=rowH-16; x.beginPath(); x.roundRect?x.roundRect(cx,y+8,rw,rh,10):x.rect(cx,y+8,rw,rh); x.fill();
+      if(gk==="of"){x.lineWidth=3;x.strokeStyle=INK.of;x.stroke()}
+      x.fillStyle=INK[gk]; x.font="800 26px Barlow, sans-serif"; x.textAlign="center"; x.fillText(k||"BN",cx+rw/2,y+rowH/2+1); x.textAlign="left" }
   });
   x.fillStyle="#9a9aa3"; x.font="700 24px Barlow, sans-serif"; x.fillText("Made with Buddy Dugout",48,H-48);
   const blob=await new Promise(r=>cv.toBlob(r,"image/png")); if(!blob){toast("Couldn't make the card");return}
@@ -1471,6 +1475,10 @@ function applyTheme(c){
   r.setProperty("--red",p); r.setProperty("--red-deep",mix(p,"#000000",.3));
   r.setProperty("--on-red",contrast(p,"#ffffff")>=contrast(p,"#0c0c0e")?"#ffffff":"#0c0c0e");
   r.setProperty("--red-ink",readableOn(bg,p)); r.setProperty("--team2",L?(contrast(s2,pg)>=3?s2:readableOn(pg,p)):readableOn(pg,s2));
+  { const ink="#0c0c0e", dark=contrast(p,ink)<2.2;
+    r.setProperty("--if-fill",p); r.setProperty("--if-ink",contrast(p,"#ffffff")>=contrast(p,ink)?"#ffffff":ink);
+    if(!dark){ r.setProperty("--of-fill",ink); r.setProperty("--of-ink",readableOn(ink,p)); r.setProperty("--of-name","#ffffff") }
+    else { const f=contrast(s2,ink)>=3?s2:"#ffffff"; r.setProperty("--of-fill",f); r.setProperty("--of-ink",contrast(p,f)>=3?p:ink); r.setProperty("--of-name",ink) } }
   r.setProperty("--h1-shadow",L?(contrast(s2,pg)>=3?"2px 2px 0 "+readableOn(bg,p):"none"):"2px 2px 0 "+readableOn(bg,p));
 }
 function colorPicker(box,val,onChange,light){
