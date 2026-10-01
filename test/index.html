@@ -823,7 +823,8 @@ body.fielding .plate .lbl{opacity:1}
       <p class="pfull" style="margin:0">For the most natural sound on iPhone, download a better voice: Settings, Accessibility, Spoken Content, Voices, English, then pick one marked Premium or Enhanced (Ava, Zoe, Evan or Nathan sound great).</p>
     </div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
-    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.6.3</p>
+    <p class="sub" id="acUid" hidden style="margin:0;text-align:center;font-size:11px;cursor:pointer;overflow-wrap:anywhere"></p>
+    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.6.4</p>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -2297,7 +2298,8 @@ function showSetup(){
 
 
 /* ---- sign-in ---- */
-let AUTH=null, USER=null, afterSignIn=null;
+let AUTH=null, USER=null, afterSignIn=null, IS_ADMIN=false;
+const canManage=T=>!!(T&&USER&&(T.owner===USER.uid||IS_ADMIN));
 let MYTEAMS=[], myRef=null; const TCOL={};
 function watchMine(u){
   if(myRef){myRef.off();myRef=null} MYTEAMS=[];
@@ -2309,7 +2311,8 @@ function watchMine(u){
   },()=>{}) }catch(e){}
 }
 function indexTeam(code,name){ if(!USER)return Promise.resolve(); return firebase.database().ref("users/"+USER.uid+"/teams/"+code).set(name||"Team").catch(()=>{}) }
-function initAuth(){ if(AUTH)return; try{AUTH=firebase.auth(); AUTH.onAuthStateChanged(u=>{USER=u; watchMine(u); renderAcct();
+function initAuth(){ if(AUTH)return; try{AUTH=firebase.auth(); AUTH.onAuthStateChanged(u=>{USER=u; IS_ADMIN=false; watchMine(u); renderAcct();
+    if(u){ firebase.database().ref("admins/"+u.uid).once("value").then(s=>{IS_ADMIN=s.val()===true; renderAcct()}).catch(()=>{}) }
     if(u&&window.TEAMCTX) indexTeam(TEAMCTX.code,TEAMCTX.name());
   if(u&&afterSignIn){const f=afterSignIn; afterSignIn=null; closeAcct(); f()}})}catch(e){} }
 const el=id=>document.getElementById(id);
@@ -2320,9 +2323,10 @@ function renderAcct(){
     else{ini.hidden=true; svg.style.display=""; b.classList.remove("in")} }
   if(!el("acct"))return;
   el("acOut").hidden=!!USER; el("acIn").hidden=!USER; el("acSignOut").hidden=!USER;
-  if(USER){el("acAv").textContent=initialsOf(USER); el("acName").textContent=USER.displayName||"Coach"; el("acMail").textContent=USER.email||""}
+  if(USER){el("acAv").textContent=initialsOf(USER); el("acName").textContent=USER.displayName||"Coach"; el("acMail").textContent=(USER.email||"")+(IS_ADMIN?" · Admin":"")}
+  { const uidEl=el("acUid"); if(uidEl){ uidEl.hidden=!USER; if(USER){ uidEl.textContent="User ID: "+USER.uid+" (tap to copy)"; uidEl.onclick=async()=>{try{await navigator.clipboard.writeText(USER.uid);toast("User ID copied")}catch(e){}} } } }
   const T=window.TEAMCTX; el("acTeam").hidden=!T;
-  if(T){ el("acSetNote").textContent=!USER?"Sign in":(!T.owner?"Claim as head coach":(T.owner===USER.uid?"Head coach":"View only")) }
+  if(T){ el("acSetNote").textContent=!USER?"Sign in":(T.owner===USER.uid?"Head coach":(IS_ADMIN?"Admin":(!T.owner?"Claim as head coach":"View only"))) }
   el("acOwner").hidden=!(T&&USER&&T.owner===USER.uid);
   el("acMine").hidden=!(USER&&MYTEAMS.length);
   const fill=(ml,inGate)=>{ ml.innerHTML="";
@@ -2391,8 +2395,8 @@ function wireAcct(){
   el("acSwitch").onclick=()=>{try{localStorage.removeItem("dugout-team")}catch(e){} location.href=location.pathname};
   el("acShare").onclick=()=>{const T=window.TEAMCTX; if(T){closeAcct(); shareLink(T.code,T.name())}};
   el("acSettings").onclick=async()=>{const T=window.TEAMCTX; if(!T)return;
-    const go=async()=>{ if(!T.owner){ try{await T.ref.child("owner").set(USER.uid); T.owner=USER.uid; await indexTeam(T.code,T.name())}catch(e){return acMsg("Couldn't claim this team. Check your connection.")} }
-      if(T.owner!==USER.uid)return acMsg("Only the head coach can change team settings.");
+    const go=async()=>{ if(!T.owner&&!IS_ADMIN){ try{await T.ref.child("owner").set(USER.uid); T.owner=USER.uid; await indexTeam(T.code,T.name())}catch(e){return acMsg("Couldn't claim this team. Check your connection.")} }
+      if(!canManage(T))return acMsg("Only the head coach can change team settings.");
       closeAcct(); T.openSettings(); };
     if(!USER){ el("acWhy").textContent="Sign in to manage this team."; afterSignIn=go; return }
     go(); };
