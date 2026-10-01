@@ -548,7 +548,7 @@ header h1 .live{flex:none}
         <div class="form">
           <div class="two"><label>Date<input id="gfDate" type="date"></label><label>Time<input id="gfTime" type="time"></label></div>
           <label>Opponent<input id="gfOpp" type="text" maxlength="24" placeholder="Red Sox" autocomplete="off"></label>
-          <label>Field or location<input id="gfLoc" type="text" maxlength="60" placeholder="Field 1, Optimist Park" autocomplete="off"></label>
+          <label>Field or location<input id="gfLoc" type="text" maxlength="60" placeholder="Leave blank for home field" autocomplete="off"></label>
           <div class="two"><label>We are<select id="gfHome"><option value="away">Away (bat top)</option><option value="home">Home (bat bottom)</option></select></label><label>Arrive early (min)<input id="gfArrive" type="number" min="0" max="120" step="5" placeholder="30"></label></div>
         </div>
         <div class="gbtns"><button type="button" class="pri" id="gfSave">Save game</button><button type="button" id="gfCancel">Cancel</button><button type="button" id="gfDelete" hidden>Delete</button></div>
@@ -562,7 +562,7 @@ header h1 .live{flex:none}
   <div class="scrim" id="tsScrim"></div>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="tsTitle">
     <h2 id="tsTitle">Team settings</h2>
-    <div class="form"><label>Team name<input id="tsName" type="text" maxlength="24" autocomplete="off"></label></div>
+    <div class="form"><label>Team name<input id="tsName" type="text" maxlength="24" autocomplete="off"></label><label>Home field<input id="tsHome" type="text" maxlength="90" autocomplete="off" placeholder="Park name and address"></label></div>
     <div class="form"><label>Main color</label></div><div class="swatches" id="tsC1"></div>
     <div class="form"><label>Lettering color</label></div><div class="swatches" id="tsC2"></div>
     <h2 style="font-size:20px">Roster</h2>
@@ -649,8 +649,8 @@ const STOCK={}; ["P","C","1B","2B","3B","SS","LF","LCF","RCF","RF"].forEach((k,i
 
 const INNINGS=4;
 
-const K_SCHED="dugout-sched",K_BAT="dugout-bat",K_FIELD="dugout-field",K_TAB="dugout-tab",K_TEE="dugout-tee",K_SCORE="dugout-score",K_DEF="dugout-default";
-const NODE={[K_SCHED]:"schedule",[K_BAT]:"bat",[K_FIELD]:"field",[K_TEE]:"tee",[K_SCORE]:"score",[K_DEF]:"default"};
+const K_HOME="dugout-home",K_SCHED="dugout-sched",K_BAT="dugout-bat",K_FIELD="dugout-field",K_TAB="dugout-tab",K_TEE="dugout-tee",K_SCORE="dugout-score",K_DEF="dugout-default";
+const NODE={[K_HOME]:"homefield",[K_SCHED]:"schedule",[K_BAT]:"bat",[K_FIELD]:"field",[K_TEE]:"tee",[K_SCORE]:"score",[K_DEF]:"default"};
 const NS="@"+TEAM.code;
 const load=(k,d)=>{const n=NODE[k];
   if(n&&TEAM.init&&TEAM.init[n]!=null){try{return JSON.parse(TEAM.init[n])}catch(e){}}
@@ -680,6 +680,8 @@ const ordinal=n=>n+(n%100>10&&n%100<14?"th":({1:"st",2:"nd",3:"rd"}[n%10]||"th")
 function saveBat(){store(K_BAT,bat)}
 let tee=load(K_TEE,null); if(!Array.isArray(tee))tee=[];
 let sched=load(K_SCHED,null); if(!Array.isArray(sched))sched=[];
+let homeField=load(K_HOME,""); if(typeof homeField!=="string")homeField="";
+const locOf=g=>g.loc||homeField;
 const NEWSCORE=()=>({us:0,them:0,opp:"",inning:1,top:true,outs:0,hr:0,weTop:true,clock:{dur:60,start:null,used:0}});
 let sc=load(K_SCORE,null);
 function normSc(){ if(!sc||typeof sc.us!=="number")sc=NEWSCORE(); if(typeof sc.weTop!=="boolean")sc.weTop=true; if(typeof sc.hr!=="number")sc.hr=0;
@@ -715,7 +717,7 @@ function meta(p){const k=posOf(p,inn(fld.inning));return (LINEUP[p][1]?"#"+LINEU
 /* ---------- batting ---------- */
 function renderBat(){
   const A=act(), L=A.length, slot=bat.count%L, at=k=>A[(slot+k)%L], up=at(0),deck=at(1),hole=at(2), round=Math.floor(bat.count/L)+1;
-  { const g=nextGame(); $("nextGame").hidden=!g; if(g)$("nextGameTxt").textContent=gameWhen(g)+(g.opp?" vs "+g.opp:"")+(g.loc?" · "+g.loc:""); }
+  { const g=nextGame(); $("nextGame").hidden=!g; if(g)$("nextGameTxt").textContent=gameWhen(g)+(g.opp?" vs "+g.opp:"")+(locOf(g)?" · "+locOf(g).split(",")[0]:""); }
   $("round").textContent="Time through the order: "+round+"  ·  positions from inning "+fld.inning;
   $("upName").textContent=LINEUP[up][0]; $("upMeta").textContent=(slot+1)+" in order · "+meta(up)+" · "+ordinal(abOf(up)+1)+" time up";
   $("deckName").textContent=LINEUP[deck][0]; $("deckMeta").textContent=meta(deck);
@@ -1074,7 +1076,7 @@ function nextGame(){return sortedGames().find(g=>!isPast(g))||null}
 function gameText(g){
   const nm=TEAM.name||"Team", d=gDate(g);
   let t=nm+" game"+(g.opp?" vs "+g.opp:"")+"\n"+gameWhen(g);
-  if(g.loc)t+="\n"+g.loc;
+  if(locOf(g))t+="\n"+locOf(g);
   const ar=parseInt(g.arrive,10);
   if(d&&g.time&&ar>0){const a=new Date(d.getTime()-ar*60000); t+="\nPlease arrive by "+a.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})+"."}
   return t;
@@ -1088,12 +1090,12 @@ function gameCard(g,isNext){
   el.querySelector(".gd").textContent=d?d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"Date TBD";
   el.querySelector(".gt").textContent=g.time&&d?d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}):"";
   el.querySelector(".gv").textContent=(isNext?"Next up · ":"")+(g.opp?"vs "+g.opp:"Opponent TBD")+" · "+(g.home==="home"?"Home":"Away");
-  el.querySelector(".gl").textContent=g.loc||"";
+  el.querySelector(".gl").textContent=locOf(g);
   const bx=el.querySelector(".gbtns");
   const btn=(t,cls,fn)=>{const b=document.createElement("button");b.type="button";b.textContent=t;if(cls)b.className=cls;b.onclick=fn;bx.appendChild(b);return b};
   btn("Text parents","pri",()=>{location.href="sms:&body="+encodeURIComponent(gameText(g))});
   btn("Copy",null,async()=>{try{await navigator.clipboard.writeText(gameText(g));toast("Message copied")}catch(e){toast("Copy failed")}});
-  if(g.loc){const a=document.createElement("a");a.textContent="Map";a.href="https://maps.apple.com/?q="+encodeURIComponent(g.loc);a.target="_blank";a.rel="noopener";bx.appendChild(a)}
+  if(locOf(g)){const a=document.createElement("a");a.textContent="Map";a.href="https://maps.apple.com/?q="+encodeURIComponent(locOf(g));a.target="_blank";a.rel="noopener";bx.appendChild(a)}
   btn("Calendar",null,()=>downloadICS([g],(TEAM.name||"Game")+" "+(g.date||"")));
   btn("Edit",null,()=>openGameForm(g));
   return el;
@@ -1132,7 +1134,7 @@ $("gfDelete").onclick=()=>{const b=$("gfDelete");
 /* ---- team settings ---- */
 let tsRows=[], tsColors=null;
 function openTeamSheet(){
-  $("tsName").value=TEAM.name||"";
+  $("tsName").value=TEAM.name||""; $("tsHome").value=homeField;
   tsColors={...(TEAM.colors||CLASSIC)};
   colorPicker($("tsC1"),tsColors.p,v=>{tsColors.p=v;applyTheme(tsColors)});
   colorPicker($("tsC2"),tsColors.s,v=>{tsColors.s=v;applyTheme(tsColors)},true);
@@ -1154,6 +1156,7 @@ $("tsCancel").onclick=closeTeamSheet; $("tsScrim").onclick=closeTeamSheet;
 $("tsAddRow").onclick=()=>{tsRows.push({id:null,name:"",num:"",hidden:false});drawTsRows();const ins=$("tsRows").querySelectorAll(".rrow input[type=text]");ins[ins.length-2]&&ins[ins.length-2].focus()};
 $("tsSave").onclick=async()=>{
   const name=$("tsName").value.trim()||"Team";
+  const hf=$("tsHome").value.trim(); if(hf!==homeField){homeField=hf; store(K_HOME,hf); renderGames(); renderBat()}
   const roster=tsRows.filter(r=>r.id!=null||r.name.trim()).map(r=>{const e=[r.name.trim()||"Player",String(r.num||"").replace(/[^0-9]/g,"").slice(0,3)]; if(r.hidden)e.push(1); return e});
   if(!roster.some(e=>!e[2])){toast("Keep at least one player");return}
   const rosterChanged=JSON.stringify(roster)!==JSON.stringify(LINEUP);
@@ -1177,7 +1180,7 @@ function gameVEVENT(g){
   if(g.time){const e=new Date(d.getTime()+90*60000); L.push("DTSTART:"+ymd(d)+"T"+hms(d),"DTEND:"+ymd(e)+"T"+hms(e))}
   else{const e=new Date(d); e.setDate(e.getDate()+1); L.push("DTSTART;VALUE=DATE:"+ymd(d),"DTEND;VALUE=DATE:"+ymd(e))}
   L.push("SUMMARY:"+icsEsc(nm+(g.opp?(g.home==="home"?" vs ":" @ ")+g.opp:" game")));
-  if(g.loc)L.push("LOCATION:"+icsEsc(g.loc));
+  if(locOf(g))L.push("LOCATION:"+icsEsc(locOf(g)));
   L.push("DESCRIPTION:"+icsEsc(gameText(g)));
   if(g.time){const ar=parseInt(g.arrive,10)||0; L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(nm+" game"),"TRIGGER:-PT"+(ar+60)+"M","END:VALARM")}
   L.push("END:VEVENT"); return L.map(icsFold).join("\r\n");
@@ -1427,9 +1430,9 @@ $("shareLink").onclick=async()=>{
 /* ---------- live sync ---------- */
 if(TEAM.ref){
   TEAM.db.ref(".info/connected").on("value",s=>{const on=!!s.val(); $("live").classList.toggle("on",on); $("live").title=on?"Live":"Offline"});
-  const cur={bat:()=>bat,field:()=>fld,score:()=>sc,tee:()=>tee,default:()=>DEFAULT,schedule:()=>sched};
-  const apply={bat:v=>{bat=v;normBat()},field:v=>{fld=v;normFld()},score:v=>{sc=v;normSc()},tee:v=>{tee=Array.isArray(v)?v:[]},schedule:v=>{sched=Array.isArray(v)?v:[]},default:v=>{if(v&&typeof v==="object")DEFAULT=v}};
-  const KEYOF={bat:K_BAT,field:K_FIELD,score:K_SCORE,tee:K_TEE,default:K_DEF,schedule:K_SCHED};
+  const cur={homefield:()=>homeField,bat:()=>bat,field:()=>fld,score:()=>sc,tee:()=>tee,default:()=>DEFAULT,schedule:()=>sched};
+  const apply={homefield:v=>{homeField=typeof v==="string"?v:""},bat:v=>{bat=v;normBat()},field:v=>{fld=v;normFld()},score:v=>{sc=v;normSc()},tee:v=>{tee=Array.isArray(v)?v:[]},schedule:v=>{sched=Array.isArray(v)?v:[]},default:v=>{if(v&&typeof v==="object")DEFAULT=v}};
+  const KEYOF={homefield:K_HOME,bat:K_BAT,field:K_FIELD,score:K_SCORE,tee:K_TEE,default:K_DEF,schedule:K_SCHED};
   let pend=false;
   const rerender=()=>{ if(drag){ if(!pend){pend=true; setTimeout(()=>{pend=false;rerender()},400)} return }
     renderField(); renderBat(); renderScore(); renderGames(); try{renderLock();renderClock()}catch(e){} };
