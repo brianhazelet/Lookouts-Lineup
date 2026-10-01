@@ -741,7 +741,7 @@ body.fielding .plate .lbl{opacity:1}
   <div class="scrim" id="tsScrim"></div>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="tsTitle">
     <h2 id="tsTitle">Team settings</h2>
-    <div class="form"><label>Team name<input id="tsName" type="text" maxlength="24" autocomplete="off"></label><label>Home field<input id="tsHome" type="text" maxlength="110" autocomplete="off" placeholder="Park name and address"></label><label>Fields at the park<input id="tsNF" type="number" min="0" max="12" step="1" placeholder="0"></label><label>League standings link<input id="tsLgSt" type="url" maxlength="400" placeholder="Paste the standings link" autocomplete="off"></label><label>League schedule link<input id="tsLgSch" type="url" maxlength="400" placeholder="Paste the season schedule link" autocomplete="off"></label><label>League bracket link<input id="tsLgBr" type="url" maxlength="400" placeholder="Paste the bracket link" autocomplete="off"></label></div>
+    <div class="form"><label>Team name<input id="tsName" type="text" maxlength="24" autocomplete="off"></label><label>Home field<input id="tsHome" type="text" maxlength="110" autocomplete="off" placeholder="Park name and address"></label><label>Fields at the park<input id="tsNF" type="number" min="0" max="12" step="1" placeholder="0"></label><label>Standings link (SE Tourney)<input id="tsLgSt" type="url" maxlength="400" placeholder="Paste your SE Tourney link" autocomplete="off"></label><label>Schedule link (GameChanger)<input id="tsLgSch" type="url" maxlength="400" placeholder="Paste your GameChanger team link" autocomplete="off"></label></div>
     <div class="sideset"><span class="lbl">Track at-bat results</span><div class="tabs" id="tsRes"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
     <p class="sub" style="margin:-6px 0 0">Adds Hit, Walk, HBP, K and Out buttons under the batter, and an At-bats page at the end.</p>
     <div class="form"><label>Main color</label></div><div class="swatches" id="tsC1"></div>
@@ -1354,7 +1354,7 @@ function tDate(t){const [y,m,d]=(t.start||"").split("-").map(Number); return y?n
 function tEnd(t){const [y,m,d]=(t.end||t.start||"").split("-").map(Number); return y?new Date(y,m-1,d,23,59):null}
 function tIsPast(t){ if(tGames(t).some(g=>condOf(g)!==false&&!isPast(g)))return false; const e=tEnd(t); return tOver(t)||(e?e<new Date():false) }
 function renderSeason(){
-  const sc2=$("seasonCard"); if(!sc2)return; const C=TEAM.colors||{}, links=[["Standings",C.lgSt],["Schedule",C.lgSch],["Bracket",C.lgBr||C.league]].filter(x=>x[1]), link=links.length;
+  const sc2=$("seasonCard"); if(!sc2)return; const C=TEAM.colors||{}, links=[["Standings",C.lgSt||C.lgBr||C.league],["Schedule",C.lgSch]].filter(x=>x[1]), link=links.length;
   const gs=sched.filter(g=>!isT(g)&&!g.tid&&!isPrac(g)&&g.res), w=gs.filter(g=>g.res==="W").length, l=gs.filter(g=>g.res==="L").length;
   sc2.hidden=!(link||gs.length); sc2.innerHTML='<div class="sl"><span>Season record</span><b></b><span class="sn"></span></div>';
   sc2.querySelector("b").textContent=gs.length?w+" and "+l:"No results yet";
@@ -1513,7 +1513,7 @@ function openTeamSheet(){
   colorPicker($("tsC1"),tsColors.p,v=>{tsColors.p=v;applyTheme(tsColors)});
   colorPicker($("tsC2"),tsColors.s,v=>{tsColors.s=v;applyTheme(tsColors)},true);
   tsRows=LINEUP.map((p,i)=>({id:i,name:p[0],num:p[1],hidden:!!p[2],guest:!!p[3],avoid:[...(AVOID[i]||[])],open:false})).filter(r=>!r.guest);
-  $("tsLgSt").value=tsColors.lgSt||""; $("tsLgSch").value=tsColors.lgSch||""; $("tsLgBr").value=tsColors.lgBr||tsColors.league||""; drawTsRows(); drawTsRes(); $("teamSheet").hidden=false;
+  $("tsLgSt").value=tsColors.lgSt||tsColors.lgBr||tsColors.league||""; $("tsLgSch").value=tsColors.lgSch||""; drawTsRows(); drawTsRes(); $("teamSheet").hidden=false;
 }
 function drawTsRes(){ document.querySelectorAll("#tsRes button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!!tsColors.res); b.onclick=()=>{ if(b.dataset.v==="1")tsColors.res=1; else delete tsColors.res; drawTsRes() }}) }
 function drawTsRows(){
@@ -1543,7 +1543,7 @@ $("tsSave").onclick=async()=>{
   const roster=tsRows.filter(r=>r.id!=null||r.name.trim()).map(r=>{const e=[r.name.trim()||"Player",String(r.num||"").replace(/[^0-9]/g,"").slice(0,3)]; if(r.hidden)e.push(1); return e});
   if(!roster.some(e=>!e[2])){toast("Keep at least one player");return}
   const rosterChanged=JSON.stringify(roster)!==JSON.stringify(LINEUP);
-  delete tsColors.league; [["tsLgSt","lgSt"],["tsLgSch","lgSch"],["tsLgBr","lgBr"]].forEach(([id,k])=>{ const v=$(id).value.trim(); if(/^https?:\/\//i.test(v))tsColors[k]=v.slice(0,400); else delete tsColors[k] });
+  delete tsColors.league; delete tsColors.lgBr; [["tsLgSt","lgSt"],["tsLgSch","lgSch"]].forEach(([id,k])=>{ const v=$(id).value.trim(); if(/^https?:\/\//i.test(v))tsColors[k]=v.slice(0,400); else delete tsColors[k] });
   TEAM.name=name; TEAM.colors=tsColors; $("teamSheet").hidden=true; applyTeam(); try{renderGames()}catch(e){}
   if(TEAM.ref){ const up={name,colors:JSON.stringify(tsColors)}; if(rosterChanged)up.roster=JSON.stringify(roster);
     try{await TEAM.ref.update(up)}catch(e){toast("Couldn't save. Check your connection.");return} }
