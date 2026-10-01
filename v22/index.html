@@ -1051,6 +1051,9 @@ function applyTeam(){
   applyTheme(TEAM.colors||CLASSIC);
 }
 $("nextGame").onclick=()=>showTab("games");
+{ const h=$("teamName").closest("h1"); h.style.cursor="pointer"; h.setAttribute("role","button"); h.setAttribute("tabindex","0"); h.setAttribute("aria-label","Go to batting");
+  const go=()=>{ const v=$("v-bat"); if(!v.hidden){window.scrollTo({top:0,behavior:"smooth"});return} showTab("bat"); v.classList.remove("slide-l","slide-r"); void v.offsetWidth; v.classList.add("slide-r") };
+  h.onclick=go; h.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}} }
 
 /* ---- shuffle / rotate ---- */
 function shuffled(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
