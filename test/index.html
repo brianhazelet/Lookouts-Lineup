@@ -1746,6 +1746,7 @@ function resMode(){
   renderResults();
 }
 function recordResult(r){
+  ensureBatting();
   const A=act(); if(!A.length)return; const pid=A[bat.count%A.length];
   if(!usBat()){ setHalf(1); toast((TEAM.name||"We")+" batting · "+(sc.top?"Top ":"Bottom ")+sc.inning) }
   sc.ab=Array.isArray(sc.ab)?sc.ab:[]; sc.ab.push({p:pid,r,n:bat.count,i:sc.inning,t:sc.top});
@@ -1804,6 +1805,8 @@ $("osGo").onclick=()=>{ const b=document.querySelector('.pagedots [data-tab="sco
 $("osOut").onclick=()=>{ $("outPlus").click(); try{navigator.vibrate&&navigator.vibrate(10)}catch(e){} };
 { const _rS2=renderScore; renderScore=function(){ _rS2(); try{renderOutStrip()}catch(e){} } }
 { const _rB=renderBat; renderBat=function(){ _rB(); try{renderOutStrip()}catch(e){} } }
+function ensureBatting(){ if(usBat())return; sc.weTop=sc.top; saveScore(); toast("Switched to "+(TEAM.name||"us")+" batting") }
+{ const _go=$("go").onclick; $("go").onclick=()=>{ ensureBatting(); _go() } }
 renderOutStrip();
 /* ---------- team context for the account menu ---------- */
 window.TEAMCTX={code:TEAM.code,ref:TEAM.ref,owner:TEAM.owner||null,openSettings:openTeamSheet,name:()=>TEAM.name};
