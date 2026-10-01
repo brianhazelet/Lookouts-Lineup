@@ -394,6 +394,18 @@ header h1 .live{flex:none}
 .pagedots button[aria-current="true"] svg{transform:translateZ(0) scale(1) rotate(0deg);opacity:1}
 .pagedots button[aria-current="true"] :is(.seam,.stitch){stroke:var(--red-ink)}
 @media (prefers-reduced-motion:reduce){.pagedots svg{transition:opacity .2s}}
+
+/* ---------- 2.4.2: pitcher blue, catcher green, better tee ---------- */
+:root{--pc-p:#2f80ed;--pc-c:#22b35e}
+.gp.pit{background:var(--pc-p)!important;color:#fff!important;box-shadow:none!important}
+.gp.cat{background:var(--pc-c)!important;color:#fff!important;box-shadow:none!important}
+.mk rect.ring{fill:#0b0b0d!important;stroke-width:2.6!important;stroke-dasharray:none!important}
+.mk rect.ring.pit{stroke:var(--pc-p)!important}.mk rect.ring.cat{stroke:var(--pc-c)!important}
+.battery{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-weight:700;font-size:14px;color:var(--muted)}
+.battery .bt{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line-soft);border-radius:99px;padding:5px 12px 5px 5px;color:var(--fg);box-shadow:var(--glass-shadow)}
+.battery .bt b{font:800 11px/1 var(--body);letter-spacing:.04em;color:#fff;border-radius:99px;padding:4px 7px}
+.battery .bt.pit b{background:var(--pc-p)}.battery .bt.cat b{background:var(--pc-c)}
+
 </style>
 </head>
 <body>
@@ -467,6 +479,7 @@ header h1 .live{flex:none}
         <div class="slot deck"><span class="lbl">On deck</span><div class="name" id="deckName"></div><div class="meta" id="deckMeta"></div></div>
         <div class="slot"><span class="lbl">In the hole</span><div class="name" id="holeName"></div><div class="meta" id="holeMeta"></div></div>
       </div>
+      <div class="battery" id="battery" hidden></div>
       <div class="actions">
         <button class="ghost" id="undo" type="button">Back</button>
         <button class="go" id="go" type="button">Batted, next up</button>
@@ -805,6 +818,9 @@ function renderBat(){
   $("holeName").textContent=LINEUP[hole][0]; $("holeMeta").textContent=meta(hole);
   $("undo").disabled=bat.count===0;
   $("upTee").hidden=!onTee(up);
+  { const m=inn(fld.inning), bx=$("battery"); bx.innerHTML=""; const parts=[["P","pit","Pitcher"],["C","cat","Catcher"]].filter(x=>m[x[0]]!=null);
+    bx.hidden=!parts.length; if(parts.length){ const l=document.createElement("span"); l.textContent="Inning "+fld.inning; bx.appendChild(l);
+      parts.forEach(([k,c,n])=>{const t=document.createElement("span"); t.className="bt "+c; t.setAttribute("aria-label",n+": "+LINEUP[m[k]][0]); const b=document.createElement("b"); b.textContent=k; const nm=document.createElement("span"); nm.textContent=first(m[k]); t.append(b,nm); bx.appendChild(t)}) } }
   if(typeof renderLock==="function")try{renderLock()}catch(e){}
   const ol=$("order"); ol.innerHTML="";
   A.forEach((pid,i)=>{
@@ -814,7 +830,7 @@ function renderBat(){
     else if(i===(slot+2)%L){li.className="hole";tag="Hole"} else if(i<slot){li.className="batted";tag="Batted"}
     const n=abOf(pid), dots=n?`<span class="abd" title="Batted ${n} times">${"<i></i>".repeat(Math.min(n,4))}${n>4?"<b>+"+(n-4)+"</b>":""}</span>`:"";
     const pk=posOf(pid,inn(fld.inning));
-    li.innerHTML=`<button type="button" class="row"><span class="ord">${i+1}</span><span class="pn"><span class="nmx"></span><span class="gp ${grp(pk)}">${pk||"BN"}</span>${isGuest(pid)?'<span class="gp gst">GUEST</span>':""}${dots}</span><span class="jn">${p[1]?"#"+p[1]:""}</span><span class="tag">${tag}</span></button><button type="button" class="teeb${onTee(pid)?" on":""}" aria-pressed="${onTee(pid)}" aria-label="Hits off the tee" title="Hits off the tee"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="6" r="3.2"/><path d="M12 9.5v9"/><path d="M7 20.5h10"/></svg></button>`;
+    li.innerHTML=`<button type="button" class="row"><span class="ord">${i+1}</span><span class="pn"><span class="nmx"></span><span class="gp ${grp(pk)}${pk==="P"?" pit":pk==="C"?" cat":""}">${pk||"BN"}</span>${isGuest(pid)?'<span class="gp gst">GUEST</span>':""}${dots}</span><span class="jn">${p[1]?"#"+p[1]:""}</span><span class="tag">${tag}</span></button><button type="button" class="teeb${onTee(pid)?" on":""}" aria-pressed="${onTee(pid)}" aria-label="Hits off the tee" title="Hits off the tee"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="6.2" r="4.6" stroke-width="1.7"/><path d="M9.2 2.9c1.3 1.9 1.3 4.7 0 6.6M14.8 2.9c-1.3 1.9-1.3 4.7 0 6.6" stroke-width="1.1"/><path d="M9.6 11.6h4.8l-1.3 1.6h-2.2z" fill="currentColor" stroke-width="1.2"/><path d="M12 13.4v6" stroke-width="2.4"/><path d="M7.5 20.6h9" stroke-width="2.6"/></svg></button>`;
     li.querySelector(".nmx").textContent=p[0];
     const row=li.querySelector(".row");
     row.onclick=()=>{if(guard())return; bat.count=Math.floor(bat.count/L)*L+i;saveBat();renderBat()};
@@ -918,7 +934,7 @@ function renderField(){
     m.setAttribute("class","mk "+grp(po.k)+(has?"":" empty")); m.setAttribute("tabindex","0"); m.setAttribute("role","button");
     m.setAttribute("aria-label",po.n+": "+(has?LINEUP[p][0]:"empty"));
     const pinned=has&&fld.pins&&fld.pins[po.k]===p;
-    m.innerHTML=`<rect x="${po.x-37}" y="${po.y-17}" width="74" height="34" rx="8"/>
+    m.innerHTML=`${has&&(po.k==="P"||po.k==="C")?`<rect class="ring ${po.k==="P"?"pit":"cat"}" x="${po.x-41.2}" y="${po.y-21.2}" width="82.4" height="42.4" rx="11.5"/>`:""}<rect x="${po.x-37}" y="${po.y-17}" width="74" height="34" rx="8"/>
       <text class="ab" x="${po.x}" y="${po.y-4}" text-anchor="middle">${po.k}</text>
       <text class="nm" x="${po.x}" y="${po.y+11}" text-anchor="middle"></text>${pinned?`<circle class="pin" cx="${po.x+34}" cy="${po.y-14}" r="5"/>`:""}`;
     m.querySelector(".nm").textContent=has?first(p):"Tap to set";
