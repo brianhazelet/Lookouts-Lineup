@@ -416,7 +416,39 @@ header h1 .live{flex:none}
 .resrow button:active{transform:scale(.96)}
 body.rbi-on .resrow{grid-template-columns:repeat(6,1fr);gap:5px}body.rbi-on .resrow button{font-size:15px}body.rbi-on .resrow button small{font-size:9px}
 .resrow button.rbi{border-color:color-mix(in srgb,var(--gold,#e0a800) 70%,var(--line-soft))}
-body.rbi-on .restot{grid-template-columns:repeat(6,1fr)}
+body.rbi-on .restot,body.adv-on .restot{grid-template-columns:repeat(6,1fr)}
+.trk{display:flex;flex-direction:column;gap:10px}
+.tkscore{flex:1;text-align:right;font:900 22px var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}.tkscore small{font:700 11px var(--body);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-right:6px}
+.tkwhorow{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}.tkwhorow .tkwho{min-width:0}.tkwhorow .osout{flex:none;font-size:13px}
+.tkwho{font:800 15px var(--body);color:var(--muted)}.tkwho b{color:var(--fg);font:900 24px var(--display);text-transform:uppercase;display:block;line-height:1.05}
+.tg,.tg3,.tg2{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.tg3{grid-template-columns:repeat(3,1fr)}.tg2{grid-template-columns:1fr 1fr}
+.tb{background:var(--surface);border:1px solid var(--line-soft);color:var(--fg);border-radius:12px;padding:10px 0 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font:800 17px var(--body);box-shadow:var(--glass-shadow)}
+.tb small{font:600 10px var(--body);color:var(--muted);letter-spacing:.02em;white-space:nowrap}
+.tb.onb{border-color:color-mix(in srgb,var(--red-ink) 55%,var(--line-soft))}
+.tb.gold{border-color:color-mix(in srgb,var(--gold) 70%,var(--line-soft))}
+.tb:active{transform:scale(.96)}
+.tg3 .tb{font-size:19px;padding:14px 0}
+.tkpitch{display:flex;flex-direction:column;gap:8px}
+.tkcount{display:flex;gap:8px}.tkcount span{flex:1;background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:6px 12px;display:flex;align-items:baseline;gap:8px;box-shadow:var(--glass-shadow)}
+.tkcount b{font:900 28px var(--display);font-variant-numeric:tabular-nums}.tkcount small{color:var(--muted);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.tkcount span.near{border-color:var(--gold)}.tkcount span.over{border-color:var(--red-ink);background:color-mix(in srgb,var(--red) 18%,var(--surface))}
+.tksel{display:flex;align-items:center;gap:8px;min-height:28px}.tkseq{flex:1;font:900 18px var(--display);letter-spacing:.04em}
+.tkx{background:transparent;border:1px solid var(--line-soft);border-radius:8px;padding:4px 10px;font-weight:700;color:var(--muted)}
+#tkField{display:block;width:100%;height:auto}
+.mk.sel rect{stroke:var(--gold)!important;stroke-width:4!important}
+.mk .ord{fill:var(--gold);font:900 13px var(--body)}
+.tkrun{display:flex;flex-wrap:wrap;gap:6px;min-height:20px}
+.tkrun button{background:var(--red);color:var(--on-red);border:0;border-radius:10px;padding:8px 12px;font:800 15px var(--body)}
+.tkrun .none{color:var(--muted);font-size:13px;font-weight:600}
+.tkrbi{display:flex;align-items:center;justify-content:space-between;gap:10px}.tkrbi label{display:flex;align-items:center;gap:8px;font-weight:700}.tkrbi input{width:22px;height:22px;accent-color:var(--red)}
+.tkrbi .tb{padding:8px 16px}
+.stwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;box-shadow:var(--glass-shadow)}
+.sttab{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+.sttab th,.sttab td{padding:7px 6px;text-align:right;white-space:nowrap}.sttab th{color:var(--muted);font-size:11px;letter-spacing:.06em}
+.sttab th:first-child,.sttab td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);font-weight:700;padding-left:12px}
+.sttab tr+tr td{border-top:1px solid var(--line-soft)}
+.sttab tr.tot td{font-weight:800}
+#advStats{display:flex;flex-direction:column;gap:8px}
 .rc.rbic{border-color:color-mix(in srgb,var(--gold,#e0a800) 70%,var(--line-soft))}
 .reshint{margin:-4px 0 0;color:var(--muted);font-size:12px;text-align:center}
 .rc{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:24px;padding:0 7px;border-radius:7px;font:800 11px var(--body);letter-spacing:.03em}
@@ -543,11 +575,12 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
 <div class="wrap" id="app" hidden>
 <button type="button" class="micfab" id="micBtn" aria-label="Voice command. Hold and drag to move." hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
 <div id="rotateMsg" aria-live="polite"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/><path d="M20.5 9a8.5 8.5 0 0 0-3-5.5M18.2 2.6l-.7 1.9 1.9.5"/></svg><b>Turn your phone upright</b><span>Buddy Dugout works in portrait</span></div>
-<nav class="pagedots" aria-label="Pages"><button type="button" data-tab="bat" aria-label="Batting"></button><button type="button" data-tab="field" aria-label="Field"></button><button type="button" data-tab="score" aria-label="Score"></button><button type="button" data-tab="games" aria-label="Games"></button><button type="button" data-tab="res" aria-label="At-bats" hidden></button></nav>
+<nav class="pagedots" aria-label="Pages"><button type="button" data-tab="trk" aria-label="Track" hidden></button><button type="button" data-tab="bat" aria-label="Batting"></button><button type="button" data-tab="field" aria-label="Field"></button><button type="button" data-tab="score" aria-label="Score"></button><button type="button" data-tab="games" aria-label="Games"></button><button type="button" data-tab="res" aria-label="At-bats" hidden></button></nav>
   <header>
     <div class="brand" style="flex:1;justify-content:space-between"><h1><span id="teamName">TEAM</span><span class="live" id="live" title="Offline"></span></h1>
       <div style="display:flex;gap:8px;flex:none;align-items:center"><button type="button" class="miniclk" id="miniClk" hidden aria-label="Game clock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg><span id="miniClkT">60:00</span></button><button type="button" class="acctbtn lockbtn" id="lockBtn" aria-label="Lock lineup" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path id="lockShackle" d="M8 11V7a4 4 0 0 1 7.5-2"/></svg></button><button type="button" class="acctbtn" id="acctBtn" aria-label="Account and team menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span id="acctIni" hidden></span></button></div></div>
     <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="t-trk" aria-selected="false" hidden>Track</button>
       <button type="button" role="tab" id="t-bat" aria-selected="true">Batting</button>
       <button type="button" role="tab" id="t-field" aria-selected="false">Field</button>
       <button type="button" role="tab" id="t-score" aria-selected="false">Score</button>
@@ -555,6 +588,55 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
       <button type="button" role="tab" id="t-res" aria-selected="false" hidden>At-bats</button>
     </div>
   </header>
+
+  <!-- TRACK (3.0, full tracking only) -->
+  <section id="v-trk" hidden>
+    <div class="trk">
+      <div class="outstrip" id="tkStrip"><span class="oshalf" id="tkHalf">Top 1</span><span class="odots" id="tkDots" aria-hidden="true"><i></i><i></i><i></i></span><span class="tkscore" id="tkScore">0-0</span></div>
+      <div class="tkwhorow"><div class="tkwho" id="tkWho"></div><button type="button" class="osout" id="tkFlip">Switch</button></div>
+      <div id="tkPitch" class="tkpitch" hidden>
+        <div class="tkcount"><span><b id="tkCnt">0-0</b><small>count</small></span><span id="tkPcWrap"><b id="tkPc">0</b><small id="tkPcL">pitches</small></span></div>
+        <div class="tg3"><button type="button" class="tb" data-pt="B">Ball</button><button type="button" class="tb" data-pt="S">Strike</button><button type="button" class="tb" data-pt="F">Foul</button></div>
+      </div>
+      <div class="tksel"><span class="lbl" id="tkSelL">Who made the play</span><span id="tkSel" class="tkseq"></span><button type="button" id="tkSelX" class="tkx" hidden>Clear</button></div>
+      <div class="fieldbox"><svg id="tkField" viewBox="0 0 360 352" role="img" aria-label="Field. Tap positions to record who made the play.">
+          <rect x="0" y="0" width="360" height="352" fill="var(--grass)"/>
+          <path d="M180,292 L18,130 Q180,-42 342,130 Z" fill="var(--grass2)"/>
+          <path d="M18,130 Q180,-42 342,130" fill="none" stroke="var(--clay)" stroke-width="7" opacity=".7"/>
+          <path d="M180,292 L94,206 Q180,108 266,206 Z" fill="var(--clay)"/>
+          <polygon points="180,277 229,230 180,183 131,230" fill="var(--grass2)"/>
+          <circle cx="180" cy="290" r="19" fill="var(--clay)"/>
+          <line x1="180" y1="292" x2="18" y2="130" stroke="var(--chalk)" stroke-width="1.5"/>
+          <line x1="180" y1="292" x2="342" y2="130" stroke="var(--chalk)" stroke-width="1.5"/>
+          <circle cx="180" cy="232" r="10" fill="var(--clay)"/>
+          <rect x="235" y="225" width="9" height="9" fill="var(--chalk)" transform="rotate(45 239.5 229.5)"/>
+          <rect x="175.5" y="166" width="9" height="9" fill="var(--chalk)" transform="rotate(45 180 170.5)"/>
+          <rect x="116" y="225" width="9" height="9" fill="var(--chalk)" transform="rotate(45 120.5 229.5)"/>
+          <polygon points="174,288 186,288 186,293 180,298 174,293" fill="var(--chalk)"/>
+          <g id="tkMarkers"></g></svg></div>
+      <div id="tkOff">
+        <span class="lbl">On base</span>
+        <div class="tg"><button type="button" class="tb onb" data-r="1B">1B<small>single</small></button><button type="button" class="tb onb" data-r="2B">2B<small>double</small></button><button type="button" class="tb onb" data-r="3B">3B<small>triple</small></button><button type="button" class="tb onb" data-r="HR">HR<small>home run</small></button>
+          <button type="button" class="tb onb" data-r="BB">BB<small>walk</small></button><button type="button" class="tb onb" data-r="HBP">HBP<small>hit by pitch</small></button><button type="button" class="tb onb" data-r="E">E<small>error</small></button><button type="button" class="tb onb" data-r="FC">FC<small>fielder's ch.</small></button></div>
+        <span class="lbl">Out</span>
+        <div class="tg"><button type="button" class="tb" data-r="K">K<small>swinging</small></button><button type="button" class="tb" data-r="KL">KL<small>looking</small></button><button type="button" class="tb" data-r="GO">GO<small>ground out</small></button><button type="button" class="tb" data-r="FO">FO<small>fly out</small></button>
+          <button type="button" class="tb" data-r="LO">LO<small>line out</small></button><button type="button" class="tb" data-r="PO">PO<small>pop out</small></button><button type="button" class="tb" data-r="SAC">SAC<small>sacrifice</small></button><button type="button" class="tb" data-r="DP">DP<small>double play</small></button></div>
+        <span class="lbl">Runners on base · tap when they score</span>
+        <div class="tkrun" id="tkRunners"></div>
+        <div class="tkrbi"><label><input type="checkbox" id="tkRbi" checked> <span id="tkRbiL">RBI to the batter</span></label><button type="button" class="tb gold" id="tkRunX">+ Run<small>other</small></button></div>
+      </div>
+      <div id="tkDef" hidden>
+        <span class="lbl">Out</span>
+        <div class="tg"><button type="button" class="tb" data-d="K">K<small>strikeout</small></button><button type="button" class="tb" data-d="GO">GO<small>ground out</small></button><button type="button" class="tb" data-d="FO">FO<small>fly out</small></button><button type="button" class="tb" data-d="LO">LO<small>line out</small></button>
+          <button type="button" class="tb" data-d="PO">PO<small>pop out</small></button><button type="button" class="tb" data-d="TAG">Tag<small>tag out</small></button><button type="button" class="tb" data-d="FRC">Force<small>force out</small></button><button type="button" class="tb" data-d="DP">DP<small>double play</small></button></div>
+        <span class="lbl">They reached</span>
+        <div class="tg"><button type="button" class="tb onb" data-d="H">Hit<small>any hit</small></button><button type="button" class="tb onb" data-d="BB">BB<small>walk</small></button><button type="button" class="tb onb" data-d="HBP">HBP<small>hit by pitch</small></button><button type="button" class="tb onb" data-d="E">E<small>our error</small></button></div>
+        <div class="tg2"><button type="button" class="tb gold" data-d="R">+ Their run<small>scored</small></button><span></span></div>
+      </div>
+      <div class="actions"><button class="ghost" type="button" id="tkBack">Back</button><button class="ghost" type="button" id="tkStats">See stats</button></div>
+      <p class="hint" id="tkHint"></p>
+    </div>
+  </section>
 
   <!-- BATTING -->
   <section id="v-bat">
@@ -761,6 +843,7 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
       <div class="restot" id="resTot"></div>
       <div class="reskey"><span><i class="rc onb">Hit</i>Reached base</span><span><i class="rc out">K</i>Out</span><span>HBP = hit by pitch</span></div>
       <ul class="reslist" id="resList"></ul>
+      <div id="advStats" hidden></div>
       <div id="resGameTools" style="display:flex;flex-direction:column;gap:8px"><button class="ghost" type="button" id="resSave" style="padding:12px">Save this game to the season</button><p class="hint" id="resSaved" style="margin:0"></p></div>
       <div class="bench herebox coll" data-coll="gamelog">
         <button type="button" class="herehead" aria-expanded="false"><span><span class="lbl">Game log</span><span class="sum" id="logSum"></span></span><span class="pmicon" aria-hidden="true">+</span></button>
@@ -777,8 +860,9 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     <h2 id="tsTitle">Team settings</h2>
     <div class="form"><label>Team name<input id="tsName" type="text" maxlength="24" autocomplete="off"></label><label>Home field<input id="tsHome" type="text" maxlength="110" autocomplete="off" placeholder="Park name and address"></label><label>Fields at the park<input id="tsNF" type="number" min="0" max="12" step="1" placeholder="0"></label><label>Standings link (SE Tourney)<input id="tsLgSt" type="url" maxlength="400" placeholder="Paste your SE Tourney link" autocomplete="off"></label><label>Schedule link (GameChanger)<input id="tsLgSch" type="url" maxlength="400" placeholder="Paste your GameChanger team link" autocomplete="off"></label></div>
     <div class="sideset"><span class="lbl">Tee hitters</span><div class="tabs" id="tsTee"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
-    <div class="sideset"><span class="lbl">Track at-bat results</span><div class="tabs" id="tsRes"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
-    <p class="sub" style="margin:-6px 0 0">Adds Hit, Walk, HBP, K and Out buttons under the batter, and an At-bats page at the end.</p>
+    <div class="sideset"><span class="lbl">Tracking</span><div class="tabs" id="tsRes"><button type="button" data-v="0">Off</button><button type="button" data-v="1">Basic</button><button type="button" data-v="2">Full</button></div></div>
+    <p class="sub" style="margin:-6px 0 0" id="tsResNote">Basic adds Hit, Walk, HBP, K and Out buttons under the batter, and an At-bats page at the end. Full is for kid pitch and up: a Track page at the far left with singles through home runs, out types, runners scoring, plays in the field and a pitch counter.</p>
+    <div class="form" id="tsPLRow"><label>Pitch limit per game<input id="tsPL" type="number" min="0" max="150" step="1" placeholder="None" inputmode="numeric"></label></div>
     <div class="sideset" id="tsRbiRow"><span class="lbl">Track RBIs</span><div class="tabs" id="tsRbi"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
     <p class="sub" style="margin:-6px 0 0" id="tsRbiNote">For kid pitch. Adds an RBI button: tap it once per run the batter drives in. It adds the run and credits the last batter. Use + on the Score page for runs on errors, steals or passed balls.</p>
     <div class="form"><label>Main color</label></div><div class="swatches" id="tsC1"></div>
@@ -837,7 +921,7 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     </div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
     <p class="sub" id="acUid" hidden style="margin:0;text-align:center;font-size:11px;cursor:pointer;overflow-wrap:anywhere"></p>
-    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.8</p>
+    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 3.0</p>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -1584,8 +1668,11 @@ function openTeamSheet(){
   $("tsLgSt").value=tsColors.lgSt||tsColors.lgBr||tsColors.league||""; $("tsLgSch").value=tsColors.lgSch||""; drawTsRows(); drawTsRes(); drawTsRbi(); drawTsTee(); $("teamSheet").hidden=false;
 }
 function drawTsTee(){ document.querySelectorAll("#tsTee button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!tsColors.noTee); b.onclick=()=>{ if(b.dataset.v==="0")tsColors.noTee=1; else delete tsColors.noTee; drawTsTee() }}) }
-function drawTsRes(){ document.querySelectorAll("#tsRes button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!!tsColors.res); b.onclick=()=>{ if(b.dataset.v==="1")tsColors.res=1; else {delete tsColors.res; delete tsColors.rbi} drawTsRes(); drawTsRbi() }}) }
-function drawTsRbi(){ document.querySelectorAll("#tsRbi button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!!tsColors.rbi); b.onclick=()=>{ if(b.dataset.v==="1"){tsColors.rbi=1; tsColors.res=1} else delete tsColors.rbi; drawTsRbi(); drawTsRes() }}) }
+function drawTsRes(){ const lv=tsColors.res?(tsColors.adv?"2":"1"):"0";
+  document.querySelectorAll("#tsRes button").forEach(b=>{b.setAttribute("aria-selected",b.dataset.v===lv); b.onclick=()=>{ const v=b.dataset.v; if(v==="0"){delete tsColors.res; delete tsColors.rbi; delete tsColors.adv} else if(v==="1"){tsColors.res=1; delete tsColors.adv} else {tsColors.res=1; tsColors.adv=1} drawTsRes(); drawTsRbi() }});
+  $("tsRbiRow").hidden=lv==="2"; $("tsRbiNote").hidden=lv==="2"; $("tsPLRow").hidden=lv!=="2";
+  $("tsPL").value=tsColors.pl||""; $("tsPL").oninput=e=>{ const n=parseInt(e.target.value,10); if(n>0)tsColors.pl=Math.min(n,150); else delete tsColors.pl } }
+function drawTsRbi(){ document.querySelectorAll("#tsRbi button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!!tsColors.rbi); b.onclick=()=>{ if(b.dataset.v==="1"){tsColors.rbi=1; tsColors.res=1} else delete tsColors.rbi; drawTsRbi(); if(!$("tsRbiRow").hidden)drawTsRes() }}) }
 function drawTsRows(){
   const box=$("tsRows"); box.innerHTML="";
   tsRows.forEach((r,i)=>{ if(r.hidden)return;
@@ -1994,12 +2081,18 @@ async function makeTeamIcon(){
 
 
 /* ---------- 2.5: at-bat results ---------- */
-const RES={H:{l:"Hit",on:1,say:"hit"},BB:{l:"Walk",on:1,say:"walk"},HBP:{l:"HBP",on:1,say:"hit by pitch"},K:{l:"K",on:0,say:"strikeout"},O:{l:"Out",on:0,say:"out"}};
+const RES={H:{l:"Hit",on:1,hit:1,tb:1,say:"hit"},BB:{l:"Walk",on:1,say:"walk"},HBP:{l:"HBP",on:1,say:"hit by pitch"},K:{l:"K",on:0,say:"strikeout"},O:{l:"Out",on:0,say:"out"}};
+Object.assign(RES,{"1B":{l:"1B",on:1,hit:1,tb:1,say:"single"},"2B":{l:"2B",on:1,hit:1,tb:2,say:"double"},"3B":{l:"3B",on:1,hit:1,tb:3,say:"triple"},HR:{l:"HR",on:1,hit:1,tb:4,say:"home run"},
+  E:{l:"E",on:1,say:"reached on an error"},FC:{l:"FC",on:1,outs:1,say:"fielder's choice"},KL:{l:"KL",on:0,k:1,say:"strikeout looking"},GO:{l:"GO",on:0,say:"ground out"},FO:{l:"FO",on:0,say:"fly out"},
+  LO:{l:"LO",on:0,say:"line out"},PO:{l:"PO",on:0,say:"pop out"},SAC:{l:"SAC",on:0,say:"sacrifice"},DP:{l:"DP",on:0,outs:2,say:"double play"}}); RES.K.k=1;
+const outsOf=r=>RES[r]?(RES[r].outs!=null?RES[r].outs:(RES[r].on?0:1)):0;
+const isAB=r=>!!RES[r]&&!["BB","HBP","SAC"].includes(r);
 const resOn=()=>!!(TEAM.colors&&TEAM.colors.res);
-const rbiOn=()=>resOn()&&!!TEAM.colors.rbi;
+const advOn=()=>resOn()&&!!TEAM.colors.adv;
+const rbiOn=()=>resOn()&&!!TEAM.colors.rbi&&!TEAM.colors.adv;
 const rbiN=list=>list.reduce((t,e)=>t+(e.rbi|0),0);
 function resMode(){
-  const on=resOn(); $("resRow").hidden=!on; $("t-res").hidden=!on; $("rbiBtn").hidden=!rbiOn(); document.body.classList.toggle("rbi-on",rbiOn());
+  const on=resOn(); try{trkMode()}catch(e){} $("resRow").hidden=!on; $("t-res").hidden=!on; $("rbiBtn").hidden=!rbiOn(); document.body.classList.toggle("rbi-on",rbiOn());
   const dot=document.querySelector('.pagedots [data-tab="res"]'); if(dot)dot.hidden=!on;
   const i=TABS.indexOf("res");
   if(on&&i<0)TABS.push("res");
@@ -2010,10 +2103,11 @@ function recordResult(r){
   ensureBatting();
   const A=act(); if(!A.length)return; const pid=A[bat.count%A.length];
   if(!usBat()){ setHalf(1); toast((TEAM.name||"We")+" batting · "+(sc.top?"Top ":"Bottom ")+sc.inning) }
-  sc.ab=Array.isArray(sc.ab)?sc.ab:[]; sc.ab.push({p:pid,r,n:bat.count,i:sc.inning,t:sc.top});
-  const isOut=!RES[r].on;
-  if(isOut){ $("outPlus").click() } else saveScore();
+  sc.ab=Array.isArray(sc.ab)?sc.ab:[]; const ent={p:pid,r,n:bat.count,i:sc.inning,t:sc.top}; if(window.__tkLoc)ent.loc=window.__tkLoc; sc.ab.push(ent);
+  if(r==="HR"){ ent.scored=1; ent.rbi=1; ent.dr=[sc.ab.length-1]; sc.us++; sc.hr++ }
+  const no=outsOf(r), isOut=no>0, hi=sc.inning, ht=sc.top;
   $("go").click();
+  if(isOut){ for(let k=0;k<no;k++) if(sc.inning===hi&&sc.top===ht) $("outPlus").click() } else saveScore();
   try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}
   if(!(isOut&&sc.outs===0)) toast(first(pid)+": "+RES[r].l);
   renderResults();
@@ -2031,27 +2125,29 @@ function recordRBI(){
 $("rbiBtn").onclick=recordRBI;
 { const prevUndo=$("undo").onclick;
   $("undo").onclick=()=>{ const ab=Array.isArray(sc.ab)?sc.ab:[], last=ab[ab.length-1];
-    if(last&&last.n===bat.count-1){ ab.pop(); for(let k=0;k<(last.rbi|0);k++)subRun(true);
-      if(!RES[last.r].on){ if(sc.outs>0)sc.outs--; else if(typeof last.t==="boolean"&&(sc.top!==last.t||sc.inning!==last.i)){ setHalf(-1); sc.outs=2 } }
+    if(last&&last.n===bat.count-1){ ab.pop(); for(let k=0;k<(last.rbi|0);k++)subRun(true); (last.dr||[]).forEach(j=>{if(ab[j])delete ab[j].scored});
+      const no=outsOf(last.r); if(no){ if(typeof last.t==="boolean"&&(sc.top!==last.t||sc.inning!==last.i)){ setHalf(-1); sc.outs=Math.max(0,3-no) } else sc.outs=Math.max(0,(sc.outs||0)-no) }
       saveScore(); renderResults() }
     prevUndo() } }
 let resView=(()=>{try{return localStorage.getItem("bd-resview")||"game"}catch(e){return "game"}})();
 const isoDay=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 function archiveGame(force){
-  const ab=Array.isArray(sc.ab)?sc.ab:[]; if(!ab.length&&!force)return null;
+  const ab=Array.isArray(sc.ab)?sc.ab:[]; if(!ab.length&&!(Array.isArray(sc.def)&&sc.def.length)&&!force)return null;
   let g=sc.archId?sched.find(x=>x.id===sc.archId):null;
   if(!g){ const now=new Date(), today=isoDay(now), yest=isoDay(new Date(now.getTime()-86400000));
     const cands=sched.filter(x=>!isT(x)&&!isPrac(x)&&!x.box&&(x.date===today||x.date===yest)).sort((a,b)=>(gDate(b)||0)-(gDate(a)||0));
     g=cands.find(x=>x.date===today&&(!gDate(x)||gDate(x)<=new Date(now.getTime()+3600000)))||cands.find(x=>x.date===today)||cands[0]||null;
     if(!g){ g={id:Math.random().toString(36).slice(2,10),kind:"game",auto:1,date:today,time:"",opp:sc.opp||"",loc:"",home:sc.weTop?"away":"home",arrive:null,fieldNo:0}; sched.push(g) } }
-  g.box={ab:ab.map(e=>({n:(LINEUP[e.p]||["Player"])[0],r:e.r,i:e.i,...(e.rbi?{rbi:e.rbi}:{})})),us:sc.us||0,them:sc.them||0};
+  g.box={ab:ab.map(e=>({n:(LINEUP[e.p]||["Player"])[0],r:e.r,i:e.i,...(e.rbi?{rbi:e.rbi}:{}),...(e.scored?{sc:1}:{}),...(e.loc?{loc:e.loc}:{})})),...advBox(),us:sc.us||0,them:sc.them||0};
   if(!g.res&&(sc.us||sc.them)&&sc.us!==sc.them)g.res=sc.us>sc.them?"W":"L";
   sc.archId=g.id; store(K_SCORE,sc); saveSched(); return g;
 }
 function gLabel(g){const d=gDate(g); return (d?d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"Game")+(g.opp?" vs "+g.opp:"")}
-function statLine(list){ const h=list.filter(e=>e.r==="H").length, abN=list.filter(e=>e.r==="H"||e.r==="K"||e.r==="O").length, bb=list.filter(e=>e.r==="BB").length, hbp=list.filter(e=>e.r==="HBP").length, k=list.filter(e=>e.r==="K").length;
+function statLine(list){ const h=list.filter(e=>RES[e.r]&&RES[e.r].hit).length, abN=list.filter(e=>isAB(e.r)).length, bb=list.filter(e=>e.r==="BB").length, hbp=list.filter(e=>e.r==="HBP").length, k=list.filter(e=>e.r==="K").length;
   const rb=rbiN(list); return [abN?h+" for "+abN:"",bb?bb+(bb>1?" walks":" walk"):"",hbp?hbp+" HBP":"",rb?rb+" RBI":"",k&&resView==="season"?k+" K":""].filter(Boolean).join(" · ") }
 function renderTotals(entries){ const cnt=k=>entries.filter(e=>e.r===k).length;
+  if(advOn()){ const has=f=>entries.filter(e=>RES[e.r]&&f(RES[e.r],e.r)).length;
+    $("resTot").innerHTML=[[has(x=>x.hit),"Hits"],[has((x,r)=>r==="2B"||r==="3B"||r==="HR"),"XBH"],[has((x,r)=>r==="BB"||r==="HBP"),"BB+HBP"],[has(x=>x.k),"K"],[entries.filter(e=>e.sc||e.scored).length,"Runs"],[rbiN(entries),"RBI"]].map(([n,l])=>`<div><b>${n}</b><span>${l}</span></div>`).join(""); return }
   $("resTot").innerHTML=[["H","Hits"],["BB","Walks"],["HBP","HBP"],["K","K"],["O","Outs"]].map(([k,l])=>`<div><b>${cnt(k)}</b><span>${l}</span></div>`).join("")+(rbiOn()?`<div><b>${rbiN(entries)}</b><span>RBI</span></div>`:"") }
 let resArm=null, logArm=null;
 function renderResults(){
@@ -2080,7 +2176,7 @@ function renderResults(){
     $("resSave").disabled=!ab.length; $("resSave").textContent=sg?"Update saved game":"Save this game to the season";
     $("resSaved").textContent=sg?"Saved to "+gLabel(sg)+". New results save again when you tap New game.":(ab.length?"":"Results appear here as you record them.");
   } else {
-    const cur=sc.archId?[]:ab.map(e=>({n:(LINEUP[e.p]||["Player"])[0],r:e.r,rbi:e.rbi|0}));
+    const cur=sc.archId?[]:ab.map(e=>({n:(LINEUP[e.p]||["Player"])[0],r:e.r,rbi:e.rbi|0,sc:e.scored?1:0}));
     const all=[...logged.flatMap(g=>g.box.ab||[]),...cur]; renderTotals(all);
     const by={}; all.forEach(e=>{(by[e.n]=by[e.n]||[]).push(e)});
     const names=[...LINEUP.filter((x,i)=>!x[2]&&!isGuest(i)).map(x=>x[0]),...Object.keys(by)].filter((n,i,a)=>a.indexOf(n)===i&&(by[n]||LINEUP.some(x=>x[0]===n&&!x[2])));
@@ -2093,12 +2189,170 @@ function renderResults(){
   logged.forEach(g=>{ const r=document.createElement("div"); r.className="logrow"; const box=g.box, a=box.ab||[], cnt=k=>a.filter(e=>e.r===k).length;
     r.innerHTML='<div class="lt"><b></b><span></span></div><button type="button"></button>';
     r.querySelector("b").textContent=gLabel(g)+(g.res?" · "+g.res+((box.us||box.them)?" "+box.us+"-"+box.them:""):"");
-    const pl=(n,w)=>n+" "+w+(n===1?"":"s"); r.querySelector("span").textContent=[pl(cnt("H"),"hit"),pl(cnt("BB"),"walk"),cnt("K")+" K",rbiN(a)?rbiN(a)+" RBI":""].filter(Boolean).join(" · ");
+    const pl=(n,w)=>n+" "+w+(n===1?"":"s"); r.querySelector("span").textContent=[pl(a.filter(e=>RES[e.r]&&RES[e.r].hit).length,"hit"),pl(cnt("BB"),"walk"),cnt("K")+" K",rbiN(a)?rbiN(a)+" RBI":""].filter(Boolean).join(" · ");
     const b=r.querySelector("button"); b.textContent=logArm===g.id?"Tap again":"Delete"; if(logArm===g.id)b.classList.add("arm");
     b.onclick=()=>{ if(logArm!==g.id){logArm=g.id; renderResults(); setTimeout(()=>{if(logArm===g.id){logArm=null;renderResults()}},3000); return}
       logArm=null; if(g.auto)sched=sched.filter(x=>x.id!==g.id); else delete g.box; if(sc.archId===g.id){delete sc.archId; store(K_SCORE,sc)} saveSched(); renderResults(); toast("Game stats deleted") };
     LL.appendChild(r) });
 }
+
+/* ---------- 3.0: full tracking (Track page) ---------- */
+const DEF={K:{l:"K",outs:1},GO:{l:"GO",outs:1},FO:{l:"FO",outs:1},LO:{l:"LO",outs:1},PO:{l:"PO",outs:1},TAG:{l:"Tag",outs:1},FRC:{l:"Force",outs:1},DP:{l:"DP",outs:2},O:{l:"Out",outs:1},
+  H:{l:"Hit",on:1},BB:{l:"BB",on:1},HBP:{l:"HBP",on:1},E:{l:"E",on:1},R:{l:"Run"}};
+let tkSel=[];
+function dInit(){ if(!Array.isArray(sc.def))sc.def=[]; if(!sc.pc||typeof sc.pc!=="object")sc.pc={}; if(!sc.cnt||typeof sc.cnt!=="object")sc.cnt={b:0,s:0}; if(!Array.isArray(sc.dlog))sc.dlog=[]; if(sc.dlog.length>300)sc.dlog=sc.dlog.slice(-300) }
+const fInn=()=>inn(Math.min(sc.inning,INNINGS));
+const pnm=p=>p==null||!LINEUP[p]?"Unknown":LINEUP[p][0];
+function trkMode(){
+  const on=advOn(); document.body.classList.toggle("adv-on",on);
+  $("t-trk").hidden=!on; const dot=document.querySelector('.pagedots [data-tab="trk"]'); if(dot)dot.hidden=!on;
+  const i=TABS.indexOf("trk");
+  if(on&&i<0)TABS.unshift("trk");
+  if(!on&&i>=0){ const here=!$("v-trk").hidden; TABS.splice(i,1); $("v-trk").hidden=true; if(here)showTab("bat") }
+  $("t-res").textContent=on?"Stats":"At-bats"; const rd=document.querySelector('.pagedots [data-tab="res"]'); if(rd)rd.setAttribute("aria-label",on?"Stats":"At-bats");
+  if(on){ $("resRow").hidden=true; renderTrack() }
+}
+function ensureFielding(){ if(!usBat())return; sc.weTop=!sc.top; toast((TEAM.name||"We")+" in the field") }
+function pitchKey(){ const p=fInn().P; return p==null?"?":String(p) }
+function pitchWarn(k){ const L=TEAM.colors&&TEAM.colors.pl, n=sc.pc[k]||0; if(!L||k==="?")return;
+  if(n===L-10)toast(first(+k)+": "+n+" pitches, 10 left"); else if(n===L)toast(first(+k)+" reached the "+L+" pitch limit"); }
+function tkPitch(kind){
+  ensureFielding(); dInit(); const k=pitchKey(), prev={...sc.cnt};
+  sc.pc[k]=(sc.pc[k]||0)+1; sc.dlog.push({k:"p",p:k,c:prev});
+  if(kind==="B")sc.cnt.b++; else if(kind==="S")sc.cnt.s++; else if(kind==="F"&&sc.cnt.s<2)sc.cnt.s++;
+  try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}
+  pitchWarn(k);
+  if(sc.cnt.b>=4){ tkDef("BB",{auto:prev}); toast("Ball four · walk") }
+  else if(sc.cnt.s>=3){ tkDef("K",{auto:prev}); toast("Strike three") }
+  else saveScore();
+}
+function tkDef(t,o){
+  o=o||{}; ensureFielding(); dInit(); const m=fInn(), k=pitchKey();
+  const e={t,f:tkSel.map(x=>m[x]).filter(x=>x!=null),fk:tkSel.slice(),p:m.P!=null?m.P:null,ct:m.C!=null?m.C:null,i:sc.inning,top:sc.top,pk:k,pd:0,c:o.auto||{...sc.cnt}};
+  if(t==="R"){ e.f=[]; e.fk=[] }
+  if(o.auto)e.auto=1; else if(t!=="R"){ sc.pc[k]=(sc.pc[k]||0)+1; e.pd=1; pitchWarn(k) }
+  if(t!=="R")sc.cnt={b:0,s:0};
+  sc.def.push(e); sc.dlog.push({k:"e"}); tkSel=[];
+  try{navigator.vibrate&&navigator.vibrate(10)}catch(e2){}
+  if(t==="R"){ addRun(false); renderTrack(); return }
+  const no=DEF[t].outs||0, hi=sc.inning, ht=sc.top;
+  if(no){ for(let j=0;j<no;j++) if(sc.inning===hi&&sc.top===ht) $("outPlus").click() } else saveScore();
+  if(!o.auto&&!(no&&sc.outs===0)) toast(DEF[t].l+(e.fk.length?" "+e.fk.join("-"):""));
+  renderTrack();
+}
+function tkUndoDef(){
+  dInit(); const L=sc.dlog.pop(); if(!L){toast("Nothing to undo");return}
+  if(L.k==="p"){ sc.pc[L.p]=Math.max(0,(sc.pc[L.p]||0)-1); sc.cnt=L.c; saveScore(); toast("Pitch removed"); return }
+  const e=sc.def.pop(); if(!e){saveScore();return}
+  if(e.t==="R"){ subRun(false); toast("Run removed"); renderTrack(); return }
+  if(e.pd)sc.pc[e.pk]=Math.max(0,(sc.pc[e.pk]||0)-1);
+  const no=DEF[e.t].outs||0;
+  if(no){ if(sc.top!==e.top||sc.inning!==e.i){ setHalf(-1); sc.outs=Math.max(0,3-no) } else sc.outs=Math.max(0,(sc.outs||0)-no) }
+  sc.cnt=e.c||{b:0,s:0};
+  if(e.auto){ const P=sc.dlog[sc.dlog.length-1]; if(P&&P.k==="p"){ sc.dlog.pop(); sc.pc[P.p]=Math.max(0,(sc.pc[P.p]||0)-1); sc.cnt=P.c } }
+  saveScore(); toast(DEF[e.t].l+" removed"); renderTrack();
+}
+function tkRunners(){ const ab=Array.isArray(sc.ab)?sc.ab:[]; const out=[];
+  ab.forEach((e,idx)=>{ if(e.i===sc.inning&&e.t===sc.top&&RES[e.r]&&RES[e.r].on&&!e.scored)out.push(idx) }); return out.slice(-3) }
+function tkScore(idx){
+  ensureBatting(); const ab=Array.isArray(sc.ab)?sc.ab:[]; const last=ab[ab.length-1], half=last&&last.i===sc.inning&&last.t===sc.top;
+  if(idx!=null&&ab[idx])ab[idx].scored=1;
+  const rbi=$("tkRbi").checked&&half;
+  if(rbi){ last.rbi=(last.rbi|0)+1; if(idx!=null)(last.dr=last.dr||[]).push(idx) }
+  const who=idx!=null&&ab[idx]?first(ab[idx].p)+" scores":"Run scores";
+  addRun(true); toast(who+(rbi?" · RBI "+first(last.p):""));
+  try{navigator.vibrate&&navigator.vibrate(10)}catch(e){} renderTrack(); renderResults();
+}
+function advBox(){ if(!advOn()&&!(Array.isArray(sc.def)&&sc.def.length))return {}; dInit();
+  const pc={}; Object.keys(sc.pc).forEach(k=>{ pc[k==="?"?"Unknown":pnm(+k)]=sc.pc[k] });
+  return {def:sc.def.map(e=>({t:e.t,f:e.f.map(pnm),p:e.p!=null?pnm(e.p):null,ct:e.ct!=null?pnm(e.ct):null})),pc} }
+function renderTrack(){
+  if(!$("v-trk")||!advOn())return; dInit();
+  const ub=usBat(), o=Math.min(sc.outs||0,3);
+  $("tkHalf").textContent=(sc.top?"Top ":"Bot ")+sc.inning;
+  $("tkDots").querySelectorAll("i").forEach((d,k)=>d.classList.toggle("on",k<o));
+  $("tkStrip").classList.toggle("two",o===2);
+  $("tkScore").innerHTML="<small>Us-Them</small>"+(sc.us||0)+"-"+(sc.them||0);
+  $("tkFlip").textContent=ub?"Switch to fielding":"Switch to batting";
+  $("tkOff").hidden=!ub; $("tkDef").hidden=ub; $("tkPitch").hidden=ub;
+  const m=fInn();
+  if(ub){ const A=act(); const pid=A.length?A[bat.count%A.length]:null, nx=A.length>1?A[(bat.count+1)%A.length]:null;
+    $("tkWho").innerHTML=""; const b=document.createElement("b"); b.textContent=pid!=null?LINEUP[pid][0]:"No batters"; $("tkWho").append("At bat",b); if(nx!=null)$("tkWho").append("On deck: "+LINEUP[nx][0]);
+    $("tkSelL").textContent="Where it went"; if(tkSel.length>1)tkSel=tkSel.slice(-1);
+    const R2=$("tkRunners"); R2.innerHTML=""; const rs=tkRunners();
+    if(!rs.length){ const n=document.createElement("span"); n.className="none"; n.textContent="Nobody on base"; R2.appendChild(n) }
+    rs.forEach(idx=>{ const bt=document.createElement("button"); bt.type="button"; bt.textContent=first(sc.ab[idx].p)+" scored"; bt.onclick=()=>tkScore(idx); R2.appendChild(bt) });
+    const ab=sc.ab||[], last=ab[ab.length-1], half=last&&last.i===sc.inning&&last.t===sc.top;
+    $("tkRbiL").textContent=half?"RBI to "+first(last.p):"RBI to the batter"; $("tkRbi").disabled=!half;
+    $("tkHint").textContent="Optional: tap where the ball went on the field first. Then tap the result. The batter moves up automatically.";
+  } else {
+    const p=m.P; $("tkWho").innerHTML=""; const b=document.createElement("b"); b.textContent=p!=null?LINEUP[p][0]:"Set a pitcher on the Field page"; $("tkWho").append("Pitching",b);
+    const k=pitchKey(), n=sc.pc[k]||0, L=TEAM.colors.pl;
+    $("tkCnt").textContent=(sc.cnt.b||0)+"-"+(sc.cnt.s||0); $("tkPc").textContent=n; $("tkPcL").textContent=L?"of "+L+" pitches":"pitches";
+    $("tkPcWrap").classList.toggle("near",!!L&&n>=L-10&&n<L); $("tkPcWrap").classList.toggle("over",!!L&&n>=L);
+    $("tkSelL").textContent="Who made the play";
+    $("tkHint").textContent="Tap the fielders in order (SS then 1B for a 6-3), then tap the result. Ball four and strike three record themselves.";
+  }
+  $("tkSel").textContent=tkSel.length?tkSel.join(ub?"":" → "):(ub?"Optional":"Tap fielders on the field");
+  $("tkSel").style.color=tkSel.length?"":"var(--muted)"; $("tkSelX").hidden=!tkSel.length;
+  const g=$("tkMarkers"); g.innerHTML="";
+  curPOS().forEach(po=>{ const pid=m[po.k], has=pid!=null&&!ub, si=tkSel.indexOf(po.k);
+    const mk=document.createElementNS(SVGNS,"g"); mk.setAttribute("class","mk "+grp(po.k)+(has||ub?"":" empty")+(si>=0?" sel":""));
+    mk.setAttribute("role","button"); mk.setAttribute("tabindex","0"); mk.setAttribute("aria-label",po.n+(has?": "+LINEUP[pid][0]:""));
+    mk.innerHTML=`<rect x="${po.x-37}" y="${po.y-17}" width="74" height="34" rx="8"/><text class="ab" x="${po.x}" y="${po.y-4}" text-anchor="middle">${po.k}</text><text class="nm" x="${po.x}" y="${po.y+11}" text-anchor="middle"></text>${si>=0&&!ub?`<text class="ord" x="${po.x+30}" y="${po.y-20}" text-anchor="middle">${si+1}</text>`:""}`;
+    mk.querySelector(".nm").textContent=ub?({P:"Mound",C:"Plate","1B":"1st","2B":"2nd","3B":"3rd",SS:"Short",LF:"Left",LCF:"L-Ctr",CF:"Center",RCF:"R-Ctr",RF:"Right"}[po.k]||po.k):(has?first(pid):"Empty");
+    mk.onclick=()=>{ if(ub){ tkSel=si>=0?[]:[po.k] } else { if(si>=0&&si===tkSel.length-1)tkSel.pop(); else tkSel.push(po.k) } renderTrack() };
+    g.appendChild(mk) });
+  window.__tkLoc=ub&&tkSel.length?tkSel[0]:null;
+}
+document.querySelectorAll("#tkOff [data-r]").forEach(b=>b.onclick=()=>{ recordResult(b.dataset.r); tkSel=[]; window.__tkLoc=null;
+  const ab=sc.ab||[], last=ab[ab.length-1]; $("tkRbi").checked=!!last&&!["E","DP","K","KL"].includes(last.r); renderTrack() });
+document.querySelectorAll("#tkDef [data-d]").forEach(b=>b.onclick=()=>tkDef(b.dataset.d));
+document.querySelectorAll("#tkPitch [data-pt]").forEach(b=>b.onclick=()=>tkPitch(b.dataset.pt));
+$("tkSelX").onclick=()=>{tkSel=[];renderTrack()};
+$("tkRunX").onclick=()=>tkScore(null);
+$("tkFlip").onclick=()=>{ sc.weTop=usBat()?!sc.top:sc.top; tkSel=[]; saveScore() };
+$("tkBack").onclick=()=>{ if(usBat())$("undo").click(); else tkUndoDef(); renderTrack() };
+$("tkStats").onclick=()=>showTab("res");
+{ const _rS3=renderScore; renderScore=function(){ _rS3(); try{renderTrack()}catch(e){} } }
+{ const _rB3=renderBat; renderBat=function(){ _rB3(); try{renderTrack()}catch(e){} } }
+{ const _rF3=renderField; renderField=function(){ _rF3(); try{renderTrack()}catch(e){} } }
+
+/* stats tables */
+const f3=x=>isFinite(x)?(x>=1?x.toFixed(3):x.toFixed(3).replace(/^0/,"")):"-";
+function statTables(bats,defs,pcs){
+  const B={}; bats.forEach(e=>{ const x=B[e.n]=B[e.n]||{ab:0,h:0,d:0,t:0,hr:0,bb:0,k:0,r:0,rbi:0,sf:0,tb:0}; const R2=RES[e.r]; if(!R2)return;
+    if(isAB(e.r))x.ab++; if(R2.hit){x.h++;x.tb+=R2.tb||1} if(e.r==="2B")x.d++; if(e.r==="3B")x.t++; if(e.r==="HR")x.hr++; if(e.r==="BB"||e.r==="HBP")x.bb++; if(e.r==="SAC")x.sf++; if(R2.k)x.k++; if(e.sc||e.scored)x.r++; x.rbi+=e.rbi|0 });
+  const D={}, P={}; const dd=n=>D[n]=D[n]||{po:0,a:0,e:0,dp:0}, pp=n=>P[n]=P[n]||{pc:0,o:0,k:0,bb:0,h:0,r:0};
+  defs.forEach(e=>{ const f=e.f||[]; const T=DEF[e.t]; if(!T)return;
+    if(e.p){ const x=pp(e.p); x.o+=T.outs||0; if(e.t==="K")x.k++; if(e.t==="BB"||e.t==="HBP")x.bb++; if(e.t==="H")x.h++; if(e.t==="R")x.r++ }
+    if(e.t==="K"&&e.ct)dd(e.ct).po++;
+    else if(e.t==="E"){ if(f[0])dd(f[0]).e++ }
+    else if(T.outs&&f.length){ f.forEach((n,k)=>{ if(k<f.length-1)dd(n).a++ }); dd(f[f.length-1]).po++; if(e.t==="DP"){ if(f.length>=3)dd(f[1]).po++; [...new Set(f)].forEach(n=>dd(n).dp++) } } });
+  Object.keys(pcs||{}).forEach(n=>{ pp(n).pc+=pcs[n] });
+  const tbl=(head,rows)=>`<div class="stwrap"><table class="sttab"><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr>${rows.join("")}</table></div>`;
+  const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  let html="";
+  const bn=Object.keys(B); if(bn.length){ const tot={ab:0,h:0,d:0,t:0,hr:0,bb:0,k:0,r:0,rbi:0,sf:0,tb:0}; bn.forEach(n=>Object.keys(tot).forEach(k=>tot[k]+=B[n][k]));
+    const row=(n,x,c)=>`<tr${c?' class="tot"':''}><td>${esc(n)}</td><td>${x.ab}</td><td>${x.h}</td><td>${x.d}</td><td>${x.t}</td><td>${x.hr}</td><td>${x.r}</td><td>${x.rbi}</td><td>${x.bb}</td><td>${x.k}</td><td>${x.ab?f3(x.h/x.ab):"-"}</td><td>${(x.ab+x.bb+x.sf)?f3((x.h+x.bb)/(x.ab+x.bb+x.sf)):"-"}</td><td>${x.ab?f3(x.tb/x.ab):"-"}</td></tr>`;
+    html+=`<span class="lbl">Batting</span>`+tbl(["","AB","H","2B","3B","HR","R","RBI","BB","K","AVG","OBP","SLG"],[...bn.map(n=>row(n,B[n])),row("Team",tot,1)]) }
+  const dn=Object.keys(D).filter(n=>n!=="Unknown"); if(dn.length) html+=`<span class="lbl">Fielding</span>`+tbl(["","PO","A","E","DP"],dn.map(n=>`<tr><td>${esc(n)}</td><td>${D[n].po}</td><td>${D[n].a}</td><td>${D[n].e}</td><td>${D[n].dp}</td></tr>`));
+  const pn=Object.keys(P); if(pn.length) html+=`<span class="lbl">Pitching</span>`+tbl(["","Pitches","IP","K","BB","H","R"],pn.map(n=>`<tr><td>${esc(n)}</td><td>${P[n].pc}</td><td>${Math.floor(P[n].o/3)}.${P[n].o%3}</td><td>${P[n].k}</td><td>${P[n].bb}</td><td>${P[n].h}</td><td>${P[n].r}</td></tr>`));
+  return html||`<p class="hint" style="margin:0">Stats show up here as you track on the Track page.</p>`;
+}
+function renderAdvStats(){
+  const box=$("advStats"); if(!box)return; box.hidden=!advOn(); if(!advOn())return; dInit();
+  const ab=Array.isArray(sc.ab)?sc.ab:[];
+  const curB=ab.map(e=>({n:pnm(e.p),r:e.r,rbi:e.rbi|0,sc:e.scored?1:0})), cb=advBox();
+  if(resView==="game"){ box.innerHTML=statTables(curB,cb.def||[],cb.pc||{}); return }
+  const logged=sched.filter(g=>!isT(g)&&g.box), pcs={};
+  const bats=[...logged.flatMap(g=>g.box.ab||[]),...(sc.archId?[]:curB)], defs=[...logged.flatMap(g=>g.box.def||[]),...(sc.archId?[]:(cb.def||[]))];
+  [...logged.map(g=>g.box.pc||{}),sc.archId?{}:(cb.pc||{})].forEach(o=>Object.keys(o).forEach(n=>pcs[n]=(pcs[n]||0)+o[n]));
+  box.innerHTML=statTables(bats,defs,pcs);
+}
+{ const _rR=renderResults; renderResults=function(){ _rR(); try{renderAdvStats()}catch(e){} } }
+trkMode(); try{ if(advOn()&&load(K_TAB,"bat")==="trk")showTab("trk") }catch(e){}
+
 $("resSave").onclick=()=>{ const g=archiveGame(); if(g){toast("Saved to "+gLabel(g)); renderResults()} };
 { const _aT=applyTeam; applyTeam=function(){ _aT(); try{resMode()}catch(e){} try{document.body.classList.toggle("no-tee",!!(TEAM.colors&&TEAM.colors.noTee)); renderBat()}catch(e){} } }
 { const _rS=renderScore; renderScore=function(){ _rS(); try{renderResults()}catch(e){} } }
@@ -2140,6 +2394,8 @@ function runRemote(act){
   const map={hit:"H",single:"H",walk:"BB",bb:"BB",hbp:"HBP",k:"K",strikeout:"K"};
   if(act==="next"||act==="batted"){ $("go").click(); say("next batter") }
   else if(act==="back"||act==="undo"){ $("undo").click(); say("back") }
+  else if(["ball","strike","foul"].includes(act)&&advOn()){ tkPitch(act[0].toUpperCase()); say(act) }
+  else if(act==="out"&&advOn()&&!usBat()){ tkDef("O"); say("out") }
   else if(act==="out"){ if(resOn()){ recordResult("O") } else { $("osOut").click() } say("out") }
   else if(map[act]){ if(resOn()){ recordResult(map[act]); say(RES[map[act]].l) } else if(map[act]==="K"){ $("go").click(); $("osOut").click(); say("strikeout") } else { $("go").click(); say("next batter") } }
   else if(act==="rbi"){ if(rbiOn()){ recordRBI(); say("RBI") } else { $("usPlus").click(); say("run") } }
