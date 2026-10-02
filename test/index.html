@@ -1716,7 +1716,7 @@ function drawTsRows(){
 }
 function closeTeamSheet(){$("teamSheet").hidden=true; applyTheme(TEAM.colors||CLASSIC)}
 $("tsCancel").onclick=closeTeamSheet; $("tsScrim").onclick=closeTeamSheet;
-$("tsAddRow").onclick=()=>{tsRows.push({id:null,name:"",num:"",hidden:false});drawTsRows();const ins=$("tsRows").querySelectorAll(".rrow input[type=text]");ins[ins.length-2]&&ins[ins.length-2].focus()};
+$("tsAddRow").onclick=()=>{tsRows.push({id:null,pk:null,name:"",num:"",hidden:false,guest:false,avoid:[],open:false});drawTsRows();const ins=$("tsRows").querySelectorAll(".rrow input[type=text]");ins[ins.length-2]&&ins[ins.length-2].focus()};
 $("tsSave").onclick=async()=>{
   const name=$("tsName").value.trim()||"Team";
   const hf=$("tsHome").value.trim(); if(hf!==homeField){homeField=hf; store(K_HOME,hf)}

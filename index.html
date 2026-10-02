@@ -837,7 +837,7 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     </div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
     <p class="sub" id="acUid" hidden style="margin:0;text-align:center;font-size:11px;cursor:pointer;overflow-wrap:anywhere"></p>
-    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.8.2</p>
+    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.8.3</p>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -1603,7 +1603,7 @@ function drawTsRows(){
 }
 function closeTeamSheet(){$("teamSheet").hidden=true; applyTheme(TEAM.colors||CLASSIC)}
 $("tsCancel").onclick=closeTeamSheet; $("tsScrim").onclick=closeTeamSheet;
-$("tsAddRow").onclick=()=>{tsRows.push({id:null,name:"",num:"",hidden:false});drawTsRows();const ins=$("tsRows").querySelectorAll(".rrow input[type=text]");ins[ins.length-2]&&ins[ins.length-2].focus()};
+$("tsAddRow").onclick=()=>{tsRows.push({id:null,pk:null,name:"",num:"",hidden:false,guest:false,avoid:[],open:false});drawTsRows();const ins=$("tsRows").querySelectorAll(".rrow input[type=text]");ins[ins.length-2]&&ins[ins.length-2].focus()};
 $("tsSave").onclick=async()=>{
   const name=$("tsName").value.trim()||"Team";
   const hf=$("tsHome").value.trim(); if(hf!==homeField){homeField=hf; store(K_HOME,hf)}
