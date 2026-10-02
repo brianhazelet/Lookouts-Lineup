@@ -2188,7 +2188,7 @@ if(TEAM.ref){
   /* 2.6.2: remote commands (Apple Watch / Shortcuts). One phone claims each command with a transaction, so it runs once. */
   { let first=true; const cref=TEAM.ref.child("state/cmd");
     cref.on("value",snap=>{ const v=snap.val(); if(first){first=false;return} if(typeof v!=="string"||!v||v==="done")return;
-      const act=v.trim().split(/\s+/)[0].toLowerCase();
+      const act=((v.trim().toLowerCase().match(/^[a-z]+/))||[""])[0];
       cref.transaction(cur=>cur===v?"done":undefined,(err,ok)=>{ if(err||!ok)return; try{runRemote(act)}catch(e){} },false) }) }
   TEAM.ref.child("colors").on("value",s=>{const v=s.val(); if(typeof v==="string"&&v!==JSON.stringify(TEAM.colors||null)){try{TEAM.colors=JSON.parse(v);applyTeam()}catch(e){}}});
   Object.keys(cur).forEach(n=>TEAM.ref.child("state/"+n).on("value",snap=>{
