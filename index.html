@@ -414,6 +414,10 @@ header h1 .live{flex:none}
 .resrow button small{font:600 10px var(--body);color:var(--muted);letter-spacing:.02em}
 .resrow button.onb{border-color:color-mix(in srgb,var(--red-ink) 55%,var(--line-soft))}
 .resrow button:active{transform:scale(.96)}
+body.rbi-on .resrow{grid-template-columns:repeat(6,1fr);gap:5px}body.rbi-on .resrow button{font-size:15px}body.rbi-on .resrow button small{font-size:9px}
+.resrow button.rbi{border-color:color-mix(in srgb,var(--gold,#e0a800) 70%,var(--line-soft))}
+body.rbi-on .restot{grid-template-columns:repeat(6,1fr)}
+.rc.rbic{border-color:color-mix(in srgb,var(--gold,#e0a800) 70%,var(--line-soft))}
 .reshint{margin:-4px 0 0;color:var(--muted);font-size:12px;text-align:center}
 .rc{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:24px;padding:0 7px;border-radius:7px;font:800 11px var(--body);letter-spacing:.03em}
 .rc.onb{background:var(--red);color:var(--on-red)}
@@ -577,6 +581,7 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
         <button type="button" data-r="HBP" class="onb">HBP<small>hit by pitch</small></button>
         <button type="button" data-r="K">K<small>strikeout</small></button>
         <button type="button" data-r="O">Out<small>any out</small></button>
+        <button type="button" id="rbiBtn" class="rbi" hidden>RBI<small>run scores</small></button>
       </div>
       <p class="locked-note" id="lockNote" hidden>Lineup locked. Tap the lock up top to make changes.</p>
       <ol class="list" id="order"></ol>
@@ -774,6 +779,8 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     <div class="sideset"><span class="lbl">Tee hitters</span><div class="tabs" id="tsTee"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
     <div class="sideset"><span class="lbl">Track at-bat results</span><div class="tabs" id="tsRes"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
     <p class="sub" style="margin:-6px 0 0">Adds Hit, Walk, HBP, K and Out buttons under the batter, and an At-bats page at the end.</p>
+    <div class="sideset" id="tsRbiRow"><span class="lbl">Track RBIs</span><div class="tabs" id="tsRbi"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
+    <p class="sub" style="margin:-6px 0 0" id="tsRbiNote">For kid pitch. Adds an RBI button: tap it once per run the batter drives in. It adds the run and credits the last batter. Use + on the Score page for runs on errors, steals or passed balls.</p>
     <div class="form"><label>Main color</label></div><div class="swatches" id="tsC1"></div>
     <div class="form"><label>Lettering color</label></div><div class="swatches" id="tsC2"></div>
     <h2 style="font-size:20px">Roster</h2>
@@ -830,7 +837,7 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     </div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
     <p class="sub" id="acUid" hidden style="margin:0;text-align:center;font-size:11px;cursor:pointer;overflow-wrap:anywhere"></p>
-    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.7.2</p>
+    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.8</p>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -1574,10 +1581,11 @@ function openTeamSheet(){
   colorPicker($("tsC1"),tsColors.p,v=>{tsColors.p=v;applyTheme(tsColors)});
   colorPicker($("tsC2"),tsColors.s,v=>{tsColors.s=v;applyTheme(tsColors)},true);
   tsRows=LINEUP.map((p,i)=>({id:i,name:p[0],num:p[1],hidden:!!p[2],guest:!!p[3],avoid:[...(AVOID[i]||[])],open:false})).filter(r=>!r.guest);
-  $("tsLgSt").value=tsColors.lgSt||tsColors.lgBr||tsColors.league||""; $("tsLgSch").value=tsColors.lgSch||""; drawTsRows(); drawTsRes(); drawTsTee(); $("teamSheet").hidden=false;
+  $("tsLgSt").value=tsColors.lgSt||tsColors.lgBr||tsColors.league||""; $("tsLgSch").value=tsColors.lgSch||""; drawTsRows(); drawTsRes(); drawTsRbi(); drawTsTee(); $("teamSheet").hidden=false;
 }
 function drawTsTee(){ document.querySelectorAll("#tsTee button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!tsColors.noTee); b.onclick=()=>{ if(b.dataset.v==="0")tsColors.noTee=1; else delete tsColors.noTee; drawTsTee() }}) }
-function drawTsRes(){ document.querySelectorAll("#tsRes button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!!tsColors.res); b.onclick=()=>{ if(b.dataset.v==="1")tsColors.res=1; else delete tsColors.res; drawTsRes() }}) }
+function drawTsRes(){ document.querySelectorAll("#tsRes button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!!tsColors.res); b.onclick=()=>{ if(b.dataset.v==="1")tsColors.res=1; else {delete tsColors.res; delete tsColors.rbi} drawTsRes(); drawTsRbi() }}) }
+function drawTsRbi(){ document.querySelectorAll("#tsRbi button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!!tsColors.rbi); b.onclick=()=>{ if(b.dataset.v==="1"){tsColors.rbi=1; tsColors.res=1} else delete tsColors.rbi; drawTsRbi(); drawTsRes() }}) }
 function drawTsRows(){
   const box=$("tsRows"); box.innerHTML="";
   tsRows.forEach((r,i)=>{ if(r.hidden)return;
@@ -1988,8 +1996,10 @@ async function makeTeamIcon(){
 /* ---------- 2.5: at-bat results ---------- */
 const RES={H:{l:"Hit",on:1,say:"hit"},BB:{l:"Walk",on:1,say:"walk"},HBP:{l:"HBP",on:1,say:"hit by pitch"},K:{l:"K",on:0,say:"strikeout"},O:{l:"Out",on:0,say:"out"}};
 const resOn=()=>!!(TEAM.colors&&TEAM.colors.res);
+const rbiOn=()=>resOn()&&!!TEAM.colors.rbi;
+const rbiN=list=>list.reduce((t,e)=>t+(e.rbi|0),0);
 function resMode(){
-  const on=resOn(); $("resRow").hidden=!on; $("t-res").hidden=!on;
+  const on=resOn(); $("resRow").hidden=!on; $("t-res").hidden=!on; $("rbiBtn").hidden=!rbiOn(); document.body.classList.toggle("rbi-on",rbiOn());
   const dot=document.querySelector('.pagedots [data-tab="res"]'); if(dot)dot.hidden=!on;
   const i=TABS.indexOf("res");
   if(on&&i<0)TABS.push("res");
@@ -2008,10 +2018,20 @@ function recordResult(r){
   if(!(isOut&&sc.outs===0)) toast(first(pid)+": "+RES[r].l);
   renderResults();
 }
-document.querySelectorAll("#resRow button").forEach(b=>b.onclick=()=>recordResult(b.dataset.r));
+document.querySelectorAll("#resRow button[data-r]").forEach(b=>b.onclick=()=>recordResult(b.dataset.r));
+/* 2.8: RBI. One tap = one run scores, credited to the batter who just hit. */
+function recordRBI(){
+  const ab=Array.isArray(sc.ab)?sc.ab:[], last=ab[ab.length-1];
+  if(!last||last.i!==sc.inning||last.t!==sc.top||!usBat()){ toast("Record the at-bat first, then tap RBI"); return }
+  last.rbi=(last.rbi|0)+1; addRun(true);
+  try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}
+  if(usBat()) toast(first(last.p)+": "+last.rbi+" RBI · run scored");
+  renderResults();
+}
+$("rbiBtn").onclick=recordRBI;
 { const prevUndo=$("undo").onclick;
   $("undo").onclick=()=>{ const ab=Array.isArray(sc.ab)?sc.ab:[], last=ab[ab.length-1];
-    if(last&&last.n===bat.count-1){ ab.pop();
+    if(last&&last.n===bat.count-1){ ab.pop(); for(let k=0;k<(last.rbi|0);k++)subRun(true);
       if(!RES[last.r].on){ if(sc.outs>0)sc.outs--; else if(typeof last.t==="boolean"&&(sc.top!==last.t||sc.inning!==last.i)){ setHalf(-1); sc.outs=2 } }
       saveScore(); renderResults() }
     prevUndo() } }
@@ -2024,15 +2044,15 @@ function archiveGame(force){
     const cands=sched.filter(x=>!isT(x)&&!isPrac(x)&&!x.box&&(x.date===today||x.date===yest)).sort((a,b)=>(gDate(b)||0)-(gDate(a)||0));
     g=cands.find(x=>x.date===today&&(!gDate(x)||gDate(x)<=new Date(now.getTime()+3600000)))||cands.find(x=>x.date===today)||cands[0]||null;
     if(!g){ g={id:Math.random().toString(36).slice(2,10),kind:"game",auto:1,date:today,time:"",opp:sc.opp||"",loc:"",home:sc.weTop?"away":"home",arrive:null,fieldNo:0}; sched.push(g) } }
-  g.box={ab:ab.map(e=>({n:(LINEUP[e.p]||["Player"])[0],r:e.r,i:e.i})),us:sc.us||0,them:sc.them||0};
+  g.box={ab:ab.map(e=>({n:(LINEUP[e.p]||["Player"])[0],r:e.r,i:e.i,...(e.rbi?{rbi:e.rbi}:{})})),us:sc.us||0,them:sc.them||0};
   if(!g.res&&(sc.us||sc.them)&&sc.us!==sc.them)g.res=sc.us>sc.them?"W":"L";
   sc.archId=g.id; store(K_SCORE,sc); saveSched(); return g;
 }
 function gLabel(g){const d=gDate(g); return (d?d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"Game")+(g.opp?" vs "+g.opp:"")}
 function statLine(list){ const h=list.filter(e=>e.r==="H").length, abN=list.filter(e=>e.r==="H"||e.r==="K"||e.r==="O").length, bb=list.filter(e=>e.r==="BB").length, hbp=list.filter(e=>e.r==="HBP").length, k=list.filter(e=>e.r==="K").length;
-  return [abN?h+" for "+abN:"",bb?bb+(bb>1?" walks":" walk"):"",hbp?hbp+" HBP":"",k&&resView==="season"?k+" K":""].filter(Boolean).join(" · ") }
+  const rb=rbiN(list); return [abN?h+" for "+abN:"",bb?bb+(bb>1?" walks":" walk"):"",hbp?hbp+" HBP":"",rb?rb+" RBI":"",k&&resView==="season"?k+" K":""].filter(Boolean).join(" · ") }
 function renderTotals(entries){ const cnt=k=>entries.filter(e=>e.r===k).length;
-  $("resTot").innerHTML=[["H","Hits"],["BB","Walks"],["HBP","HBP"],["K","K"],["O","Outs"]].map(([k,l])=>`<div><b>${cnt(k)}</b><span>${l}</span></div>`).join("") }
+  $("resTot").innerHTML=[["H","Hits"],["BB","Walks"],["HBP","HBP"],["K","K"],["O","Outs"]].map(([k,l])=>`<div><b>${cnt(k)}</b><span>${l}</span></div>`).join("")+(rbiOn()?`<div><b>${rbiN(entries)}</b><span>RBI</span></div>`:"") }
 let resArm=null, logArm=null;
 function renderResults(){
   if(!$("resList"))return;
@@ -2051,13 +2071,16 @@ function renderResults(){
       if(list.length){ const cs=document.createElement("div"); cs.className="rcs";
         list.forEach(e=>{ const c=document.createElement("button"); c.type="button"; c.className="rc "+(RES[e.r].on?"onb":"out")+(resArm===e.idx?" arm":""); c.textContent=RES[e.r].l; c.setAttribute("aria-label",RES[e.r].say+", inning "+e.i+". Tap twice to remove.");
           c.onclick=()=>{ if(resArm===e.idx){ resArm=null; sc.ab.splice(e.idx,1); saveScore(); renderResults(); toast("Result removed") } else { resArm=e.idx; renderResults(); toast("Tap again to remove"); setTimeout(()=>{if(resArm===e.idx){resArm=null;renderResults()}},2500) } };
-          cs.appendChild(c) }); li.appendChild(cs) }
+          cs.appendChild(c);
+          if(e.rbi){ const key="r"+e.idx, rc=document.createElement("button"); rc.type="button"; rc.className="rc rbic"+(resArm===key?" arm":""); rc.textContent=e.rbi+" RBI"; rc.setAttribute("aria-label",e.rbi+" RBI. Tap twice to take one away.");
+            rc.onclick=()=>{ if(resArm===key){ resArm=null; const x=sc.ab[e.idx]; if(x&&x.rbi){ x.rbi--; if(!x.rbi)delete x.rbi; subRun(true) } renderResults(); toast("1 RBI and 1 run removed") } else { resArm=key; renderResults(); toast("Tap again to remove 1 RBI"); setTimeout(()=>{if(resArm===key){resArm=null;renderResults()}},2500) } };
+            cs.appendChild(rc) } }); li.appendChild(cs) }
       L.appendChild(li) });
     const sg=sc.archId&&sched.find(x=>x.id===sc.archId);
     $("resSave").disabled=!ab.length; $("resSave").textContent=sg?"Update saved game":"Save this game to the season";
     $("resSaved").textContent=sg?"Saved to "+gLabel(sg)+". New results save again when you tap New game.":(ab.length?"":"Results appear here as you record them.");
   } else {
-    const cur=sc.archId?[]:ab.map(e=>({n:(LINEUP[e.p]||["Player"])[0],r:e.r}));
+    const cur=sc.archId?[]:ab.map(e=>({n:(LINEUP[e.p]||["Player"])[0],r:e.r,rbi:e.rbi|0}));
     const all=[...logged.flatMap(g=>g.box.ab||[]),...cur]; renderTotals(all);
     const by={}; all.forEach(e=>{(by[e.n]=by[e.n]||[]).push(e)});
     const names=[...LINEUP.filter((x,i)=>!x[2]&&!isGuest(i)).map(x=>x[0]),...Object.keys(by)].filter((n,i,a)=>a.indexOf(n)===i&&(by[n]||LINEUP.some(x=>x[0]===n&&!x[2])));
@@ -2070,7 +2093,7 @@ function renderResults(){
   logged.forEach(g=>{ const r=document.createElement("div"); r.className="logrow"; const box=g.box, a=box.ab||[], cnt=k=>a.filter(e=>e.r===k).length;
     r.innerHTML='<div class="lt"><b></b><span></span></div><button type="button"></button>';
     r.querySelector("b").textContent=gLabel(g)+(g.res?" · "+g.res+((box.us||box.them)?" "+box.us+"-"+box.them:""):"");
-    const pl=(n,w)=>n+" "+w+(n===1?"":"s"); r.querySelector("span").textContent=[pl(cnt("H"),"hit"),pl(cnt("BB"),"walk"),cnt("K")+" K"].join(" · ");
+    const pl=(n,w)=>n+" "+w+(n===1?"":"s"); r.querySelector("span").textContent=[pl(cnt("H"),"hit"),pl(cnt("BB"),"walk"),cnt("K")+" K",rbiN(a)?rbiN(a)+" RBI":""].filter(Boolean).join(" · ");
     const b=r.querySelector("button"); b.textContent=logArm===g.id?"Tap again":"Delete"; if(logArm===g.id)b.classList.add("arm");
     b.onclick=()=>{ if(logArm!==g.id){logArm=g.id; renderResults(); setTimeout(()=>{if(logArm===g.id){logArm=null;renderResults()}},3000); return}
       logArm=null; if(g.auto)sched=sched.filter(x=>x.id!==g.id); else delete g.box; if(sc.archId===g.id){delete sc.archId; store(K_SCORE,sc)} saveSched(); renderResults(); toast("Game stats deleted") };
@@ -2119,6 +2142,7 @@ function runRemote(act){
   else if(act==="back"||act==="undo"){ $("undo").click(); say("back") }
   else if(act==="out"){ if(resOn()){ recordResult("O") } else { $("osOut").click() } say("out") }
   else if(map[act]){ if(resOn()){ recordResult(map[act]); say(RES[map[act]].l) } else if(map[act]==="K"){ $("go").click(); $("osOut").click(); say("strikeout") } else { $("go").click(); say("next batter") } }
+  else if(act==="rbi"){ if(rbiOn()){ recordRBI(); say("RBI") } else { $("usPlus").click(); say("run") } }
   else if(act==="run"){ const ub=usBat(); $(ub?"usPlus":"themPlus").click(); say("run") }
 }
 /* 2.6.3: iPhone can keep a stale screen height after rotating or closing the keyboard, which strands the bottom bar mid-screen. Nudge it to re-measure. */
