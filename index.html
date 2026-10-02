@@ -837,7 +837,7 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     </div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
     <p class="sub" id="acUid" hidden style="margin:0;text-align:center;font-size:11px;cursor:pointer;overflow-wrap:anywhere"></p>
-    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.8.1</p>
+    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.8.2</p>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -920,7 +920,7 @@ const OFC=new Set(["LCF","CF","RCF"]);
 function avoids(p,k){const a=AVOID[p]; if(!a||!a.length||!k)return false; return a.includes(k)||(OFC.has(k)&&a.includes("CF"))}
 const NEWSCORE=()=>({us:0,them:0,opp:"",inning:1,top:true,outs:0,hr:0,weTop:true,clock:{dur:60,start:null,used:0}});
 let sc=load(K_SCORE,null);
-function normSc(){ if(!sc||typeof sc.us!=="number")sc=NEWSCORE(); if(typeof sc.weTop!=="boolean")sc.weTop=true; if(typeof sc.hr!=="number")sc.hr=0;
+function normSc(){ if(!sc||typeof sc!=="object")sc=NEWSCORE(); ["us","them","outs","inning","hr"].forEach(k=>{ const n=Math.floor(+sc[k]); sc[k]=isFinite(n)&&n>=0?n:(k==="inning"?1:0) }); if(sc.inning<1)sc.inning=1; if(typeof sc.opp!=="string")sc.opp=""; if(typeof sc.weTop!=="boolean")sc.weTop=true; if(typeof sc.hr!=="number")sc.hr=0;
   if(!sc.clock||typeof sc.clock!=="object")sc.clock={dur:60,start:null,used:0}; }
 normSc();
 const onTee=p=>!(TEAM.colors&&TEAM.colors.noTee)&&tee.includes(p);
@@ -969,7 +969,7 @@ function renderBat(){
     else if(i===(slot+2)%L){li.className="hole";tag="Hole"} else if(i<slot){li.className="batted";tag="Batted"}
     const n=abOf(pid), dots=n?`<span class="abd" title="Batted ${n} times">${"<i></i>".repeat(Math.min(n,4))}${n>4?"<b>+"+(n-4)+"</b>":""}</span>`:"";
     const pk=posOf(pid,inn(fld.inning));
-    li.innerHTML=`<button type="button" class="row"><span class="ord">${i+1}</span><span class="pn"><span class="nmx"></span><span class="gp ${grp(pk)}${pk==="P"?" pit":pk==="C"?" cat":""}">${pk||"BN"}</span>${isGuest(pid)?'<span class="gp gst">GUEST</span>':""}${dots}</span><span class="jn">${p[1]?"#"+p[1]:""}</span><span class="tag">${tag}</span></button><button type="button" class="teeb${onTee(pid)?" on":""}" aria-pressed="${onTee(pid)}" aria-label="Hits off the tee" title="Hits off the tee"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="6.2" r="4.6" stroke-width="1.7"/><path d="M9.2 2.9c1.3 1.9 1.3 4.7 0 6.6M14.8 2.9c-1.3 1.9-1.3 4.7 0 6.6" stroke-width="1.1"/><path d="M9.6 11.6h4.8l-1.3 1.6h-2.2z" fill="currentColor" stroke-width="1.2"/><path d="M12 13.4v6" stroke-width="2.4"/><path d="M7.5 20.6h9" stroke-width="2.6"/></svg></button>`;
+    li.innerHTML=`<button type="button" class="row"><span class="ord">${i+1}</span><span class="pn"><span class="nmx"></span><span class="gp ${grp(pk)}${pk==="P"?" pit":pk==="C"?" cat":""}">${pk||"BN"}</span>${isGuest(pid)?'<span class="gp gst">GUEST</span>':""}${dots}</span><span class="jn">${p[1]?"#"+String(p[1]).replace(/[^0-9A-Za-z]/g,""):""}</span><span class="tag">${tag}</span></button><button type="button" class="teeb${onTee(pid)?" on":""}" aria-pressed="${onTee(pid)}" aria-label="Hits off the tee" title="Hits off the tee"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="6.2" r="4.6" stroke-width="1.7"/><path d="M9.2 2.9c1.3 1.9 1.3 4.7 0 6.6M14.8 2.9c-1.3 1.9-1.3 4.7 0 6.6" stroke-width="1.1"/><path d="M9.6 11.6h4.8l-1.3 1.6h-2.2z" fill="currentColor" stroke-width="1.2"/><path d="M12 13.4v6" stroke-width="2.4"/><path d="M7.5 20.6h9" stroke-width="2.6"/></svg></button>`;
     li.querySelector(".nmx").textContent=p[0];
     const row=li.querySelector(".row");
     row.onclick=()=>{if(guard())return; bat.count=Math.floor(bat.count/L)*L+i;saveBat();renderBat()};
@@ -981,18 +981,18 @@ function renderBat(){
   $("hereSum").textContent=act().length+" of "+N+" here"+(outs.length?" · Out: "+outs.map(p=>LINEUP[p][0].split(" ")[0]).join(", "):"");
   const hb=$("here"); hb.innerHTML="";
   bat.order.forEach(pid=>{const c=document.createElement("button");c.type="button";c.className="chip"+(isOut(pid)?" out":"");
-    c.setAttribute("aria-pressed",!isOut(pid)); c.textContent=LINEUP[pid][0]; c.onclick=()=>setOut(pid,!isOut(pid)); hb.appendChild(c)});
+    c.setAttribute("aria-pressed",!isOut(pid)); c.textContent=LINEUP[pid][0]; c.onclick=()=>{ if(guard())return; setOut(pid,!isOut(pid)) }; hb.appendChild(c)});
 }
 $("hereToggle").onclick=()=>{const open=$("hereBody").hidden; $("hereBody").hidden=!open;
   $("hereToggle").setAttribute("aria-expanded",open); $("herePm").textContent=open?"\u2212":"+"};
 function setOut(pid,out){
   const A=act(), L=A.length, round=Math.floor(bat.count/L); let upPid=A[bat.count%L];
   if(out){ if(L<=1)return; if(upPid===pid) upPid=A[(bat.count+1)%L]; bat.out=[...bat.out,pid];
-    for(const k in fld.innings) clean(fld.innings[k]); }
+    const ci=Math.min(sc.inning||1,INNINGS); for(const k in fld.innings) if(+k>=ci) clean(fld.innings[k]); }
   else bat.out=bat.out.filter(x=>x!==pid);
   const B=act(); bat.count=round*B.length+B.indexOf(upPid);
   setOF(autoOF(B.length));
-  if(out) for(const k in fld.innings){ const m=fld.innings[k];
+  if(out) for(const k in fld.innings){ if(+k<Math.min(sc.inning||1,INNINGS))continue; const m=fld.innings[k];
     const bench=act().filter(p=>posOf(p,m)===null);
     curPOS().forEach(po=>{ if(m[po.k]==null&&bench.length) m[po.k]=bench.shift() }); }
   saveBat(); save();
@@ -1156,7 +1156,7 @@ function assign(k,p){
 $("leaveEmpty").onclick=()=>{if(sheetPos){delete inn(fld.inning)[sheetPos];save()}closeSheet()};
 $("cancel").onclick=closeSheet; $("scrim").onclick=closeSheet;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("sheet").hidden)closeSheet()});
-[2,3,4].forEach(n=>$("of"+n).onclick=()=>{setOF(n);save()});
+[2,3,4].forEach(n=>$("of"+n).onclick=()=>{if(guard())return;setOF(n);save()});
 let saveT=null;
 $("saveDef").onclick=()=>{
   const b=$("saveDef");
@@ -1225,7 +1225,7 @@ document.querySelectorAll("[data-newgame]").forEach(b=>b.onclick=()=>{
     return;
   }
   clearTimeout(armT); all.forEach(x=>{x.classList.remove("arm");x.textContent="New game"});
-  try{ const ag=archiveGame(); if(ag)toast("Last game saved to the season") }catch(e){}
+  try{ const ag=archiveGame(false,true); if(ag)toast("Last game saved to the season") }catch(e){}
   bat={count:0,order:[...IDS].filter(i=>!isGuest(i)),abs:{},out:[],locked:false}; saveBat();
   fld={inning:1,of:4,innings:{1:{...DEFAULT}}}; setOF(autoOF(IDS.length));
   { const m=fld.innings[1]; try{applyPins(m)}catch(e){} const bench=IDS.filter(p=>posOf(p,m)===null); curPOS().forEach(po=>{if(m[po.k]==null&&bench.length)m[po.k]=bench.shift()}); store(K_FIELD,fld); }
@@ -1359,7 +1359,7 @@ function condOf(g){ if(!g.tid)return true; const t=tById(g.tid); if(!t)return tr
   const gs=tGames(t), i=gs.indexOf(g); let last=null; for(let j=i-1;j>=0;j--){ if(gs[j].res){last=gs[j];break} if(condOf(gs[j])!==false)break }
   if(!last)return null; return (g.cond==="win"&&last.res==="W")||(g.cond==="lose"&&last.res==="L") }
 function sortedGames(){return sched.filter(g=>!isT(g)&&condOf(g)===true).sort((a,b)=>(gDate(a)||0)-(gDate(b)||0))}
-function isPast(g){const d=gDate(g); if(!d)return false; const end=new Date(d); end.setHours(end.getHours()+3); return end<new Date()}
+function isPast(g){const d=gDate(g); if(!d)return false; const end=new Date(d); if(g.time)end.setHours(end.getHours()+3); else end.setHours(23,59,0,0); return end<new Date()}
 function nextGame(){return sortedGames().find(g=>!isPast(g)&&!g.res)||null}
 function dayWord(d){ const t=new Date(); t.setHours(0,0,0,0); const x=new Date(d); x.setHours(0,0,0,0); const n=Math.round((x-t)/86400000);
   return n===0?"today":n===1?"tomorrow":(n>1&&n<7?"this "+d.toLocaleDateString(undefined,{weekday:"long"}):"on "+d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})) }
@@ -1565,7 +1565,7 @@ $("gfSave").onclick=()=>{
   const pr=$("gfKind").value==="practice"; const g={id:editId||Math.random().toString(36).slice(2,10),kind:pr?"practice":"game",fieldNo:gfFieldNo||0,date:$("gfDate").value,time:$("gfTime").value,opp:$("gfOpp").value.trim(),loc:$("gfLoc").value.trim(),home:$("gfHome").value,arrive:$("gfArrive").value===""?null:parseInt($("gfArrive").value,10)};
   if(!g.date){toast("Pick a date");return}
   { const tid=$("gfT").value; if(tid&&!pr){ g.tid=tid; const cv=$("gfCond").value, code=$("gfCode").value.trim().toUpperCase(); if(code)g.code=code;
-    if(cv.includes("|")){const [r,c]=cv.split("|"); g.dep={r,c}} else if(cv)g.cond=cv } const old=sched.find(x=>x.id===g.id); if(old&&old.res)g.res=old.res }
+    if(cv.includes("|")){const [r,c]=cv.split("|"); g.dep={r,c}} else if(cv)g.cond=cv } const old=sched.find(x=>x.id===g.id); if(old){ if(old.res)g.res=old.res; if(old.box)g.box=old.box } }
   const i=sched.findIndex(x=>x.id===g.id); if(i>=0)sched[i]=g; else sched.push(g);
   closeGameForm(); saveSched(); toast("Game saved");
 };
@@ -1836,7 +1836,9 @@ document.querySelectorAll("[data-card]").forEach(b=>b.onclick=shareCard);
 
 /* ---- game clock ---- */
 const CLK_PRESETS=[45,60,75,90];
-function clkLeft(){ const c=sc.clock; return c.dur*60000-(c.used||0)-(c.start?Date.now()-c.start:0) }
+let SOFF=0; try{ TEAM.db&&TEAM.db.ref(".info/serverTimeOffset").on("value",s=>{SOFF=+s.val()||0}) }catch(e){}
+const NOW=()=>Date.now()+SOFF;
+function clkLeft(){ const c=sc.clock; return c.dur*60000-(c.used||0)-(c.start?NOW()-c.start:0) }
 let warned5=false, warned0=false;
 function fmtClk(ms){ const neg=ms<0; ms=Math.abs(ms); const t=Math.floor(ms/1000), m=Math.floor(t/60), s2=t%60; return (neg?"-":"")+m+":"+String(s2).padStart(2,"0") }
 function renderClock(){
@@ -1854,7 +1856,7 @@ function renderClock(){
     if(left<=0&&!warned0){warned0=true;toast("Time is up");try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}} }
   if(left>5*60000)warned5=false; if(left>0)warned0=false;
 }
-$("clkGo").onclick=()=>{ const c=sc.clock; if(c.start){c.used=(c.used||0)+(Date.now()-c.start);c.start=null}else{c.start=Date.now()} saveScore(); renderClock() };
+$("clkGo").onclick=()=>{ const c=sc.clock; if(c.start){c.used=(c.used||0)+(NOW()-c.start);c.start=null}else{c.start=NOW()} saveScore(); renderClock() };
 $("miniClk").onclick=()=>{ showTab("score"); const box=document.querySelector('[data-coll="clock"]'); if(box&&box.querySelector(".herebody").hidden) box.querySelector(".herehead").click(); setTimeout(()=>box&&box.scrollIntoView({behavior:"smooth",block:"center"}),50) };
 $("clkReset").onclick=()=>{ sc.clock={dur:sc.clock.dur||60,start:null,used:0}; saveScore(); renderClock() };
 setInterval(()=>{ if(sc.clock&&sc.clock.start) renderClock() },1000);
@@ -2037,7 +2039,7 @@ $("rbiBtn").onclick=recordRBI;
     prevUndo() } }
 let resView=(()=>{try{return localStorage.getItem("bd-resview")||"game"}catch(e){return "game"}})();
 const isoDay=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
-function archiveGame(force){
+function archiveGame(force,final){
   const ab=Array.isArray(sc.ab)?sc.ab:[]; if(!ab.length&&!force)return null;
   let g=sc.archId?sched.find(x=>x.id===sc.archId):null;
   if(!g){ const now=new Date(), today=isoDay(now), yest=isoDay(new Date(now.getTime()-86400000));
@@ -2045,7 +2047,7 @@ function archiveGame(force){
     g=cands.find(x=>x.date===today&&(!gDate(x)||gDate(x)<=new Date(now.getTime()+3600000)))||cands.find(x=>x.date===today)||cands[0]||null;
     if(!g){ g={id:Math.random().toString(36).slice(2,10),kind:"game",auto:1,date:today,time:"",opp:sc.opp||"",loc:"",home:sc.weTop?"away":"home",arrive:null,fieldNo:0}; sched.push(g) } }
   g.box={ab:ab.map(e=>({n:(LINEUP[e.p]||["Player"])[0],r:e.r,i:e.i,...(e.rbi?{rbi:e.rbi}:{})})),us:sc.us||0,them:sc.them||0};
-  if(!g.res&&(sc.us||sc.them)&&sc.us!==sc.them)g.res=sc.us>sc.them?"W":"L";
+  if(final&&(sc.us||sc.them)&&sc.us!==sc.them)g.res=sc.us>sc.them?"W":"L";
   sc.archId=g.id; store(K_SCORE,sc); saveSched(); return g;
 }
 function gLabel(g){const d=gDate(g); return (d?d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"Game")+(g.opp?" vs "+g.opp:"")}
@@ -2173,8 +2175,8 @@ let endArm=null;
 $("endGame").onclick=()=>{ const b=$("endGame");
   if(!b.classList.contains("arm")){ b.classList.add("arm"); b.textContent="Tap again to end the game"; clearTimeout(endArm); endArm=setTimeout(()=>{b.classList.remove("arm");b.textContent="End game"},3500); return }
   clearTimeout(endArm); b.classList.remove("arm"); b.textContent="End game";
-  const c=sc.clock; if(c&&c.start){ c.used=(c.used||0)+(Date.now()-c.start); c.start=null }
-  sc.final=true; let g=null; try{ g=archiveGame(true) }catch(e){}
+  const c=sc.clock; if(c&&c.start){ c.used=(c.used||0)+(NOW()-c.start); c.start=null }
+  sc.final=true; let g=null; try{ g=archiveGame(true,true) }catch(e){}
   if(g&&sc.us!==sc.them){ g.res=sc.us>sc.them?"W":"L"; saveSched() }
   saveScore(); renderFinal(); try{renderClock()}catch(e){} toast("Final "+sc.us+"-"+sc.them+(sc.us>sc.them?" · Win":sc.us<sc.them?" · Loss":" · Tie")) };
 $("finalText").onclick=()=>{ location.href="sms:&body="+encodeURIComponent(finalLine()+" Great job, team!") };
@@ -2182,12 +2184,12 @@ $("finalUndo").onclick=()=>{ delete sc.final; saveScore(); renderFinal(); toast(
 { const _rS3=renderScore; renderScore=function(){ _rS3(); try{renderFinal()}catch(e){} } }
 renderFinal();
 /* ---------- team context for the account menu ---------- */
-window.TEAMCTX={code:TEAM.code,ref:TEAM.ref,owner:TEAM.owner||null,openSettings:openTeamSheet,name:()=>TEAM.name};
+window.TEAMCTX={code:TEAM.code,ref:TEAM.ref,db:TEAM.db,owner:TEAM.owner||null,openSettings:openTeamSheet,name:()=>TEAM.name};
 if(window.PENDING_HANDOFF&&PENDING_HANDOFF.code===TEAM.code&&TEAM.ref){
   const tok=PENDING_HANDOFF.tok; window.PENDING_HANDOFF=null;
   const accept=async()=>{
     if(TEAMCTX.owner===USER.uid){toast("You're already head coach");return}
-    try{ await TEAM.ref.update({claim:tok,owner:USER.uid}); await TEAM.ref.update({transfer:null,claim:null}); TEAMCTX.owner=USER.uid; await indexTeam(TEAM.code,TEAM.name); renderAcct(); toast("You're now head coach") }
+    try{ await TEAM.ref.update({claim:tok,owner:USER.uid}); try{ await TEAM.db.ref("handoffs/"+TEAM.code).remove(); await TEAM.ref.child("claim").remove() }catch(e2){} TEAMCTX.owner=USER.uid; await indexTeam(TEAM.code,TEAM.name); renderAcct(); toast("You're now head coach") }
     catch(e){ toast("That handoff link expired or was already used") }
   };
   setTimeout(()=>{ if(USER)accept(); else openAcct("Sign in to become head coach of "+(TEAM.name||"this team")+".",accept) },700);
@@ -2209,7 +2211,7 @@ $("shareLink").onclick=async()=>{
 if(TEAM.ref){
   TEAM.db.ref(".info/connected").on("value",s=>{const on=!!s.val(); $("live").classList.toggle("on",on); $("live").title=on?"Live":"Offline"});
   const cur={avoid:()=>AVOID,nfields:()=>nFields,homefield:()=>homeField,bat:()=>bat,field:()=>fld,score:()=>sc,tee:()=>tee,default:()=>DEFAULT,schedule:()=>sched};
-  const apply={avoid:v=>{AVOID=v&&typeof v==="object"?v:{}},nfields:v=>{nFields=Number.isInteger(v)?v:0},homefield:v=>{homeField=typeof v==="string"?v:""},bat:v=>{bat=v;normBat()},field:v=>{fld=v;normFld()},score:v=>{sc=v;normSc()},tee:v=>{tee=Array.isArray(v)?v:[]},schedule:v=>{sched=Array.isArray(v)?v:[]},default:v=>{if(v&&typeof v==="object")DEFAULT=v}};
+  const apply={avoid:v=>{AVOID=v&&typeof v==="object"?v:{}},nfields:v=>{nFields=Number.isInteger(v)?v:0},homefield:v=>{homeField=typeof v==="string"?v:""},bat:v=>{bat=v;normBat()},field:v=>{const vi=fld&&fld.inning; fld=v; normFld(); if(vi)fld.inning=Math.min(vi,INNINGS)},score:v=>{const pi=sc&&sc.inning; sc=v; normSc(); if(pi&&pi!==sc.inning){ fld.inning=Math.min(sc.inning,INNINGS); inn(fld.inning) }},tee:v=>{tee=Array.isArray(v)?v:[]},schedule:v=>{sched=Array.isArray(v)?v:[]},default:v=>{if(v&&typeof v==="object")DEFAULT=v}};
   const KEYOF={avoid:K_AVOID,nfields:K_NFIELDS,homefield:K_HOME,bat:K_BAT,field:K_FIELD,score:K_SCORE,tee:K_TEE,default:K_DEF,schedule:K_SCHED};
   let pend=false;
   const rerender=()=>{ if(drag){ if(!pend){pend=true; setTimeout(()=>{pend=false;rerender()},400)} return }
@@ -2432,7 +2434,7 @@ function wireAcct(){
   el("acSignOut").onclick=async()=>{try{await AUTH.signOut()}catch(e){} acMsg("Signed out.")};
   el("acHandoff").onclick=async()=>{const T=window.TEAMCTX; if(!T||!USER||T.owner!==USER.uid)return;
     const tok=newCode().slice(0,12);
-    try{await T.ref.child("transfer").set(tok)}catch(e){return acMsg("Couldn't make the link. Check your connection.")}
+    try{await T.db.ref("handoffs/"+T.code).set({tok,exp:Date.now()+47*3600000})}catch(e){return acMsg("Couldn't make the link. Check your connection.")}
     const url=location.origin+location.pathname+"#"+T.code+"!"+tok;
     closeAcct();
     if(navigator.share){navigator.share({title:"Head coach of "+(T.name()||"the team"),text:"Open this link and sign in to become head coach of "+(T.name()||"the team")+".",url}).catch(()=>{})}
