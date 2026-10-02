@@ -830,7 +830,7 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     </div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
     <p class="sub" id="acUid" hidden style="margin:0;text-align:center;font-size:11px;cursor:pointer;overflow-wrap:anywhere"></p>
-    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.7.1</p>
+    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 2.7.2</p>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -1255,7 +1255,13 @@ document.querySelectorAll(".pagedots button").forEach(b=>b.onclick=()=>{
   },{passive:true});
 })();
 
-try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
+/* 2.7.2: keep the screen awake. iOS drops the lock whenever the app is hidden and may need a tap first, so re-request on every return and tap. */
+(function(){ let wl=null, busy=false;
+  const want=()=>{ if(!navigator.wakeLock||document.visibilityState!=="visible"||busy||(wl&&!wl.released))return; busy=true;
+    navigator.wakeLock.request("screen").then(l=>{wl=l; l.addEventListener("release",()=>{wl=null; setTimeout(want,500)})}).catch(()=>{}).finally(()=>{busy=false}) };
+  want(); document.addEventListener("visibilitychange",want); window.addEventListener("focus",want); window.addEventListener("pageshow",want);
+  ["pointerdown","touchend","click","keydown"].forEach(ev=>document.addEventListener(ev,want,{passive:true,capture:true}));
+  setInterval(want,15000) })();
 function normFld(){
   if(!fld||!fld.innings||typeof fld.innings!=="object"){fld={inning:1,of:4,innings:{1:{...DEFAULT}}}; setOF(autoOF(act().length))}
   if(!Number.isInteger(fld.inning)||fld.inning<1)fld.inning=1;
