@@ -679,11 +679,11 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
       </div>
       <div class="bench herebox coll" data-coll="btools">
         <button type="button" class="herehead" aria-expanded="false"><span><span class="lbl">Lineup tools</span><span class="sum" id="btoolsSum"></span></span><span class="pmicon" aria-hidden="true">+</span></button>
-        <div class="herebody" hidden><button class="ghost" type="button" id="shuffleOrder" style="padding:12px">Shuffle batting order</button><button class="ghost" type="button" data-card style="padding:12px">Share lineup card</button>
+        <div class="herebody" hidden><button class="ghost" type="button" data-savedef style="padding:12px">Save as default lineup</button><button class="ghost" type="button" id="shuffleOrder" style="padding:12px">Shuffle batting order</button><button class="ghost" type="button" data-card style="padding:12px">Share lineup card</button>
                     <div id="voiceHelp" class="pfull"><span class="lbl" style="color:var(--muted)">Voice commands (tap the mic, hold to move it)</span><span class="pfull" style="display:block;margin-bottom:4px">Show, hide or resize the mic and turn announcements on or off from the account menu.</span><ul>
             <li><b>"Next"</b> or <b>"Batted"</b> moves to the next batter</li>
             <li><b>"Back"</b> undoes the last batter</li>
-            <li><b>"Nash is up"</b> jumps to a batter by name</li>
+            <li><b>"Jamie is up"</b> jumps to a batter by name</li>
             <li><b>"Who's up"</b> reads the batter and on deck</li>
             <li><b>"Out"</b>, <b>"Undo out"</b></li>
             <li><b>"Run"</b> for the team batting, <b>"Run for them"</b>, <b>"Take away a run"</b></li>
@@ -741,8 +741,8 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
         <div class="herebody" hidden><ol class="list" id="poslist"></ol></div>
       </div>
       <div class="bench herebox coll" data-coll="fsetup">
-        <button type="button" class="herehead" aria-expanded="false"><span><span class="lbl">Starting lineup</span><span class="sum" id="fsetupSum"></span></span><span class="pmicon" aria-hidden="true">+</span></button>
-        <div class="herebody" hidden><p class="pfull" style="margin:0">Make the field you see now the starting spot for every new game.</p><button class="ghost" type="button" id="saveDef" style="padding:12px">Save as starting lineup</button></div>
+        <button type="button" class="herehead" aria-expanded="false"><span><span class="lbl">Default lineup</span><span class="sum" id="fsetupSum"></span></span><span class="pmicon" aria-hidden="true">+</span></button>
+        <div class="herebody" hidden><p class="pfull" style="margin:0">Saves the batting order and the field you see now. Every new game starts from it.</p><button class="ghost" type="button" id="saveDef" data-savedef style="padding:12px">Save as default lineup</button></div>
       </div>
       <p class="hint">Tap a spot to pick a player, or hold and drag. Plan the whole game fills every inning so nobody sits twice before everyone sits once. Pin a player from their spot to keep them there.</p>
     </div>
@@ -859,6 +859,8 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="tsTitle">
     <h2 id="tsTitle">Team settings</h2>
     <div class="form"><label>Team name<input id="tsName" type="text" maxlength="24" autocomplete="off"></label><label>Home field<input id="tsHome" type="text" maxlength="110" autocomplete="off" placeholder="Park name and address"></label><label>Fields at the park<input id="tsNF" type="number" min="0" max="12" step="1" placeholder="0"></label><label>Standings link (SE Tourney)<input id="tsLgSt" type="url" maxlength="400" placeholder="Paste your SE Tourney link" autocomplete="off"></label><label>Schedule link (GameChanger)<input id="tsLgSch" type="url" maxlength="400" placeholder="Paste your GameChanger team link" autocomplete="off"></label></div>
+    <div class="sideset"><span class="lbl">Innings</span><div class="tabs" id="tsInn"><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button><button type="button" data-v="5">5</button><button type="button" data-v="6">6</button><button type="button" data-v="7">7</button><button type="button" data-v="9">9</button></div></div>
+    <p class="sub" style="margin:-6px 0 0">Sets the innings you plan on the Field page and the lineup card. Extra innings keep the last inning's field.</p>
     <div class="sideset"><span class="lbl">Tee hitters</span><div class="tabs" id="tsTee"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
     <div class="sideset"><span class="lbl">Tracking</span><div class="tabs" id="tsRes"><button type="button" data-v="0">Off</button><button type="button" data-v="1">Basic</button><button type="button" data-v="2">Full</button></div></div>
     <p class="sub" style="margin:-6px 0 0" id="tsResNote">Basic adds Hit, Walk, HBP, K and Out buttons under the batter, and an At-bats page at the end. Full is for kid pitch and up: a Track page at the far left with singles through home runs, out types, runners scoring, plays in the field and a pitch counter.</p>
@@ -921,7 +923,7 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     </div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
     <p class="sub" id="acUid" hidden style="margin:0;text-align:center;font-size:11px;cursor:pointer;overflow-wrap:anywhere"></p>
-    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 3.0</p>
+    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 3.0.1</p>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -960,10 +962,10 @@ const curPOS=()=>fld.of===2?POS2:fld.of===3?POS3:POS4;
 const OFK={4:["LF","LCF","RCF","RF"],3:["LF","CF","RF"],2:["LCF","RCF"]}, XS={LF:52,LCF:132,CF:180,RCF:228,RF:308};
 const STOCK={}; ["P","C","1B","2B","3B","SS","LF","LCF","RCF","RF"].forEach((k,i)=>{if(i<N)STOCK[k]=ALLIDS[i]});
 
-const INNINGS=4;
+let INNINGS=Math.min(9,Math.max(3,parseInt(TEAM.colors&&TEAM.colors.inn,10)||4));
 
-const K_AVOID="dugout-avoid",K_NFIELDS="dugout-nfields",K_HOME="dugout-home",K_SCHED="dugout-sched",K_BAT="dugout-bat",K_FIELD="dugout-field",K_TAB="dugout-tab",K_TEE="dugout-tee",K_SCORE="dugout-score",K_DEF="dugout-default";
-const NODE={[K_AVOID]:"avoid",[K_NFIELDS]:"nfields",[K_HOME]:"homefield",[K_SCHED]:"schedule",[K_BAT]:"bat",[K_FIELD]:"field",[K_TEE]:"tee",[K_SCORE]:"score",[K_DEF]:"default"};
+const K_AVOID="dugout-avoid",K_NFIELDS="dugout-nfields",K_HOME="dugout-home",K_SCHED="dugout-sched",K_BAT="dugout-bat",K_FIELD="dugout-field",K_TAB="dugout-tab",K_TEE="dugout-tee",K_SCORE="dugout-score",K_DEF="dugout-default",K_DORD="dugout-dorder";
+const NODE={[K_AVOID]:"avoid",[K_NFIELDS]:"nfields",[K_HOME]:"homefield",[K_SCHED]:"schedule",[K_BAT]:"bat",[K_FIELD]:"field",[K_TEE]:"tee",[K_SCORE]:"score",[K_DEF]:"default",[K_DORD]:"dorder"};
 const NS="@"+TEAM.code;
 const load=(k,d)=>{const n=NODE[k];
   if(n&&TEAM.init&&TEAM.init[n]!=null){try{return JSON.parse(TEAM.init[n])}catch(e){}}
@@ -971,6 +973,7 @@ const load=(k,d)=>{const n=NODE[k];
 const store=(k,v)=>{const str=JSON.stringify(v); try{localStorage.setItem(k+NS,str)}catch(e){}
   const n=NODE[k]; if(n&&TEAM.ref&&!window.DELETING){try{TEAM.ref.child("state/"+n).set(str)}catch(e){}}};
 let DEFAULT=load(K_DEF,null); if(!DEFAULT||typeof DEFAULT!=="object"||!Object.keys(DEFAULT).length)DEFAULT={...STOCK};
+let DORDER=load(K_DORD,null); if(!Array.isArray(DORDER))DORDER=null;
 function cleanDef(){for(const k in DEFAULT) if(HIDDEN.has(DEFAULT[k])||DEFAULT[k]==null||DEFAULT[k]>=LINEUP.length) delete DEFAULT[k]} cleanDef();
 const $=id=>document.getElementById(id);
 
@@ -1242,15 +1245,16 @@ $("cancel").onclick=closeSheet; $("scrim").onclick=closeSheet;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("sheet").hidden)closeSheet()});
 [2,3,4].forEach(n=>$("of"+n).onclick=()=>{setOF(n);save()});
 let saveT=null;
-$("saveDef").onclick=()=>{
-  const b=$("saveDef");
-  if(!b.classList.contains("arm")){b.classList.add("arm");b.textContent="Tap again to save inning "+fld.inning+" as the start";
-    clearTimeout(saveT);saveT=setTimeout(()=>{b.classList.remove("arm");b.textContent="Save as starting lineup"},3500);return}
-  clearTimeout(saveT); b.classList.remove("arm"); b.textContent="Save as starting lineup";
+document.querySelectorAll("[data-savedef]").forEach(b=>b.onclick=()=>{
+  const all=document.querySelectorAll("[data-savedef]");
+  if(!b.classList.contains("arm")){all.forEach(x=>{x.classList.add("arm");x.textContent="Tap again to save"});
+    clearTimeout(saveT);saveT=setTimeout(()=>all.forEach(x=>{x.classList.remove("arm");x.textContent="Save as default lineup"}),3500);return}
+  clearTimeout(saveT); all.forEach(x=>{x.classList.remove("arm");x.textContent="Save as default lineup"});
   const m={...inn(fld.inning)}; if(fld.of!==4)convertOF(m,4);
   DEFAULT=m; store(K_DEF,m);
-  toast("Saved · new games start here");
-};
+  DORDER=bat.order.filter(i=>!isGuest(i)); store(K_DORD,DORDER);
+  toast("Saved · new games start with this order and field");
+});
 $("copyPrev").onclick=()=>{if(guard())return; if(fld.inning>1){fld.innings[fld.inning]={...inn(fld.inning-1)};save()}};
 $("clearInn").onclick=()=>{if(guard())return; fld.innings[fld.inning]={};save()};
 
@@ -1310,7 +1314,7 @@ document.querySelectorAll("[data-newgame]").forEach(b=>b.onclick=()=>{
   }
   clearTimeout(armT); all.forEach(x=>{x.classList.remove("arm");x.textContent="New game"});
   try{ const ag=archiveGame(); if(ag)toast("Last game saved to the season") }catch(e){}
-  bat={count:0,order:[...IDS].filter(i=>!isGuest(i)),abs:{},out:[],locked:false}; saveBat();
+  bat={count:0,order:(()=>{ const base=[...IDS].filter(i=>!isGuest(i)); if(!DORDER)return base; const o=DORDER.filter(i=>base.includes(i)); return [...o,...base.filter(i=>!o.includes(i))] })(),abs:{},out:[],locked:false}; saveBat();
   fld={inning:1,of:4,innings:{1:{...DEFAULT}}}; setOF(autoOF(IDS.length));
   { const m=fld.innings[1]; try{applyPins(m)}catch(e){} const bench=IDS.filter(p=>posOf(p,m)===null); curPOS().forEach(po=>{if(m[po.k]==null&&bench.length)m[po.k]=bench.shift()}); store(K_FIELD,fld); }
 
@@ -1665,8 +1669,9 @@ function openTeamSheet(){
   colorPicker($("tsC1"),tsColors.p,v=>{tsColors.p=v;applyTheme(tsColors)});
   colorPicker($("tsC2"),tsColors.s,v=>{tsColors.s=v;applyTheme(tsColors)},true);
   tsRows=LINEUP.map((p,i)=>({id:i,name:p[0],num:p[1],hidden:!!p[2],guest:!!p[3],avoid:[...(AVOID[i]||[])],open:false})).filter(r=>!r.guest);
-  $("tsLgSt").value=tsColors.lgSt||tsColors.lgBr||tsColors.league||""; $("tsLgSch").value=tsColors.lgSch||""; drawTsRows(); drawTsRes(); drawTsRbi(); drawTsTee(); $("teamSheet").hidden=false;
+  $("tsLgSt").value=tsColors.lgSt||tsColors.lgBr||tsColors.league||""; $("tsLgSch").value=tsColors.lgSch||""; drawTsRows(); drawTsInn(); drawTsRes(); drawTsRbi(); drawTsTee(); $("teamSheet").hidden=false;
 }
+function drawTsInn(){ const cur=String(tsColors.inn||4); document.querySelectorAll("#tsInn button").forEach(b=>{b.setAttribute("aria-selected",b.dataset.v===cur); b.onclick=()=>{ if(b.dataset.v==="4")delete tsColors.inn; else tsColors.inn=+b.dataset.v; drawTsInn() }}) }
 function drawTsTee(){ document.querySelectorAll("#tsTee button").forEach(b=>{b.setAttribute("aria-selected",(b.dataset.v==="1")===!tsColors.noTee); b.onclick=()=>{ if(b.dataset.v==="0")tsColors.noTee=1; else delete tsColors.noTee; drawTsTee() }}) }
 function drawTsRes(){ const lv=tsColors.res?(tsColors.adv?"2":"1"):"0";
   document.querySelectorAll("#tsRes button").forEach(b=>{b.setAttribute("aria-selected",b.dataset.v===lv); b.onclick=()=>{ const v=b.dataset.v; if(v==="0"){delete tsColors.res; delete tsColors.rbi; delete tsColors.adv} else if(v==="1"){tsColors.res=1; delete tsColors.adv} else {tsColors.res=1; tsColors.adv=1} drawTsRes(); drawTsRbi() }});
@@ -1899,19 +1904,22 @@ async function shareCard(){
   x.fillStyle=onP; x.font="400 64px Graduate, Georgia, serif"; x.textBaseline="middle"; x.fillText((TEAM.name||"Team").toUpperCase(),48,72);
   const g=typeof nextGame==="function"?nextGame():null, opp=sc.opp||(g&&g.opp)||"";
   x.font="700 30px Barlow, sans-serif"; x.fillText((opp?"vs "+opp+"  ·  ":"")+(g?gameWhen(g):new Date().toLocaleDateString()),48,132);
-  const nameX=120, gx=520, cw=(W-gx-48)/INNINGS;
+  const plan=[]; for(let i=1;i<=INNINGS;i++){ const m=fld.innings[i]; if(m&&Object.keys(m).length)plan.push(i) }
+  const same=plan.length<=1||A.every(p=>plan.every(i=>posOf(p,fld.innings[i])===posOf(p,fld.innings[plan[0]])));
+  const cols=same?[plan[0]||1]:plan, one=cols.length===1;
+  const nameX=120, gx=one?W-48-150:520, cw=one?150:(W-gx-48)/cols.length, chipF=cols.length>6?20:26;
   x.fillStyle="#6c6c76"; x.font="800 24px Barlow, sans-serif"; x.fillText("#",48,top-36); x.fillText("PLAYER",nameX,top-36);
-  for(let i=1;i<=INNINGS;i++){x.textAlign="center"; x.fillText("INN "+i,gx+cw*(i-0.5),top-36); x.textAlign="left"}
+  cols.forEach((i,c)=>{x.textAlign="center"; x.fillText(one?"POS":(cols.length>6?""+i:"INN "+i),gx+cw*(c+0.5),top-36); x.textAlign="left"});
   const COLS={inf:col("--if-fill"),of:col("--of-fill"),bn:"#9a9aa3"}, INK={inf:col("--if-ink"),of:col("--of-ink"),bn:"#ffffff"};
   A.forEach((p,r)=>{ const y=top+r*rowH;
     if(r%2===0){x.fillStyle="#f3f3f5"; x.fillRect(32,y,W-64,rowH)}
     x.fillStyle="#141416"; x.font="800 30px Barlow, sans-serif"; x.textBaseline="middle"; x.fillText(String(r+1),48,y+rowH/2);
     x.font="700 30px Barlow, sans-serif"; const nm=(LINEUP[p][1]?"#"+LINEUP[p][1]+"  ":"")+LINEUP[p][0]; x.fillText(nm.length>24?nm.slice(0,23)+"…":nm,nameX,y+rowH/2);
-    for(let i=1;i<=INNINGS;i++){ const m=fld.innings[i]; const k=m&&Object.keys(m).length?posOf(p,m):undefined; const cx=gx+cw*(i-1)+6;
-      if(k===undefined){continue}
+    cols.forEach((i,c)=>{ const m=fld.innings[i]; const k=m&&Object.keys(m).length?posOf(p,m):undefined; const cx=gx+cw*c+6;
+      if(k===undefined){return}
       const gk=grp(k); x.fillStyle=k==="P"?col("--pc-p"):k==="C"?col("--pc-c"):COLS[gk]; const rw=cw-12, rh=rowH-16; x.beginPath(); x.roundRect?x.roundRect(cx,y+8,rw,rh,10):x.rect(cx,y+8,rw,rh); x.fill();
       if(gk==="of"){x.lineWidth=3;x.strokeStyle=INK.of;x.stroke()}
-      x.fillStyle=(k==="P"||k==="C")?"#ffffff":INK[gk]; x.font="800 26px Barlow, sans-serif"; x.textAlign="center"; x.fillText(k||"BN",cx+rw/2,y+rowH/2+1); x.textAlign="left" }
+      x.fillStyle=(k==="P"||k==="C")?"#ffffff":INK[gk]; x.font="800 "+chipF+"px Barlow, sans-serif"; x.textAlign="center"; x.fillText(k||"BN",cx+rw/2,y+rowH/2+1); x.textAlign="left" });
   });
   x.fillStyle="#9a9aa3"; x.font="700 24px Barlow, sans-serif"; x.fillText("Made with Buddy Dugout",48,H-48);
   const blob=await new Promise(r=>cv.toBlob(r,"image/png")); if(!blob){toast("Couldn't make the card");return}
@@ -2354,7 +2362,7 @@ function renderAdvStats(){
 trkMode(); try{ if(advOn()&&load(K_TAB,"bat")==="trk")showTab("trk") }catch(e){}
 
 $("resSave").onclick=()=>{ const g=archiveGame(); if(g){toast("Saved to "+gLabel(g)); renderResults()} };
-{ const _aT=applyTeam; applyTeam=function(){ _aT(); try{resMode()}catch(e){} try{document.body.classList.toggle("no-tee",!!(TEAM.colors&&TEAM.colors.noTee)); renderBat()}catch(e){} } }
+{ const _aT=applyTeam; applyTeam=function(){ _aT(); try{ const ni=Math.min(9,Math.max(3,parseInt(TEAM.colors&&TEAM.colors.inn,10)||4)); if(ni!==INNINGS){ INNINGS=ni; if(fld.inning>INNINGS)fld.inning=INNINGS; renderField() } }catch(e){} try{resMode()}catch(e){} try{document.body.classList.toggle("no-tee",!!(TEAM.colors&&TEAM.colors.noTee)); renderBat()}catch(e){} } }
 { const _rS=renderScore; renderScore=function(){ _rS(); try{renderResults()}catch(e){} } }
 resMode();
 
@@ -2464,9 +2472,9 @@ $("shareLink").onclick=async()=>{
 /* ---------- live sync ---------- */
 if(TEAM.ref){
   TEAM.db.ref(".info/connected").on("value",s=>{const on=!!s.val(); $("live").classList.toggle("on",on); $("live").title=on?"Live":"Offline"});
-  const cur={avoid:()=>AVOID,nfields:()=>nFields,homefield:()=>homeField,bat:()=>bat,field:()=>fld,score:()=>sc,tee:()=>tee,default:()=>DEFAULT,schedule:()=>sched};
-  const apply={avoid:v=>{AVOID=v&&typeof v==="object"?v:{}},nfields:v=>{nFields=Number.isInteger(v)?v:0},homefield:v=>{homeField=typeof v==="string"?v:""},bat:v=>{bat=v;normBat()},field:v=>{fld=v;normFld()},score:v=>{sc=v;normSc()},tee:v=>{tee=Array.isArray(v)?v:[]},schedule:v=>{sched=Array.isArray(v)?v:[]},default:v=>{if(v&&typeof v==="object")DEFAULT=v}};
-  const KEYOF={avoid:K_AVOID,nfields:K_NFIELDS,homefield:K_HOME,bat:K_BAT,field:K_FIELD,score:K_SCORE,tee:K_TEE,default:K_DEF,schedule:K_SCHED};
+  const cur={dorder:()=>DORDER,avoid:()=>AVOID,nfields:()=>nFields,homefield:()=>homeField,bat:()=>bat,field:()=>fld,score:()=>sc,tee:()=>tee,default:()=>DEFAULT,schedule:()=>sched};
+  const apply={dorder:v=>{DORDER=Array.isArray(v)?v:null},avoid:v=>{AVOID=v&&typeof v==="object"?v:{}},nfields:v=>{nFields=Number.isInteger(v)?v:0},homefield:v=>{homeField=typeof v==="string"?v:""},bat:v=>{bat=v;normBat()},field:v=>{fld=v;normFld()},score:v=>{sc=v;normSc()},tee:v=>{tee=Array.isArray(v)?v:[]},schedule:v=>{sched=Array.isArray(v)?v:[]},default:v=>{if(v&&typeof v==="object")DEFAULT=v}};
+  const KEYOF={dorder:K_DORD,avoid:K_AVOID,nfields:K_NFIELDS,homefield:K_HOME,bat:K_BAT,field:K_FIELD,score:K_SCORE,tee:K_TEE,default:K_DEF,schedule:K_SCHED};
   let pend=false;
   const rerender=()=>{ if(drag){ if(!pend){pend=true; setTimeout(()=>{pend=false;rerender()},400)} return }
     renderField(); renderBat(); renderScore(); renderGames(); try{renderLock();renderClock()}catch(e){} };
