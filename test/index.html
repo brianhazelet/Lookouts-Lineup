@@ -425,7 +425,7 @@ body.rbi-on .restot,body.adv-on .restot{grid-template-columns:repeat(6,1fr)}
 .tkrunbar button[data-ra="score"]{background:var(--red);color:var(--on-red);border-color:var(--red)}
 .mk.zone rect{rx:7}
 .runr circle{fill:var(--gold);stroke:#fff;stroke-width:2.5}.runr text{fill:#fff;font:900 13px var(--body);paint-order:stroke;stroke:rgba(0,0,0,.65);stroke-width:3px;text-transform:uppercase}
-.runr.sel circle{stroke:var(--red);stroke-width:4}.runr circle.hit{fill:transparent;stroke:none;pointer-events:all}.runr{cursor:pointer}
+.runr.sel circle{stroke:var(--red);stroke-width:4}.runr.opp circle{fill:#e8e8ee;stroke:var(--red-ink);stroke-width:3}.runr.opp.sel circle{stroke:var(--gold);stroke-width:4}.runr circle.hit{fill:transparent;stroke:none;pointer-events:all}.runr{cursor:pointer}
 .tkscore{flex:1;text-align:right;font:900 22px var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}.tkscore small{font:700 11px var(--body);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-right:6px}
 .tkwhorow{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}.tkwhorow .tkwho{min-width:0}.tkwhorow .osout{flex:none;font-size:13px}
 .tkwho{font:800 15px var(--body);color:var(--muted)}.tkwho b{color:var(--fg);font:900 24px var(--display);text-transform:uppercase;display:block;line-height:1.05}
@@ -648,8 +648,8 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
         <div class="tg"><button type="button" class="tb" data-d="K">K<small>strikeout</small></button><button type="button" class="tb" data-d="GO">GO<small>ground out</small></button><button type="button" class="tb" data-d="FO">FO<small>fly out</small></button><button type="button" class="tb" data-d="LO">LO<small>line out</small></button>
           <button type="button" class="tb" data-d="PO">PO<small>pop out</small></button><button type="button" class="tb" data-d="TAG">Tag<small>tag out</small></button><button type="button" class="tb" data-d="FRC">Force<small>force out</small></button><button type="button" class="tb" data-d="DP">DP<small>double play</small></button></div>
         <span class="lbl">They reached</span>
-        <div class="tg"><button type="button" class="tb onb" data-d="H">Hit<small>any hit</small></button><button type="button" class="tb onb" data-d="BB">BB<small>walk</small></button><button type="button" class="tb onb" data-d="HBP">HBP<small>hit by pitch</small></button><button type="button" class="tb onb" data-d="E">E<small>our error</small></button></div>
-        <div class="tg2"><button type="button" class="tb gold" data-d="R">+ Their run<small>scored</small></button><span></span></div>
+        <div class="tg"><button type="button" class="tb onb" data-d="1B">1B<small>single</small></button><button type="button" class="tb onb" data-d="2B">2B<small>double</small></button><button type="button" class="tb onb" data-d="3B">3B<small>triple</small></button><button type="button" class="tb onb" data-d="HR">HR<small>home run</small></button>
+          <button type="button" class="tb onb" data-d="BB">BB<small>walk</small></button><button type="button" class="tb onb" data-d="HBP">HBP<small>hit by pitch</small></button><button type="button" class="tb onb" data-d="E">E<small>our error</small></button><button type="button" class="tb gold" data-d="R">+ Run<small>they scored</small></button></div>
       </div>
       <div class="actions"><button class="ghost" type="button" id="tkBack">Back</button><button class="ghost" type="button" id="tkStats">See stats</button></div>
       <p class="hint" id="tkHint"></p>
@@ -946,7 +946,7 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     </div></div>
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
     <p class="sub" id="acUid" hidden style="margin:0;text-align:center;font-size:11px;cursor:pointer;overflow-wrap:anywhere"></p>
-    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 3.0.5</p>
+    <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 3.0.6</p>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -2242,7 +2242,7 @@ function renderResults(){
 
 /* ---------- 3.0: full tracking (Track page) ---------- */
 const DEF={K:{l:"K",outs:1},GO:{l:"GO",outs:1},FO:{l:"FO",outs:1},LO:{l:"LO",outs:1},PO:{l:"PO",outs:1},TAG:{l:"Tag",outs:1},FRC:{l:"Force",outs:1},DP:{l:"DP",outs:2},O:{l:"Out",outs:1},
-  H:{l:"Hit",on:1},BB:{l:"BB",on:1},HBP:{l:"HBP",on:1},E:{l:"E",on:1},R:{l:"Run"}};
+  H:{l:"Hit",on:1,hit:1},"1B":{l:"1B",on:1,hit:1},"2B":{l:"2B",on:1,hit:1},"3B":{l:"3B",on:1,hit:1},HR:{l:"HR",on:1,hit:1},BB:{l:"BB",on:1},HBP:{l:"HBP",on:1},E:{l:"E",on:1},R:{l:"Run"},CS:{l:"Runner out",outs:1}};
 let tkSel=[];
 function dInit(){ if(!sc.ps||typeof sc.ps!=="object")sc.ps={}; if(!Array.isArray(sc.def))sc.def=[]; if(!sc.pc||typeof sc.pc!=="object")sc.pc={}; if(!sc.cnt||typeof sc.cnt!=="object")sc.cnt={b:0,s:0}; if(!Array.isArray(sc.dlog))sc.dlog=[]; if(sc.dlog.length>300)sc.dlog=sc.dlog.slice(-300) }
 const fInn=()=>inn(Math.min(sc.inning,INNINGS));
@@ -2274,32 +2274,47 @@ function tkDef(t,o){
   o=o||{}; ensureFielding(); dInit(); sc.lastAct="d"; const m=fInn(), k=pitchKey();
   const e={t,f:tkSel.map(x=>m[x]).filter(x=>x!=null),fk:tkSel.slice(),p:m.P!=null?m.P:null,ct:m.C!=null?m.C:null,i:sc.inning,top:sc.top,pk:k,pd:0,c:o.auto||{...sc.cnt}};
   if(t==="R"){ e.f=[]; e.fk=[] }
-  if(o.auto)e.auto=1; else if(t!=="R"){ sc.pc[k]=(sc.pc[k]||0)+1; e.pd=1; if(t!=="BB"&&t!=="HBP"){ sc.ps[k]=(sc.ps[k]||0)+1; e.ps=1 } pitchWarn(k) }
-  if(t!=="R")sc.cnt={b:0,s:0};
+  e.o0=sc.outs||0; e.hr0=sc.hr||0;
+  if(o.np){} else if(o.auto)e.auto=1; else if(t!=="R"){ sc.pc[k]=(sc.pc[k]||0)+1; e.pd=1; if(t!=="BB"&&t!=="HBP"){ sc.ps[k]=(sc.ps[k]||0)+1; e.ps=1 } pitchWarn(k) }
+  if(t!=="R"&&!o.np)sc.cnt={b:0,s:0};
+  if(t!=="R"&&t!=="CS"){ const b0=getBases(); e.bp={i:sc.inning,t:sc.top,b:b0.slice()}; const A2=advBases(b0,t,1,(sc.outs||0)+(DEF[t].outs||0)); if(RUNLIM())A2.sr=A2.sr.slice(0,Math.max(0,RUNLIM()-(sc.hr||0))); setBases(A2.b); if(A2.sr.length){ e.runs=A2.sr.length; sc.them+=e.runs; sc.hr=(sc.hr||0)+e.runs } }
   sc.def.push(e); sc.dlog.push({k:"e"}); tkSel=[];
   if((t==="BB"||t==="HBP")&&e.p!=null){ const w=sc.def.filter(x=>x.i===e.i&&x.top===e.top&&x.p===e.p&&(x.t==="BB"||x.t==="HBP")).length; if(w===3)setTimeout(()=>toast("3 walks for "+first(e.p)+" this inning"),1600) }
   try{navigator.vibrate&&navigator.vibrate(10)}catch(e2){}
   if(t==="R"){ addRun(false); renderTrack(); return }
   const no=DEF[t].outs||0, hi=sc.inning, ht=sc.top;
   if(no){ for(let j=0;j<no;j++) if(sc.inning===hi&&sc.top===ht) $("outPlus").click() } else saveScore();
-  if(!o.auto&&!(no&&sc.outs===0)) toast(DEF[t].l+(e.fk.length?" "+e.fk.join("-"):""));
+  if(!o.auto&&!(no&&sc.outs===0)) toast(DEF[t].l+(e.fk.length?" "+e.fk.join("-"):"")+(e.runs?" · "+e.runs+" run"+(e.runs>1?"s":"")+" scored":""));
+  if(e.runs&&!usBat()&&sc.inning===hi&&sc.top===ht&&RUNLIM()&&sc.hr>=RUNLIM()){ setHalf(1); toast(RUNLIM()+" runs · switch sides") }
   renderTrack();
 }
 function tkUndoDef(){
   dInit(); const L=sc.dlog.pop(); if(!L){toast("Nothing to undo");return}
   if(L.k==="p"){ sc.pc[L.p]=Math.max(0,(sc.pc[L.p]||0)-1); if(L.s)sc.ps[L.p]=Math.max(0,(sc.ps[L.p]||0)-1); sc.cnt=L.c; saveScore(); toast("Pitch removed"); return }
   const e=sc.def.pop(); if(!e){saveScore();return}
-  if(e.t==="R"){ subRun(false); toast("Run removed"); renderTrack(); return }
+  if(e.t==="R"){ subRun(false); if(e.bp)sc.bs=e.bp; saveScore(); toast("Run removed"); renderTrack(); return }
   if(e.pd)sc.pc[e.pk]=Math.max(0,(sc.pc[e.pk]||0)-1); if(e.ps)sc.ps[e.pk]=Math.max(0,(sc.ps[e.pk]||0)-1);
-  const no=DEF[e.t].outs||0;
-  if(no){ if(sc.top!==e.top||sc.inning!==e.i){ setHalf(-1); sc.outs=Math.max(0,3-no) } else sc.outs=Math.max(0,(sc.outs||0)-no) }
-  sc.cnt=e.c||{b:0,s:0};
+  const no=DEF[e.t].outs||0, back=sc.top!==e.top||sc.inning!==e.i;
+  if(back)setHalf(-1);
+  if(e.o0!=null)sc.outs=e.o0; else if(no) sc.outs=back?Math.max(0,3-no):Math.max(0,(sc.outs||0)-no);
+  if(e.bp)sc.bs=e.bp; if(e.runs)sc.them=Math.max(0,sc.them-e.runs); if(e.hr0!=null)sc.hr=e.hr0;
+  if(e.t!=="CS")sc.cnt=e.c||{b:0,s:0};
   if(e.auto){ const P=sc.dlog[sc.dlog.length-1]; if(P&&P.k==="p"){ sc.dlog.pop(); sc.pc[P.p]=Math.max(0,(sc.pc[P.p]||0)-1); if(P.s)sc.ps[P.p]=Math.max(0,(sc.ps[P.p]||0)-1); sc.cnt=P.c } }
   saveScore(); toast(DEF[e.t].l+" removed"); renderTrack();
 }
 /* 3.0.1: base runners. sc.bs={i,t,b:[_,1st,2nd,3rd]} holds at-bat indexes; a new half-inning starts empty. */
 function getBases(){ const x=sc.bs; return x&&x.i===sc.inning&&x.t===sc.top&&Array.isArray(x.b)?x.b.slice():[null,null,null,null] }
 function setBases(b){ sc.bs={i:sc.inning,t:sc.top,b} }
+function advBases(b,code,me,outsAfter){ let sr=[];
+  const go=n=>{ for(let base=3;base>=1;base--){ const x=b[base]; if(x==null)continue; b[base]=null; if(base+n>=4)sr.push(x); else b[base+n]=x } };
+  const leadOut=()=>{ if(b[1]!=null)b[1]=null; else if(b[2]!=null)b[2]=null; else if(b[3]!=null)b[3]=null };
+  if(code==="HR"){ go(4); sr.push(me) } else if(code==="3B"){ go(3); b[3]=me } else if(code==="2B"){ go(2); b[2]=me }
+  else if(code==="1B"||code==="E"||code==="H"){ go(1); b[1]=me }
+  else if(code==="BB"||code==="HBP"){ if(b[1]!=null){ if(b[2]!=null){ if(b[3]!=null)sr.push(b[3]); b[3]=b[2] } b[2]=b[1] } b[1]=me }
+  else if(code==="FC"||code==="FRC"){ leadOut(); if(b[1]!=null)go(1); b[1]=me }
+  else if(code==="SAC"){ go(1) } else if(code==="DP"){ leadOut() }
+  if(!LMODE()&&outsAfter>=3){ sr=[]; b=[null,null,null,null] }
+  return {b,sr} }
 function tkAdvance(ent,r){
   const b0=getBases(); ent.bp={i:sc.inning,t:sc.top,b:b0.slice()}; let b=b0.slice(); const me=sc.ab.length-1; let sr=[];
   const go=n=>{ for(let base=3;base>=1;base--){ const x=b[base]; if(x==null)continue; b[base]=null; if(base+n>=4)sr.push(x); else b[base+n]=x } };
@@ -2314,6 +2329,7 @@ function tkAdvance(ent,r){
   else if(code==="SAC"){ go(1) }
   else if(code==="DP"){ leadOut() }
   if(!LMODE()&&(sc.outs||0)+outsOf(r)>=3){ sr=[]; b=[null,null,null,null] }
+  if(RUNLIM())sr=sr.slice(0,Math.max(0,RUNLIM()-(sc.hr||0)));
   ent.sr=sr; sr.forEach(j=>{ if(sc.ab[j])sc.ab[j].scored=1 });
   const rbi=(r==="E"||r==="DP")?0:sr.length; if(rbi)ent.rbi=(ent.rbi|0)+rbi;
   sc.us+=sr.length; sc.hr=(sc.hr||0)+sr.length; setBases(b);
@@ -2321,6 +2337,13 @@ function tkAdvance(ent,r){
 let tkRun=null;
 function tkRunAct(a){
   const b=getBases(), base=tkRun, x=b[base]; tkRun=null; if(base==null||x==null){renderTrack();return}
+  if(!usBat()){ const nb=["","1st","2nd","3rd"];
+    if(a==="sb"||a==="adv"){ if(base===3){ const bp={i:sc.inning,t:sc.top,b:b.slice()}; b[3]=null; setBases(b); tkDef("R"); const e=sc.def[sc.def.length-1]; if(e)e.bp=bp; return }
+      if(b[base+1]!=null){ toast("Move the runner on "+nb[base+1]+" first"); renderTrack(); return } b[base+1]=x; b[base]=null; setBases(b); saveScore(); toast("Runner to "+nb[base+1]) }
+    else if(a==="score"){ const bp={i:sc.inning,t:sc.top,b:b.slice()}; b[base]=null; setBases(b); tkDef("R"); const e=sc.def[sc.def.length-1]; if(e)e.bp=bp; return }
+    else if(a==="out"){ tkRun=null; const keep=b.slice(); b[base]=null; setBases(b); tkDef("CS",{np:1}); const e=sc.def[sc.def.length-1]; if(e&&e.t==="CS")e.bp={i:e.i,t:e.top,b:keep}; return }
+    else if(a==="off"){ b[base]=null; setBases(b); saveScore() }
+    renderTrack(); return }
   if(a==="sb"){ const e=sc.ab[x]; e.sb=(e.sb|0)+1;
     if(base===3){ b[3]=null; setBases(b); toast(first(e.p)+" stole home"); tkScore(x,true); return }
     if(b[base+1]!=null){ e.sb--; if(!e.sb)delete e.sb; toast("Move the runner on "+["","1st","2nd","3rd"][base+1]+" first"); renderTrack(); return }
@@ -2332,7 +2355,7 @@ function tkRunAct(a){
   renderTrack();
 }
 document.querySelectorAll("#tkRunBar [data-ra]").forEach(bt=>bt.onclick=()=>tkRunAct(bt.dataset.ra));
-function drawDia(id){ const el=$(id); if(!el)return; const b=getBases(), on=usBat(); el.querySelectorAll("rect").forEach((r2,k)=>r2.classList.toggle("on",on&&b[k+1]!=null)) }
+function drawDia(id){ const el=$(id); if(!el)return; const b=getBases(); el.querySelectorAll("rect").forEach((r2,k)=>r2.classList.toggle("on",b[k+1]!=null)) }
 function tkRunners(){ const ab=Array.isArray(sc.ab)?sc.ab:[]; const out=[];
   ab.forEach((e,idx)=>{ if(e.i===sc.inning&&e.t===sc.top&&RES[e.r]&&RES[e.r].on&&!e.scored)out.push(idx) }); return out.slice(-3) }
 function tkScore(idx,noRbi){
@@ -2346,7 +2369,7 @@ function tkScore(idx,noRbi){
 }
 function advBox(){ if(!advOn()&&!(Array.isArray(sc.def)&&sc.def.length))return {}; dInit();
   const pc={}, ps={}; Object.keys(sc.pc).forEach(k=>{ pc[k==="?"?"Unknown":pnm(+k)]=sc.pc[k] }); Object.keys(sc.ps||{}).forEach(k=>{ ps[k==="?"?"Unknown":pnm(+k)]=sc.ps[k] });
-  return {def:sc.def.map(e=>({t:e.t,f:e.f.map(pnm),p:e.p!=null?pnm(e.p):null,ct:e.ct!=null?pnm(e.ct):null})),pc,ps} }
+  return {def:sc.def.map(e=>({t:e.t,f:e.f.map(pnm),p:e.p!=null?pnm(e.p):null,ct:e.ct!=null?pnm(e.ct):null,...(e.runs?{rn:e.runs}:{})})),pc,ps} }
 /* 3.0.2: pitching help */
 const restDays=n=>n>=66?4:n>=51?3:n>=36?2:n>=21?1:0;
 function restNote(name){
@@ -2361,7 +2384,7 @@ function restNote(name){
 function pitcherLine(pid){
   const k=pid==null?"?":String(pid), n=sc.pc[k]||0, st=(sc.ps||{})[k]||0, ev=(sc.def||[]).filter(e=>e.p===pid&&e.t!=="R");
   const c=t=>ev.filter(e=>e.t===t).length;
-  return "BF "+ev.length+" · Str "+(n?Math.round(st*100/n)+"%":"-")+" · K "+c("K")+" · BB "+(c("BB")+c("HBP"))+" · H "+c("H");
+  return "BF "+ev.length+" · Str "+(n?Math.round(st*100/n)+"%":"-")+" · K "+c("K")+" · BB "+(c("BB")+c("HBP"))+" · H "+ev.filter(e=>DEF[e.t]&&DEF[e.t].hit).length+" · R "+((sc.def||[]).filter(e=>e.p===pid).reduce((t,e)=>t+(e.t==="R"?1:0)+(e.runs||0),0));
 }
 let tkPickOpen=false;
 function drawPick(){
@@ -2400,21 +2423,26 @@ function renderTrack(){
   $("tkSel").style.color=tkSel.length?"":"var(--muted)"; $("tkSelX").hidden=!tkSel.length;
   const g=$("tkMarkers"); g.innerHTML="";
   const ZN={P:[180,252],C:[180,322],"1B":[290,196],"2B":[234,140],"3B":[70,196],SS:[126,140],LF:[58,110],LCF:[132,64],CF:[180,58],RCF:[228,64],RF:[302,110]};
-  curPOS().forEach(po0=>{ const z=ub&&ZN[po0.k], po=z?{...po0,x:z[0],y:z[1]}:po0; const pid=m[po.k], has=pid!=null&&!ub, si=tkSel.indexOf(po.k);
+  curPOS().forEach(po0=>{ const z=ZN[po0.k], po=z?{...po0,x:z[0],y:z[1]}:po0; const pid=m[po.k], has=pid!=null&&!ub, si=tkSel.indexOf(po.k);
     const mk=document.createElementNS(SVGNS,"g"); mk.setAttribute("class","mk "+grp(po.k)+(has||ub?"":" empty")+(si>=0?" sel":""));
     mk.setAttribute("role","button"); mk.setAttribute("tabindex","0"); mk.setAttribute("aria-label",po.n+(has?": "+LINEUP[pid][0]:""));
     mk.innerHTML=ub?`<rect x="${po.x-30}" y="${po.y-13}" width="60" height="26" rx="7"/><text class="nm" x="${po.x}" y="${po.y+5}" text-anchor="middle" style="font-size:12px"></text>`:`<rect x="${po.x-37}" y="${po.y-17}" width="74" height="34" rx="8"/><text class="ab" x="${po.x}" y="${po.y-4}" text-anchor="middle">${po.k}</text><text class="nm" x="${po.x}" y="${po.y+11}" text-anchor="middle"></text>${si>=0?`<text class="ord" x="${po.x+30}" y="${po.y-20}" text-anchor="middle">${si+1}</text>`:""}`;
     mk.querySelector(".nm").textContent=ub?({P:"Mound",C:"Plate","1B":"1st","2B":"2nd","3B":"3rd",SS:"Short",LF:"Left",LCF:"L-Ctr",CF:"Center",RCF:"R-Ctr",RF:"Right"}[po.k]||po.k):(has?first(pid):"Empty");
     mk.onclick=()=>{ if(ub){ tkSel=si>=0?[]:[po.k] } else { if(si>=0&&si===tkSel.length-1)tkSel.pop(); else tkSel.push(po.k) } renderTrack() };
     g.appendChild(mk) });
+  if(!ub){ const bb=getBases(), BXY=[null,[239.5,229.5],[180,170.5],[120.5,229.5]];
+    for(let k=1;k<=3;k++){ if(bb[k]==null)continue; const [bx,by]=BXY[k];
+      const rg=document.createElementNS(SVGNS,"g"); rg.setAttribute("class","runr opp"+(tkRun===k?" sel":"")); rg.setAttribute("role","button"); rg.setAttribute("aria-label","Their runner on "+["","first","second","third"][k]);
+      rg.innerHTML=`<circle class="hit" cx="${bx}" cy="${by}" r="22"/><circle cx="${bx}" cy="${by}" r="10"/>`;
+      rg.onclick=ev=>{ ev.stopPropagation(); tkRun=tkRun===k?null:k; renderTrack() }; g.appendChild(rg) } }
   if(ub){ const bb=getBases(), BXY=[null,[239.5,229.5],[180,170.5],[120.5,229.5]];
     for(let k=1;k<=3;k++){ const x=bb[k]; if(x==null||!sc.ab[x])continue; const [bx,by]=BXY[k];
       const rg=document.createElementNS(SVGNS,"g"); rg.setAttribute("class","runr"+(tkRun===k?" sel":"")); rg.setAttribute("role","button"); rg.setAttribute("aria-label",LINEUP[sc.ab[x].p][0]+" on "+["","first","second","third"][k]);
       rg.innerHTML=`<circle class="hit" cx="${bx}" cy="${by}" r="24"/><circle cx="${bx}" cy="${by}" r="12"/><text x="${k===1?bx+18:k===3?bx-18:bx}" y="${k===2?by-20:by+24}" text-anchor="${k===1?"start":k===3?"end":"middle"}"></text>`; rg.querySelector("text").textContent=first(sc.ab[x].p);
       rg.onclick=e=>{ e.stopPropagation(); tkRun=tkRun===k?null:k; renderTrack() }; g.appendChild(rg) } }
-  { const bb=getBases(); if(tkRun!=null&&(!ub||bb[tkRun]==null))tkRun=null; $("tkRunBar").hidden=tkRun==null;
-    if(tkRun!=null){ $("tkRunWho").textContent=first(sc.ab[bb[tkRun]].p)+" on "+["","1st","2nd","3rd"][tkRun]; $("tkRaAdv").hidden=tkRun===3; $("tkRaAdv").textContent="To "+["","","2nd","3rd"][tkRun+1]; $("tkRaSb").textContent=tkRun===3?"Stole home":"Stole "+["","","2nd","3rd"][tkRun+1] } }
-  drawDia("tkDia"); $("tkDia").style.visibility=ub?"":"hidden";
+  { const bb=getBases(); if(tkRun!=null&&bb[tkRun]==null)tkRun=null; $("tkRunBar").hidden=tkRun==null;
+    if(tkRun!=null){ $("tkRunWho").textContent=(ub?first(sc.ab[bb[tkRun]].p):"Their runner")+" on "+["","1st","2nd","3rd"][tkRun]; $("tkRaAdv").hidden=tkRun===3; $("tkRaAdv").textContent="To "+["","","2nd","3rd"][tkRun+1]; $("tkRaSb").textContent=tkRun===3?"Stole home":"Stole "+["","","2nd","3rd"][tkRun+1] } }
+  drawDia("tkDia");
   window.__tkLoc=ub&&tkSel.length?tkSel[0]:null;
 }
 document.querySelectorAll("#tkOff [data-r]").forEach(b=>b.onclick=()=>{ recordResult(b.dataset.r); tkSel=[]; window.__tkLoc=null;
@@ -2427,7 +2455,7 @@ $("tkRunX").onclick=()=>tkScore(null);
 $("tkFlip").onclick=()=>{ sc.weTop=usBat()?!sc.top:sc.top; tkSel=[]; saveScore() };
 $("tkBack").onclick=()=>{ if(usBat()||sc.lastAct==="o")$("undo").click(); else tkUndoDef(); renderTrack() };
 $("tkStats").onclick=()=>showTab("res");
-{ const _ro=renderOutStrip; renderOutStrip=function(){ _ro(); try{ $("osDia").hidden=!advOn()||!usBat(); drawDia("osDia") }catch(e){} } }
+{ const _ro=renderOutStrip; renderOutStrip=function(){ _ro(); try{ $("osDia").toggleAttribute("hidden",!advOn()); drawDia("osDia") }catch(e){} } }
 { const _rS3=renderScore; renderScore=function(){ _rS3(); try{renderTrack()}catch(e){} } }
 { const _rB3=renderBat; renderBat=function(){ _rB3(); try{renderTrack()}catch(e){} } }
 { const _rF3=renderField; renderField=function(){ _rF3(); try{renderTrack()}catch(e){} } }
@@ -2439,7 +2467,7 @@ function statTables(bats,defs,pcs,pss,game){
     if(isAB(e.r))x.ab++; if(R2.hit){x.h++;x.tb+=R2.tb||1} if(e.r==="2B")x.d++; if(e.r==="3B")x.t++; if(e.r==="HR")x.hr++; if(e.r==="BB"||e.r==="HBP")x.bb++; if(e.r==="SAC")x.sf++; if(R2.k)x.k++; if(e.sc||e.scored)x.r++; x.rbi+=e.rbi|0 });
   const D={}, P={}; const dd=n=>D[n]=D[n]||{po:0,a:0,e:0,dp:0}, pp=n=>P[n]=P[n]||{pc:0,o:0,k:0,bb:0,h:0,r:0};
   defs.forEach(e=>{ const f=e.f||[]; const T=DEF[e.t]; if(!T)return;
-    if(e.p){ const x=pp(e.p); x.o+=T.outs||0; if(e.t==="K")x.k++; if(e.t==="BB"||e.t==="HBP")x.bb++; if(e.t==="H")x.h++; if(e.t==="R")x.r++ }
+    if(e.p){ const x=pp(e.p); x.o+=T.outs||0; if(e.t==="K")x.k++; if(e.t==="BB"||e.t==="HBP")x.bb++; if(DEF[e.t]&&DEF[e.t].hit)x.h++; if(e.t==="R")x.r++; x.r+=(e.rn||e.runs||0) }
     if(e.t==="K"&&e.ct)dd(e.ct).po++;
     else if(e.t==="E"){ if(f[0])dd(f[0]).e++ }
     else if(T.outs&&f.length){ f.forEach((n,k)=>{ if(k<f.length-1)dd(n).a++ }); dd(f[f.length-1]).po++; if(e.t==="DP"){ if(f.length>=3)dd(f[1]).po++; [...new Set(f)].forEach(n=>dd(n).dp++) } } });
