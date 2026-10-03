@@ -192,6 +192,7 @@ button.chip{color:var(--fg)}
 #view .vrow{grid-template-columns:22px 1fr auto auto 44px}
 #view .vrow .tag{min-width:0;padding:2px 7px;font-size:10px}
 #view .vrow em{font-style:normal}
+#view .vrow.batted span{color:var(--done);text-decoration:line-through}
 #view .vrow.up{background:var(--red);color:var(--on-red)} #view .vrow.up b,#view .vrow.up i{color:var(--on-red);opacity:.85}
 #view .vrow.up .tag{background:var(--white);color:var(--red-ink)} #view .vrow.deck .tag{background:var(--ink);color:var(--white);border:1px solid var(--red-ink)} #view .vrow.hole .tag{border:1px solid var(--line);color:var(--muted)}
 #view .vrow.up .vpos.inf{box-shadow:inset 0 0 0 1.5px var(--on-red)}
@@ -2420,6 +2421,8 @@ function loadGame(){
   }
   GM=m; EV=(evs||[]).filter(e=>e&&e.id&&e.g===GM.gid).sort(byId); EVIDS=new Set(EV.map(e=>e.id));
   sc=replay(); syncDerived(); lastInning=sc.inning;
+  /* mid-game reload: show the positions for the inning being played */
+  if(EV.length&&!sc.final){ const fi=Math.min(sc.inning||1,INNINGS); if(fi!==fld.inning){ fld.inning=fi; try{inn(fi)}catch(e){} } }
 }
 function adoptMeta(str){ let m; try{m=JSON.parse(str)}catch(e){return} if(!m||!m.gid)return;
   if(!GM||m.gid!==GM.gid){ GM=m; EV=[]; EVIDS=new Set(); sc=replay(); afterGame(false); return }
@@ -3228,7 +3231,7 @@ function showView(sid){
       V("vDeck").textContent=d[1]; V("vDeckMeta").textContent=jm(d); if(h){ V("vHole").textContent=h[1]; V("vHoleMeta").textContent=jm(h) } }
     const ti=V("vInn"); ti.hidden=same||cols.length<2; ti.innerHTML=""; if(!ti.hidden) cols.forEach((c,i)=>{const b=document.createElement("button"); b.type="button"; b.textContent="Inn "+c; b.setAttribute("aria-selected",i===col); b.onclick=()=>{col=i;picked=true;draw()}; ti.appendChild(b)});
     V("vOrdSum").textContent=rows.length+" batters";
-    const R=V("vRows"); R.innerHTML=""; rows.forEach((r,i)=>{ const d=document.createElement("div"); d.className="vrow"; const tg=!live?"":i===up?"up":i===(up+1)%L&&L>1?"deck":i===(up+2)%L&&L>2?"hole":""; if(tg)d.classList.add(tg);
+    const R=V("vRows"); R.innerHTML=""; rows.forEach((r,i)=>{ const d=document.createElement("div"); d.className="vrow"; if(live&&i<up)d.classList.add("batted"); const tg=!live?"":i===up?"up":i===(up+1)%L&&L>1?"deck":i===(up+2)%L&&L>2?"hole":""; if(tg)d.classList.add(tg);
       d.innerHTML="<b></b><span></span><em class='tag'></em><i></i><em class='vpos'></em>"; const te=d.querySelector(".tag"); if(tg)te.textContent=tg==="up"?"Up":tg==="deck"?"Deck":"Hole"; else te.style.visibility="hidden";
       d.querySelector("b").textContent=i+1; d.querySelector("span").textContent=r[1]; d.querySelector("i").textContent=r[0]?"#"+r[0]:""; const ps=(r[2]||[])[same?0:col]; const pe=d.querySelector(".vpos");
       if(ps){ pe.textContent=ps; pe.className="vpos "+(ps==="BN"?"bn":ps==="P"?"pit":ps==="C"?"cat":["1B","2B","3B","SS"].includes(ps)?"inf":"of") } else pe.style.visibility="hidden"; R.appendChild(d) });
