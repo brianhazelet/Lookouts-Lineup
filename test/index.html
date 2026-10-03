@@ -178,6 +178,7 @@ button.chip{color:var(--fg)}
 #view .vhead h2{margin:0;font-family:var(--varsity);font-weight:400;font-size:30px;overflow-wrap:anywhere}
 #view .vhead p{margin:0;font:700 15px var(--body);opacity:.9}
 #view .vbody{padding:0 16px;display:flex;flex-direction:column;gap:10px}
+#view .bench{gap:10px} #view .herebody{display:flex;flex-direction:column;gap:10px}
 #view .vrow{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line)}
 #view .vrow b{font:800 16px var(--body);color:var(--muted)}
 #view .vrow span{font:700 17px var(--body);overflow-wrap:anywhere}
@@ -595,7 +596,13 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
 </div>
 <div id="gate" hidden><div class="card"><h2>BUDDY DUGOUT</h2><p class="msg" id="gateMsg">Enter your team code to open your team.</p><div id="gateMine" hidden style="display:flex;flex-direction:column;gap:6px;text-align:left"><span class="lbl" style="color:var(--muted)">Your teams</span><div class="menu teamcards" id="gateMineList"></div><div class="or">or enter a code</div></div><input id="gateCode" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Team code" aria-label="Team code"><button class="go" type="button" id="gateGo">Open team</button><div class="or">or</div><button class="ghost" type="button" id="gateCreate" style="padding:14px">Create a new team</button></div></div>
 <div id="join" hidden><div class="card"><h2 id="joinTeam">BUDDY DUGOUT</h2><p class="msg" id="joinMsg"></p><button class="go" type="button" id="joinGo"></button><button class="ghost" type="button" id="joinAlt" style="padding:12px" hidden></button><button type="button" class="linkbtn" id="joinSwitch">Open a different team</button></div></div>
-<div id="view" hidden><div class="vw"><div class="vhead" id="vHead"><h2 id="vName">LINEUP</h2><p id="vSub"></p></div><div class="vbody"><div class="tabs" id="vInn" hidden></div><div id="vRows" style="display:flex;flex-direction:column;gap:8px"></div><p class="vnote" id="vNote">View only. Updates live.</p></div></div></div>
+<div id="view" hidden><div class="vw"><div class="vhead" id="vHead"><h2 id="vName">LINEUP</h2><p id="vSub"></p></div><div class="vbody">
+  <div class="bench herebox coll" data-vcoll="order"><button type="button" class="herehead" aria-expanded="true"><span><span class="lbl">Batting order</span><span class="sum" id="vOrdSum"></span></span><span class="pmicon" aria-hidden="true">&minus;</span></button>
+    <div class="herebody"><div class="tabs" id="vInn" hidden></div><div id="vRows" style="display:flex;flex-direction:column;gap:8px"></div></div></div>
+  <div class="bench herebox coll" data-vcoll="field"><button type="button" class="herehead" aria-expanded="true"><span><span class="lbl">Field by inning</span><span class="sum" id="vFpSum"></span></span><span class="pmicon" aria-hidden="true">&minus;</span></button>
+    <div class="herebody"><div class="fpwrap"><table class="fp" id="vFp"></table></div>
+    <div class="fpkey"><span><i style="background:var(--if-fill)"></i>Infield</span><span><i style="background:var(--of-fill);box-shadow:inset 0 0 0 1.5px var(--of-ink)"></i>Outfield</span><span><i style="background:var(--bn)"></i>Bench</span><span>Sat · IF = innings on bench and in the infield</span></div></div></div>
+  <p class="vnote" id="vNote">View only. Updates live.</p></div></div></div>
 <div id="setup" hidden><div class="page">
   <h2>NEW TEAM</h2>
   <div class="form">
@@ -2758,8 +2765,8 @@ TEAM.sid=null;
 function pubName(n){ const p=String(n||"").trim().split(/\s+/); return p.length>1?p[0]+" "+p[p.length-1][0]+".":p[0]||"Player" }
 function pubSnap(){ const A=act(); const plan=[]; for(let i=1;i<=INNINGS;i++){ const m=fld.innings[i]; if(m&&Object.keys(m).length)plan.push(i) }
   const same=plan.length<=1||A.every(p=>plan.every(i=>posOf(p,fld.innings[i])===posOf(p,fld.innings[plan[0]])));
-  const cols=same?[plan[0]||1]:plan; const g=typeof nextGame==="function"?nextGame():null;
-  return {n:TEAM.name||"Team",k:(TEAM.colors&&TEAM.colors.p)||"",ks:(TEAM.colors&&TEAM.colors.s)||"",o:sc.opp||(g&&g.opp)||"",w:g?gameWhen(g):"",cols,
+  const cols=plan.length?plan:[1]; const g=typeof nextGame==="function"?nextGame():null;
+  return {n:TEAM.name||"Team",k:(TEAM.colors&&TEAM.colors.p)||"",ks:(TEAM.colors&&TEAM.colors.s)||"",o:sc.opp||(g&&g.opp)||"",w:g?gameWhen(g):"",cols,same:same?1:0,
     rows:A.map(p=>[LINEUP[p][1]||"",pubName(LINEUP[p][0]),cols.map(i=>{const m=fld.innings[i]; return m&&Object.keys(m).length?(posOf(p,m)||"BN"):""})])} }
 let pubLast="", pubT=null;
 function pubSoon(){ if(RO||!TEAM.ref||!TEAM.sid)return; clearTimeout(pubT); pubT=setTimeout(()=>{ try{ const v=JSON.stringify(pubSnap()); if(v===pubLast)return; pubLast=v;
@@ -3195,11 +3202,21 @@ function showView(sid){
   const draw=()=>{ if(!data){ V("vName").textContent="LINEUP"; V("vSub").textContent=""; V("vRows").innerHTML=""; V("vNote").textContent="This link isn't active. Ask the coach for the current one."; V("vInn").hidden=true; return }
     applyTheme(data.k?{p:data.k,s:data.ks||"#ffffff"}:CLASSIC); const h=V("vHead"); h.style.background=data.k||"var(--red)"; h.style.color="var(--on-red)";
     V("vName").textContent=String(data.n||"Team").toUpperCase(); V("vSub").textContent=[data.o?"vs "+data.o:"",data.w||""].filter(Boolean).join("  ·  ");
-    const cols=Array.isArray(data.cols)?data.cols:[]; if(col>=cols.length)col=0;
-    const ti=V("vInn"); ti.hidden=cols.length<2; ti.innerHTML=""; cols.forEach((c,i)=>{const b=document.createElement("button"); b.type="button"; b.textContent="Inn "+c; b.setAttribute("aria-selected",i===col); b.onclick=()=>{col=i;draw()}; ti.appendChild(b)});
-    const R=V("vRows"); R.innerHTML=""; (data.rows||[]).forEach((r,i)=>{ const d=document.createElement("div"); d.className="vrow"; d.innerHTML="<b></b><span></span><em class='vpos'></em>";
-      d.querySelector("b").textContent=i+1; d.querySelector("span").textContent=(r[0]?"#"+r[0]+"  ":"")+r[1]; const ps=(r[2]||[])[col]; const pe=d.querySelector(".vpos"); if(ps)pe.textContent=ps==="BN"?"Bench":ps; else pe.remove(); R.appendChild(d) });
+    const cols=Array.isArray(data.cols)?data.cols:[], rows=data.rows||[], same=data.same!==undefined?!!data.same:cols.length<2; if(col>=cols.length)col=0;
+    const ti=V("vInn"); ti.hidden=same||cols.length<2; ti.innerHTML=""; if(!ti.hidden) cols.forEach((c,i)=>{const b=document.createElement("button"); b.type="button"; b.textContent="Inn "+c; b.setAttribute("aria-selected",i===col); b.onclick=()=>{col=i;draw()}; ti.appendChild(b)});
+    V("vOrdSum").textContent=rows.length+" batters";
+    const R=V("vRows"); R.innerHTML=""; rows.forEach((r,i)=>{ const d=document.createElement("div"); d.className="vrow"; d.innerHTML="<b></b><span></span><em class='vpos'></em>";
+      d.querySelector("b").textContent=i+1; d.querySelector("span").textContent=(r[0]?"#"+r[0]+"  ":"")+r[1]; const ps=(r[2]||[])[same?0:col]; const pe=d.querySelector(".vpos"); if(ps)pe.textContent=ps==="BN"?"Bench":ps; else pe.remove(); R.appendChild(d) });
+    const INFS=new Set(["P","C","1B","2B","3B","SS"]), F=V("vFp"); F.innerHTML="";
+    const tr=document.createElement("tr"); tr.innerHTML="<th></th>"+cols.map(c=>"<th>"+(+c)+"</th>").join("")+"<th>Sat</th><th>IF</th>"; F.appendChild(tr);
+    rows.forEach(r=>{ const t=document.createElement("tr"); const n=document.createElement("td"); n.className="n"; n.textContent=String(r[1]||"").split(" ")[0]; t.appendChild(n); let sat=0, inf=0;
+      cols.forEach((c,i)=>{ const k=(r[2]||[])[i]||""; const d=document.createElement("td"); d.className="c "+(!k?"un":k==="BN"?"bn":k==="P"?"inf pit":k==="C"?"inf cat":INFS.has(k)?"inf":"of"); d.textContent=k||"-"; if(k==="BN")sat++; if(INFS.has(k))inf++; t.appendChild(d) });
+      [sat,inf].forEach(v=>{const d=document.createElement("td"); d.className="s"; d.textContent=v; t.appendChild(d)}); F.appendChild(t) });
+    V("vFpSum").textContent=cols.length===1?"Inning "+cols[0]:cols.length+" innings planned";
     V("vNote").textContent="View only. Updates live as the coaches make changes." };
+  document.querySelectorAll("#view [data-vcoll]").forEach(box=>{ const id=box.dataset.vcoll, head=box.querySelector(".herehead"), body=box.querySelector(".herebody"), pm=box.querySelector(".pmicon");
+    const set=open=>{ body.hidden=!open; head.setAttribute("aria-expanded",open); pm.textContent=open?"−":"+"; try{localStorage.setItem("bd-vopen-"+id,open?"1":"0")}catch(e){} };
+    let st=true; try{ st=localStorage.getItem("bd-vopen-"+id)!=="0" }catch(e){} set(st); head.onclick=()=>set(body.hidden) });
   draw();
   try{ firebase.apps.length||firebase.initializeApp(FB); firebase.database().ref("pub/"+sid+"/v").on("value",s=>{ try{data=s.val()?JSON.parse(s.val()):null}catch(e){data=null} draw() },()=>{data=null;draw()}) }catch(e){ draw() }
 }
