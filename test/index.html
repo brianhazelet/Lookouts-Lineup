@@ -179,10 +179,16 @@ button.chip{color:var(--fg)}
 #view .vhead p{margin:0;font:700 15px var(--body);opacity:.9}
 #view .vbody{padding:0 16px;display:flex;flex-direction:column;gap:10px}
 #view .bench{gap:10px} #view .herebody{display:flex;flex-direction:column;gap:10px}
-#view .vrow{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line)}
-#view .vrow b{font:800 16px var(--body);color:var(--muted)}
-#view .vrow span{font:700 17px var(--body);overflow-wrap:anywhere}
-#view .vpos{min-width:46px;text-align:center;padding:6px 8px;border-radius:9px;font:800 15px var(--body);background:var(--surface);border:1px solid var(--line)}
+#view #vRows{gap:0!important;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface2)}
+#view .vrow{display:grid;grid-template-columns:22px 1fr auto 44px;gap:10px;align-items:center;padding:8px 12px;border-top:1px solid var(--line)}
+#view .vrow:first-child{border-top:0}
+#view .vrow b{font:700 14px var(--body);color:var(--muted);text-align:right}
+#view .vrow span{font:600 16px var(--body);overflow-wrap:anywhere}
+#view .vrow i{font:600 13px var(--body);color:var(--muted);font-style:normal}
+#view .vpos{text-align:center;padding:4px 0;border-radius:6px;font:800 12px var(--body);font-style:normal;color:#fff}
+#view .vpos.inf{background:var(--if-fill);color:var(--if-ink)} #view .vpos.of{background:var(--of-fill);color:var(--of-ink);box-shadow:inset 0 0 0 1.5px var(--of-ink)}
+#view .vpos.bn{background:var(--bn)} #view .vpos.pit{background:var(--pc-p);color:#fff} #view .vpos.cat{background:var(--pc-c);color:#fff}
+#view .tabs{align-self:flex-start}
 #view .vnote{color:var(--muted);font-size:13px;text-align:center;margin:6px 0 0}
 .memrow{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);text-align:left}
 .memrow .nm{font-weight:700;overflow-wrap:anywhere}
@@ -601,7 +607,7 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     <div class="herebody"><div class="tabs" id="vInn" hidden></div><div id="vRows" style="display:flex;flex-direction:column;gap:8px"></div></div></div>
   <div class="bench herebox coll" data-vcoll="field"><button type="button" class="herehead" aria-expanded="true"><span><span class="lbl">Field by inning</span><span class="sum" id="vFpSum"></span></span><span class="pmicon" aria-hidden="true">&minus;</span></button>
     <div class="herebody"><div class="fpwrap"><table class="fp" id="vFp"></table></div>
-    <div class="fpkey"><span><i style="background:var(--if-fill)"></i>Infield</span><span><i style="background:var(--of-fill);box-shadow:inset 0 0 0 1.5px var(--of-ink)"></i>Outfield</span><span><i style="background:var(--bn)"></i>Bench</span><span>Sat · IF = innings on bench and in the infield</span></div></div></div>
+    <div class="fpkey"><span><i style="background:var(--if-fill)"></i>Infield</span><span><i style="background:var(--of-fill);box-shadow:inset 0 0 0 1.5px var(--of-ink)"></i>Outfield</span><span><i style="background:var(--bn)"></i>Bench</span></div></div></div>
   <p class="vnote" id="vNote">View only. Updates live.</p></div></div></div>
 <div id="setup" hidden><div class="page">
   <h2>NEW TEAM</h2>
@@ -3205,13 +3211,14 @@ function showView(sid){
     const cols=Array.isArray(data.cols)?data.cols:[], rows=data.rows||[], same=data.same!==undefined?!!data.same:cols.length<2; if(col>=cols.length)col=0;
     const ti=V("vInn"); ti.hidden=same||cols.length<2; ti.innerHTML=""; if(!ti.hidden) cols.forEach((c,i)=>{const b=document.createElement("button"); b.type="button"; b.textContent="Inn "+c; b.setAttribute("aria-selected",i===col); b.onclick=()=>{col=i;draw()}; ti.appendChild(b)});
     V("vOrdSum").textContent=rows.length+" batters";
-    const R=V("vRows"); R.innerHTML=""; rows.forEach((r,i)=>{ const d=document.createElement("div"); d.className="vrow"; d.innerHTML="<b></b><span></span><em class='vpos'></em>";
-      d.querySelector("b").textContent=i+1; d.querySelector("span").textContent=(r[0]?"#"+r[0]+"  ":"")+r[1]; const ps=(r[2]||[])[same?0:col]; const pe=d.querySelector(".vpos"); if(ps)pe.textContent=ps==="BN"?"Bench":ps; else pe.remove(); R.appendChild(d) });
+    const R=V("vRows"); R.innerHTML=""; rows.forEach((r,i)=>{ const d=document.createElement("div"); d.className="vrow"; d.innerHTML="<b></b><span></span><i></i><em class='vpos'></em>";
+      d.querySelector("b").textContent=i+1; d.querySelector("span").textContent=r[1]; d.querySelector("i").textContent=r[0]?"#"+r[0]:""; const ps=(r[2]||[])[same?0:col]; const pe=d.querySelector(".vpos");
+      if(ps){ pe.textContent=ps; pe.className="vpos "+(ps==="BN"?"bn":ps==="P"?"pit":ps==="C"?"cat":["1B","2B","3B","SS"].includes(ps)?"inf":"of") } else pe.style.visibility="hidden"; R.appendChild(d) });
     const INFS=new Set(["P","C","1B","2B","3B","SS"]), F=V("vFp"); F.innerHTML="";
-    const tr=document.createElement("tr"); tr.innerHTML="<th></th>"+cols.map(c=>"<th>"+(+c)+"</th>").join("")+"<th>Sat</th><th>IF</th>"; F.appendChild(tr);
+    const tr=document.createElement("tr"); tr.innerHTML="<th></th>"+cols.map(c=>"<th>"+(+c)+"</th>").join(""); F.appendChild(tr);
     rows.forEach(r=>{ const t=document.createElement("tr"); const n=document.createElement("td"); n.className="n"; n.textContent=String(r[1]||"").split(" ")[0]; t.appendChild(n); let sat=0, inf=0;
       cols.forEach((c,i)=>{ const k=(r[2]||[])[i]||""; const d=document.createElement("td"); d.className="c "+(!k?"un":k==="BN"?"bn":k==="P"?"inf pit":k==="C"?"inf cat":INFS.has(k)?"inf":"of"); d.textContent=k||"-"; if(k==="BN")sat++; if(INFS.has(k))inf++; t.appendChild(d) });
-      [sat,inf].forEach(v=>{const d=document.createElement("td"); d.className="s"; d.textContent=v; t.appendChild(d)}); F.appendChild(t) });
+      F.appendChild(t) });
     V("vFpSum").textContent=cols.length===1?"Inning "+cols[0]:cols.length+" innings planned";
     V("vNote").textContent="View only. Updates live as the coaches make changes." };
   document.querySelectorAll("#view [data-vcoll]").forEach(box=>{ const id=box.dataset.vcoll, head=box.querySelector(".herehead"), body=box.querySelector(".herebody"), pm=box.querySelector(".pmicon");
