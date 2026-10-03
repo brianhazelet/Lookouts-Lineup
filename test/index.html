@@ -189,6 +189,22 @@ button.chip{color:var(--fg)}
 .memrow .acts{display:flex;gap:6px;flex-wrap:wrap}
 .memrow .acts button{text-align:center;justify-content:center;flex:1 1 30%;min-width:0;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:700 14px var(--body)}
 .memrow .acts button[aria-pressed="true"],.memrow .acts .pri,.memrow .acts .arm{background:var(--red);color:var(--on-red);border-color:transparent}
+.mcard{display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);text-align:left}
+.mcard h3{margin:0;font:800 17px var(--body);text-transform:none;letter-spacing:0;color:var(--fg)}
+.mcard p{margin:0;color:var(--muted);font-size:14px;line-height:1.4}
+.mcard .go,.mcard .ghost{padding:12px;font-size:17px}
+.mcard .linkbtn{align-self:flex-start;padding:0}
+.mcard .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mcard .tabs{flex:none}
+.pperson{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.pperson .nm{font:700 16px var(--body);overflow-wrap:anywhere}
+.pperson .em{font-size:12px;color:var(--muted);overflow-wrap:anywhere;grid-column:1}
+.pperson select{background:var(--surface2);border:1px solid var(--line);border-radius:10px;color:var(--fg);font:700 14px var(--body);padding:8px 10px;grid-row:1/3;grid-column:2}
+.pperson .tag{grid-row:1/3;grid-column:2;font:700 13px var(--body);color:var(--muted)}
+.pperson .acts{grid-column:1/-1;display:flex;gap:6px;margin-top:6px}
+.pperson .acts button{flex:1;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);font:700 14px var(--body);text-align:center}
+.pperson .acts .pri{background:var(--red);color:var(--on-red);border-color:transparent}
+.pperson .acts .x{flex:0 0 46px}
 .badge{display:inline-block;min-width:20px;padding:1px 7px;border-radius:10px;background:var(--red);color:var(--on-red);font:800 12px var(--body);margin-left:8px;vertical-align:1px}
 .memhd{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:4px 0 0}
 body.ro #micBtn{display:none!important}
@@ -923,6 +939,16 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     <div class="row2"><button class="ghost" type="button" id="tsCancel">Cancel</button><button class="go" type="button" id="tsSave" style="font-size:20px;padding:12px">Save</button></div>
     <div class="or">this phone</div>
     <button class="ghost" type="button" id="tsSwitch" style="padding:12px">Switch to a different team</button>
+    <div id="tsHead" style="display:flex;flex-direction:column;gap:8px">
+      <p class="memhd">Head coach</p>
+      <div class="menu">
+      <button type="button" id="acHandoff"><span>Hand off head coach</span><small>Makes a one-time link</small></button>
+      <button type="button" id="acStep"><span>Step down as head coach</span><small>You stay on as an assistant coach</small></button>
+      <button type="button" id="acBackup"><span>Restore a backup</span><small>Daily copies of the schedule, roster and settings</small></button>
+      <div class="menu" id="acBkList" hidden></div>
+      <button type="button" id="acDelete"><span>Delete this team</span><small>Can't be undone</small></button>
+      </div>
+    </div>
   </div>
 </div>
 <div id="acct" hidden style="position:fixed;inset:0;z-index:15;display:flex;flex-direction:column;justify-content:flex-end">
@@ -946,24 +972,10 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     <p class="msg" id="acMsg" style="margin:0;color:var(--red-ink);text-align:center"></p>
     <div class="menu" id="acTeam" hidden>
       <button type="button" id="acSettings"><span>Team settings</span><small id="acSetNote"></small></button>
-      <button type="button" id="acShare"><span>Invite a coach</span><small>They sign in, then the head coach approves them</small></button>
+      <button type="button" id="acPeople" hidden><span>People<span class="badge" id="acReqN" hidden></span></span><small id="acPeopleNote">Approve coaches, change roles</small></button>
+      <button type="button" id="acShare"><span>Share and invite</span><small>Lineup link for parents, invite a coach</small></button>
       <button type="button" id="acSwitch"><span>Switch team</span></button>
     </div>
-    <div class="bench herebox coll" data-coll="owner" id="acOwner" hidden>
-      <button type="button" class="herehead" aria-expanded="false"><span><span class="lbl">Head coach</span><span class="sum">Members, view link, Watch, hand off</span><span class="badge" id="acReqN2" hidden></span></span><span class="pmicon" aria-hidden="true">+</span></button>
-      <div class="herebody" hidden><div class="menu">
-      <button type="button" id="acMembers"><span>Team members<span class="badge" id="acReqN" hidden></span></span><small>Approve requests, change roles</small></button>
-      <div id="acMemList" hidden style="display:flex;flex-direction:column;gap:8px"></div>
-      <button type="button" id="acView"><span>View-only lineup link</span><small id="acViewNote">Batting order and positions, no sign-in</small></button>
-      <div id="acViewBox" hidden style="display:flex;flex-direction:column;gap:8px"></div>
-      <button type="button" id="acWatch"><span>Apple Watch Shortcut</span><small>Copies your private Shortcut link</small></button>
-      <div id="acWatchBox" hidden></div>
-      <button type="button" id="acHandoff"><span>Hand off head coach</span><small>Makes a one-time link</small></button>
-      <button type="button" id="acStep"><span>Step down as head coach</span><small>Leaves the spot open</small></button>
-      <button type="button" id="acBackup"><span>Restore a backup</span><small>Daily copies of the schedule, roster and settings</small></button>
-      <div class="menu" id="acBkList" hidden></div>
-      <button type="button" id="acDelete"><span>Delete this team</span><small>Can't be undone</small></button>
-    </div></div></div>
     <div id="acMine" hidden style="display:flex;flex-direction:column;gap:6px">
       <span class="lbl" style="color:var(--muted)">Your teams</span>
       <div class="menu teamcards" id="acMineList"></div>
@@ -978,6 +990,15 @@ body.navtop #app>.pagedots{order:-1;top:0;bottom:auto;margin:-12px -16px 0;paddi
     <div class="row2"><button class="ghost" type="button" id="acSignOut" hidden style="padding:12px">Sign out</button><button class="ghost" type="button" id="acClose" style="padding:12px">Close</button></div>
     <p class="sub" id="acUid" hidden style="margin:0;text-align:center;font-size:11px;cursor:pointer;overflow-wrap:anywhere"></p>
     <p class="sub" id="appVer" style="margin:0;text-align:center;font-size:12px">Buddy Dugout 3.2</p>
+  </div>
+</div>
+<div id="mgr" hidden style="position:fixed;inset:0;z-index:16;display:flex;flex-direction:column;justify-content:flex-end">
+  <div class="scrim" id="mgScrim"></div>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="mgTitle">
+    <h2 id="mgTitle"></h2>
+    <div id="mgBody" style="display:flex;flex-direction:column;gap:12px"></div>
+    <p class="msg" id="mgMsg" style="margin:0;color:var(--red-ink);text-align:center"></p>
+    <button class="ghost" type="button" id="mgDone" style="padding:12px">Done</button>
   </div>
 </div>
 <div id="sheet" hidden>
@@ -1717,7 +1738,7 @@ function openTeamSheet(){
   colorPicker($("tsC1"),tsColors.p,v=>{tsColors.p=v;applyTheme(tsColors)});
   colorPicker($("tsC2"),tsColors.s,v=>{tsColors.s=v;applyTheme(tsColors)},true);
   tsRows=LINEUP.map((p,i)=>({id:i,pk:p[4]||null,name:p[0],num:p[1],hidden:!!p[2],guest:!!p[3],avoid:[...(AVOID[i]||[])],open:false})).filter(r=>!r.guest);
-  $("tsLgSt").value=tsColors.lgSt||tsColors.lgBr||tsColors.league||""; $("tsLgSch").value=tsColors.lgSch||""; drawTsRows(); drawTsInn(); drawTsRules(); drawTsRes(); drawTsRbi(); drawTsTee(); $("teamSheet").hidden=false;
+  try{$("tsHead").hidden=!(USER&&TEAM.owner===USER.uid||window.TEAMCTX&&USER&&TEAMCTX.owner===USER.uid)}catch(e){} $("tsLgSt").value=tsColors.lgSt||tsColors.lgBr||tsColors.league||""; $("tsLgSch").value=tsColors.lgSch||""; drawTsRows(); drawTsInn(); drawTsRules(); drawTsRes(); drawTsRbi(); drawTsTee(); $("teamSheet").hidden=false;
 }
 function drawTsInn(){ const cur=String(tsColors.inn||4); document.querySelectorAll("#tsInn button").forEach(b=>{b.setAttribute("aria-selected",b.dataset.v===cur); b.onclick=()=>{ if(b.dataset.v==="4")delete tsColors.inn; else tsColors.inn=+b.dataset.v; drawTsInn() }}) }
 function drawTsRules(){
@@ -2980,7 +3001,7 @@ function renderAcct(){
   { const uidEl=el("acUid"); if(uidEl){ uidEl.hidden=!USER; if(USER){ uidEl.textContent="User ID: "+USER.uid+" (tap to copy)"; uidEl.onclick=async()=>{try{await navigator.clipboard.writeText(USER.uid);toast("User ID copied")}catch(e){}} } } }
   const T=window.TEAMCTX; el("acTeam").hidden=!T;
   if(T){ el("acSetNote").textContent=!USER?"Sign in":(T.owner===USER.uid?"Head coach":(IS_ADMIN?"Admin":(!T.owner&&window.ROLE==="coach"?"Claim as head coach":(window.ROLE==="manager"?"Team manager":"Assistant coach")))) }
-  el("acOwner").hidden=!(T&&USER&&T.owner===USER.uid); if(T&&USER&&(T.owner===USER.uid||IS_ADMIN)){ try{wireMembers(T)}catch(e){} }
+  el("acPeople").hidden=!isHead(T); if(isHead(T)){ try{wireMembers(T)}catch(e){} } el("acSettings").hidden=!!(T&&USER&&!isHead(T)&&!(!T.owner&&window.ROLE==="coach"));
   el("acMine").hidden=!(USER&&MYTEAMS.length);
   const fill=(ml,inGate)=>{ ml.innerHTML="";
     MYTEAMS.forEach(t=>{const b=document.createElement("button");b.type="button";
@@ -2996,7 +3017,7 @@ function renderAcct(){
     const gc=document.getElementById("gateMsg"); if(gc&&USER&&MYTEAMS.length&&/Enter your team code/.test(gc.textContent)) gc.textContent="Pick a team, or enter a code for a new one." }
   el("acTitle").textContent=USER?"Account":"Sign in";
 }
-function acMsg(t){el("acMsg").textContent=t||""}
+function acMsg(t){el("acMsg").textContent=t||""; if(t&&el("acct").hidden)alertMsg(t)}
 function openAcct(why,then){ initAuth(); acMsg(""); if(why)el("acWhy").textContent=why; afterSignIn=then||null; renderAcct(); el("acct").hidden=false }
 function closeAcct(){ el("acct").hidden=true; afterSignIn=null }
 function authErr(e){const c=(e&&e.code)||"";
@@ -3046,12 +3067,9 @@ function wireAcct(){
     location.href=location.pathname;
   };
   el("acSwitch").onclick=()=>{try{localStorage.removeItem("dugout-team")}catch(e){} location.href=location.pathname};
-  el("acShare").onclick=()=>{const T=window.TEAMCTX; if(T){closeAcct(); shareLink(T.code,T.name())}};
-  /* team members: approve requests, change roles, remove */
-  let memOn=false, memRefs=[];
-  el("acMembers").onclick=()=>{ memOn=!memOn; el("acMemList").hidden=!memOn; if(memOn)drawMembers() };
-  el("acView").onclick=()=>{ const b=el("acViewBox"); b.hidden=!b.hidden; if(!b.hidden)drawView() };
-  el("acWatch").onclick=()=>{ const b=el("acWatchBox"); b.hidden=!b.hidden; if(!b.hidden)drawWatch() };
+  el("acShare").onclick=()=>{ if(window.TEAMCTX)openMgr("share") };
+  el("acPeople").onclick=()=>openMgr("people");
+  el("mgDone").onclick=closeMgr; el("mgScrim").onclick=closeMgr;
 
   el("acSettings").onclick=async()=>{const T=window.TEAMCTX; if(!T)return;
     const go=async()=>{ if(!T.owner&&!IS_ADMIN&&window.ROLE==="coach"){ try{await T.ref.child("owner").set(USER.uid); T.owner=USER.uid; await indexTeam(T.code,T.name())}catch(e){return acMsg("Couldn't claim this team. Check your connection.")} }
@@ -3061,58 +3079,66 @@ function wireAcct(){
     go(); };
 }
 
-/* ---- 3.2 members (head coach) ---- */
-let MEMS={}, REQS={}, memWired=null;
-function roleName(r){return r==="manager"?"Team manager":"Assistant coach"}
-function wireMembers(T){ if(!T||!USER||!(T.owner===USER.uid||IS_ADMIN))return; if(memWired===T.code)return; memWired=T.code;
-  T.ref.child("members").on("value",s=>{MEMS=s.val()||{}; drawMembers()},()=>{});
-  T.ref.child("requests").on("value",s=>{REQS=s.val()||{}; const n=Object.keys(REQS).length;
-    ["acReqN","acReqN2"].forEach(id=>{const b=el(id); if(b){b.hidden=!n; b.textContent=n}}); drawMembers()},()=>{}) }
-function drawMembers(){ const box=el("acMemList"); const T=window.TEAMCTX; if(!box||box.hidden||!T)return; box.innerHTML="";
-  const row=(nm,em,acts)=>{ const d=document.createElement("div"); d.className="memrow"; d.innerHTML='<div><div class="nm"></div><div class="em"></div></div><div class="acts"></div>';
-    d.querySelector(".nm").textContent=nm; d.querySelector(".em").textContent=em||""; acts.forEach(a=>{const b=document.createElement("button"); b.type="button"; b.textContent=a.l; if(a.on)b.setAttribute("aria-pressed","true"); if(a.pri)b.className="pri"; b.onclick=()=>a.f(b); d.querySelector(".acts").appendChild(b)}); if(!acts.length)d.querySelector(".acts").remove(); box.appendChild(d) };
-  const hd=t=>{const h=document.createElement("p"); h.className="memhd"; h.textContent=t; box.appendChild(h)};
-  const up=async o=>{ try{await T.ref.update(o)}catch(e){acMsg("Couldn't save that. Make sure the latest database rules are published.")} };
-  const rq=Object.entries(REQS);
-  if(rq.length){ hd("Waiting for you");
-    rq.sort((a,b)=>(a[1].at||0)-(b[1].at||0)).forEach(([uid,r])=>{ const info={n:String(r.n||"Coach").slice(0,60),e:String(r.e||"").slice(0,120)};
-      row(info.n,info.e,[{l:"Assistant coach",pri:1,f:()=>up({["members/"+uid]:{r:"coach",...info},["requests/"+uid]:null})},
-        {l:"Team manager",pri:1,f:()=>up({["members/"+uid]:{r:"manager",...info},["requests/"+uid]:null})},
-        {l:"Deny",f:b=>{ if(!b.classList.contains("arm")){b.classList.add("arm");b.textContent="Tap to deny";setTimeout(()=>{b.classList.remove("arm");b.textContent="Deny"},4000);return} up({["requests/"+uid]:null}) }}]) }) }
-  hd("On the team");
-  row((T.owner===USER.uid?"You":"Head coach"),T.owner===USER.uid?(USER.email||""):"",[]);
-  const ms=Object.entries(MEMS).filter(([uid])=>uid!==T.owner).sort((a,b)=>String(a[1].n).localeCompare(String(b[1].n)));
-  ms.forEach(([uid,m])=>{ row(String(m.n||"Coach")+(uid===USER.uid?" (you)":""),String(m.e||""),[
-    {l:"Assistant coach",on:m.r==="coach",f:()=>m.r!=="coach"&&up({["members/"+uid+"/r"]:"coach"})},
-    {l:"Team manager",on:m.r==="manager",f:()=>m.r!=="manager"&&up({["members/"+uid+"/r"]:"manager"})},
-    {l:"Remove",f:b=>{ if(!b.classList.contains("arm")){b.classList.add("arm");b.textContent="Tap to remove";setTimeout(()=>{b.classList.remove("arm");b.textContent="Remove"},4000);return} up({["members/"+uid]:null}) }}]) });
-  if(!ms.length&&!rq.length){ const p=document.createElement("p"); p.className="sub"; p.style.margin="0"; p.textContent="No one else yet. Tap Invite a coach, send them the link, and their request shows up here."; box.appendChild(p) }
+/* ---- 3.2 People and Share screens ---- */
+let MEMS={}, REQS={}, memWired=null, MG=null;
+const isHead=T=>!!(T&&USER&&(T.owner===USER.uid||IS_ADMIN));
+function mgMsg(t){ el("mgMsg").textContent=t||"" }
+function openMgr(kind){ MG=kind; closeAcct(); mgMsg(""); el("mgTitle").textContent=kind==="people"?"People":"Share and invite"; el("mgr").hidden=false; drawMgr() }
+function closeMgr(){ el("mgr").hidden=true; MG=null }
+function drawMgr(){ if(!MG||el("mgr").hidden)return; try{ MG==="people"?drawPeople():drawShare() }catch(e){} }
+function wireMembers(T){ if(!isHead(T)||memWired===T.code)return; memWired=T.code;
+  T.ref.child("members").on("value",s=>{MEMS=s.val()||{}; peopleNote(); drawMgr()},()=>{});
+  T.ref.child("requests").on("value",s=>{REQS=s.val()||{}; const n=Object.keys(REQS).length; const b=el("acReqN"); if(b){b.hidden=!n; b.textContent=n} peopleNote(); drawMgr()},()=>{}) }
+function peopleNote(){ const n=el("acPeopleNote"); if(!n)return; const m=Object.values(MEMS), r=Object.keys(REQS).length;
+  n.textContent=r?(r+" waiting for you"):(m.length?(m.filter(x=>x.r==="coach").length+" coaches, "+m.filter(x=>x.r==="manager").length+" manager"+(m.filter(x=>x.r==="manager").length===1?"":"s")):"Approve coaches, change roles") }
+const mk=(tag,cls,txt)=>{const e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e};
+async function teamUp(o,okMsg){ const T=window.TEAMCTX; try{ await T.ref.update(o); mgMsg(""); if(okMsg)alertMsg(okMsg) }catch(e){ mgMsg("Couldn't save that. Make sure the latest database rules are published.") } }
+function drawPeople(){ const B=el("mgBody"), T=window.TEAMCTX; B.innerHTML=""; if(!T)return;
+  const rq=Object.entries(REQS).sort((a,b)=>(a[1].at||0)-(b[1].at||0));
+  if(rq.length){ B.appendChild(mk("p","memhd","Waiting for you"));
+    rq.forEach(([uid,r])=>{ const info={n:String(r.n||"Coach").slice(0,60),e:String(r.e||"").slice(0,120)};
+      const c=mk("div","pperson"); c.appendChild(mk("div","nm",info.n)); c.appendChild(mk("div","em",info.e));
+      const a=mk("div","acts"); const btn=(t,cls,f)=>{const b=mk("button",cls,t); b.type="button"; b.onclick=f; a.appendChild(b); return b};
+      btn("Assistant coach","pri",()=>teamUp({["members/"+uid]:{r:"coach",...info},["requests/"+uid]:null},info.n+" added"));
+      btn("Team manager","pri",()=>teamUp({["members/"+uid]:{r:"manager",...info},["requests/"+uid]:null},info.n+" added"));
+      const x=btn("×","x",()=>{ if(!x.classList.contains("pri")){ x.classList.add("pri"); x.textContent="Deny"; x.style.flex="0 0 70px"; setTimeout(()=>{x.classList.remove("pri");x.textContent="×";x.style.flex=""},4000); return } teamUp({["requests/"+uid]:null}) });
+      x.setAttribute("aria-label","Deny "+info.n); c.appendChild(a); B.appendChild(c) }) }
+  B.appendChild(mk("p","memhd","On the team"));
+  const me=mk("div","pperson"); me.appendChild(mk("div","nm",T.owner===USER.uid?"You":"Head coach")); me.appendChild(mk("div","em",T.owner===USER.uid?(USER.email||""):"")); me.appendChild(mk("span","tag","Head coach")); B.appendChild(me);
+  Object.entries(MEMS).filter(([uid])=>uid!==T.owner).sort((a,b)=>String(a[1].n).localeCompare(String(b[1].n))).forEach(([uid,m])=>{
+    const c=mk("div","pperson"); c.appendChild(mk("div","nm",String(m.n||"Coach")+(uid===USER.uid?" (you)":""))); c.appendChild(mk("div","em",String(m.e||"")));
+    const sel=mk("select"); sel.setAttribute("aria-label","Role for "+(m.n||"coach"));
+    [["coach","Assistant coach"],["manager","Team manager"],["x","Remove from team"]].forEach(([v,t])=>{const o=mk("option",null,t); o.value=v; sel.appendChild(o)}); sel.value=m.r==="manager"?"manager":"coach";
+    sel.onchange=()=>{ if(sel.value==="x"){ sel.value=m.r; const a=mk("div","acts"); const no=mk("button",null,"Keep"); no.type="button"; const yes=mk("button","pri","Remove "+String(m.n||"").split(" ")[0]); yes.type="button";
+        no.onclick=()=>a.remove(); yes.onclick=()=>teamUp({["members/"+uid]:null},(m.n||"Coach")+" removed"); a.append(no,yes); c.querySelector(".acts")||c.appendChild(a); return }
+      teamUp({["members/"+uid+"/r"]:sel.value}) };
+    c.appendChild(sel); B.appendChild(c) });
+  const inv=mk("button","go","Invite a coach"); inv.type="button"; inv.style.padding="12px"; inv.onclick=()=>{ closeMgr(); shareLink(T.code,T.name()) }; B.appendChild(inv);
+  B.appendChild(mk("p","sub","Send the invite link. They sign in and show up under Waiting for you."));
 }
-/* view-only lineup link (head coach) */
-function panel(box){ box.innerHTML=""; const d=document.createElement("div"); d.className="memrow"; d.innerHTML='<div class="em" style="font-size:13px;line-height:1.4"></div><div class="acts"></div>'; box.appendChild(d);
-  return {p:d.querySelector(".em"),btn:(t,f,cls)=>{const b=document.createElement("button"); b.type="button"; if(cls==="go")b.className="pri"; b.textContent=t; b.onclick=f; d.querySelector(".acts").appendChild(b); return b}} }
-function drawView(){ const box=el("acViewBox"), T=window.TEAMCTX; if(!box||box.hidden||!T)return; const sid=window.__teamSid&&__teamSid();
-  const {p,btn}=panel(box);
-  if(!sid){ p.textContent="Anyone with this link sees the batting order and field positions, with first names and last initials. Nothing else, and they can't change anything.";
-    btn("Turn on view-only link",async()=>{ const n=newCode()+newCode().slice(0,8); try{await T.ref.child("sid").set(n); setTimeout(drawView,300)}catch(e){acMsg("Couldn't turn it on. Make sure the latest database rules are published.")} },"go"); return }
-  p.textContent="On. Share it in the team chat. Making a new link stops the old one from working.";
-  btn("Share view-only link",()=>{closeAcct(); window.__shareView&&__shareView()},"go");
-  btn("Make a new link",async()=>{ const n=newCode()+newCode().slice(0,8); try{await T.db.ref().update({["teams/"+T.code+"/sid"]:n,["pub/"+sid]:null}); setTimeout(drawView,300); acMsg("New link made. The old one no longer works.")}catch(e){acMsg("Couldn't change the link.")} });
-  btn("Turn off",async()=>{ try{await T.db.ref().update({["teams/"+T.code+"/sid"]:null,["pub/"+sid]:null}); setTimeout(drawView,300)}catch(e){acMsg("Couldn't turn it off.")} });
+function drawShare(){ const B=el("mgBody"), T=window.TEAMCTX; B.innerHTML=""; if(!T)return; const head=isHead(T), sid=window.__teamSid&&__teamSid(), key=window.__teamWkey&&__teamWkey();
+  const card=(title,text)=>{ const c=mk("div","mcard"); const r=mk("div","row"); r.appendChild(mk("h3",null,title)); c.appendChild(r); if(text)c.appendChild(mk("p",null,text)); B.appendChild(c); return {c,r} };
+  const btn=(c,t,cls,f)=>{ const b=mk("button",cls,t); b.type="button"; b.onclick=f; c.appendChild(b); return b };
+  const newKey=()=>newCode()+newCode().slice(0,8);
+  // 1. lineup for parents
+  { const {c,r}=card("Lineup for parents","Batting order and field positions, with first names and last initials. No sign-in, and nothing else in the app.");
+    if(head){ const tb=mk("div","tabs"); [["1","On"],["0","Off"]].forEach(([v,t])=>{const b=mk("button",null,t); b.type="button"; b.dataset.v=v; b.setAttribute("aria-selected",(v==="1")===!!sid);
+        b.onclick=async()=>{ if((v==="1")===!!sid)return; try{ if(v==="1") await T.ref.child("sid").set(newKey()); else await T.db.ref().update({["teams/"+T.code+"/sid"]:null,["pub/"+sid]:null}); mgMsg("") }catch(e){ mgMsg("Couldn't change that. Make sure the latest database rules are published.") } };
+        tb.appendChild(b)}); r.appendChild(tb) }
+    if(sid){ btn(c,"Share lineup link","go",()=>{ closeMgr(); window.__shareView&&__shareView() });
+      if(head) btn(c,"New link (the old one stops working)","linkbtn",async()=>{ try{ await T.db.ref().update({["teams/"+T.code+"/sid"]:newKey(),["pub/"+sid]:null}); alertMsg("New link made") }catch(e){ mgMsg("Couldn't make a new link.") } }) }
+    else if(!head) c.appendChild(mk("p",null,"The head coach can turn this on.")) }
+  // 2. invite a coach
+  if(window.ROLE!=="manager"){ const {c}=card("Invite a coach",head?"They sign in with the link, then you approve them in People.":"They sign in with the link, then the head coach approves them.");
+    btn(c,"Share invite link","ghost",()=>{ closeMgr(); shareLink(T.code,T.name()) }) }
+  // 3. Apple Watch (head coach)
+  if(head){ const {c}=card("Apple Watch Shortcut",key?"In the Shortcuts app, open your Buddy Dugout shortcut. In the Get Contents of URL step, replace the old link with this one.":"Makes a private link for your Watch Shortcut. Keep it to yourself: anyone with it can tap Next, Out and Run.");
+    if(key){ const url=FB.databaseURL+"/remote/"+T.code+"/"+key+".json";
+      btn(c,"Copy Shortcut link","ghost",async()=>{ try{await navigator.clipboard.writeText(url); alertMsg("Shortcut link copied")}catch(e){ mgMsg(url) } });
+      btn(c,"New key (the old Shortcut link stops working)","linkbtn",async()=>{ try{await T.ref.child("wkey").set(newKey())}catch(e){ mgMsg("Couldn't make a new key.") } }) }
+    else btn(c,"Set up Shortcut link","ghost",async()=>{ try{await T.ref.child("wkey").set(newKey())}catch(e){ mgMsg("Couldn't make the key. Make sure the latest database rules are published.") } }) }
 }
-window.__renderView=()=>{ try{drawView()}catch(e){} };
-/* Apple Watch Shortcut key (head coach) */
-function drawWatch(){ const box=el("acWatchBox"), T=window.TEAMCTX; if(!box||box.hidden||!T)return;
-  const key=window.__teamWkey&&__teamWkey(); const {p,btn}=panel(box);
-  const make=async()=>{ const n=newCode()+newCode().slice(0,8); try{await T.ref.child("wkey").set(n); setTimeout(drawWatch,300)}catch(e){acMsg("Couldn't make the key. Make sure the latest database rules are published.")} };
-  if(!key){ p.textContent="Makes a private link for your Watch Shortcut. Anyone with it can tap Next, Out and Run for this team, so keep it to yourself."; btn("Make Shortcut link",make,"go"); return }
-  const url=FB.databaseURL+"/remote/"+T.code+"/"+key+".json";
-  p.textContent="In the Shortcuts app, open your Buddy Dugout shortcut. In the Get Contents of URL step, replace the old link with this one. Leave everything else the same.";
-  btn("Copy Shortcut link",async()=>{ try{await navigator.clipboard.writeText(url); acMsg("Shortcut link copied")}catch(e){acMsg(url)} },"go");
-  btn("Make a new key",make);
-}
-window.__renderWatch=()=>{ try{drawWatch()}catch(e){} };
-
+window.__renderView=()=>drawMgr(); window.__renderWatch=()=>drawMgr();
 /* ---- 3.2 join: sign in, then ask the head coach ---- */
 function wipeTeam(code){ try{ Object.keys(localStorage).filter(k=>k.endsWith("@"+code)).forEach(k=>localStorage.removeItem(k)) }catch(e){} }
 async function accessOf(code,u){
@@ -3170,7 +3196,7 @@ function showView(sid){
     applyTheme(data.k?{p:data.k,s:data.ks||"#ffffff"}:CLASSIC); const h=V("vHead"); h.style.background=data.k||"var(--red)"; h.style.color="var(--on-red)";
     V("vName").textContent=String(data.n||"Team").toUpperCase(); V("vSub").textContent=[data.o?"vs "+data.o:"",data.w||""].filter(Boolean).join("  ·  ");
     const cols=Array.isArray(data.cols)?data.cols:[]; if(col>=cols.length)col=0;
-    const ti=V("vInn"); ti.hidden=cols.length<2; ti.innerHTML=""; cols.forEach((c,i)=>{const b=document.createElement("button"); b.type="button"; b.textContent="Inn "+c; if(i===col)b.setAttribute("aria-pressed","true"); b.className=i===col?"on":""; b.onclick=()=>{col=i;draw()}; ti.appendChild(b)});
+    const ti=V("vInn"); ti.hidden=cols.length<2; ti.innerHTML=""; cols.forEach((c,i)=>{const b=document.createElement("button"); b.type="button"; b.textContent="Inn "+c; b.setAttribute("aria-selected",i===col); b.onclick=()=>{col=i;draw()}; ti.appendChild(b)});
     const R=V("vRows"); R.innerHTML=""; (data.rows||[]).forEach((r,i)=>{ const d=document.createElement("div"); d.className="vrow"; d.innerHTML="<b></b><span></span><em class='vpos'></em>";
       d.querySelector("b").textContent=i+1; d.querySelector("span").textContent=(r[0]?"#"+r[0]+"  ":"")+r[1]; const ps=(r[2]||[])[col]; const pe=d.querySelector(".vpos"); if(ps)pe.textContent=ps==="BN"?"Bench":ps; else pe.remove(); R.appendChild(d) });
     V("vNote").textContent="View only. Updates live as the coaches make changes." };
